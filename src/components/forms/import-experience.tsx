@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, SectionHeading } from "@/components/ui/surfaces";
 import {
@@ -15,6 +15,12 @@ const examples: Record<ImportTarget, string> = {
   products: `sku,name,category,unit,yield_quantity,material_name,material_unit,material_quantity\nCANDLE-01,Signature Candle,home goods,each,12,Soy Wax,g,1200\nCANDLE-01,Signature Candle,home goods,each,12,Fragrance Oil,g,120\nGIFT-SET,Gift Set,bundles,each,8,Gift Box Insert,each,8`,
   orders: `order_number,client_name,due_date,status,product_sku,quantity\nORD-2001,Common Goods Market,2026-04-29,open,CANDLE-01,48\nORD-2001,Common Goods Market,2026-04-29,open,GIFT-SET,24`
 };
+
+const storageKeys = {
+  target: "smallbiz.import.target",
+  csv: "smallbiz.import.csv",
+  result: "smallbiz.import.result"
+} as const;
 
 function PreviewTable({ preview }: Readonly<{ preview: ImportPreview }>) {
   return (
@@ -63,11 +69,49 @@ export function ImportExperience() {
   const [csv, setCsv] = useState(examples.products);
   const [result, setResult] = useState<ImportPreview | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const preview = useMemo(
     () => (target === "products" ? parseProductImport(csv) : parseOrderImport(csv)),
     [csv, target]
   );
+
+  useEffect(() => {
+    try {
+      const savedTarget = window.sessionStorage.getItem(storageKeys.target);
+      const savedCsv = window.sessionStorage.getItem(storageKeys.csv);
+      const savedResult = window.sessionStorage.getItem(storageKeys.result);
+      if (savedTarget === "products" || savedTarget === "orders") {
+        setTarget(savedTarget);
+      }
+      if (savedCsv) {
+        setCsv(savedCsv);
+      }
+      if (savedResult) {
+        setResult(JSON.parse(savedResult) as ImportPreview);
+      }
+    } catch {
+      // Best effort only for local persistence.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem(storageKeys.target, target);
+      window.sessionStorage.setItem(storageKeys.csv, csv);
+      if (result) {
+        window.sessionStorage.setItem(storageKeys.result, JSON.stringify(result));
+      }
+    } catch {
+      // Ignore storage failures.
+    }
+  }, [target, csv, result]);
+
+  async function loadFile(file: File) {
+    const text = await file.text();
+    setCsv(text);
+    setStatus(`Loaded ${file.name}. Review preview before importing.`);
+  }
 
   async function importRows() {
     setStatus("Importing rows...");
@@ -106,6 +150,7 @@ export function ImportExperience() {
               onClick={() => {
                 setTarget(option);
                 setCsv(examples[option]);
+                setStatus(`Loaded ${option} template example.`);
               }}
               className={cls(
                 "rounded-full border px-4 py-2 text-sm transition",
@@ -124,6 +169,41 @@ export function ImportExperience() {
           </Link>
           <span>Paste CSV below to preview intake results.</span>
         </div>
+        <div
+          onDragOver={(event) => {
+            event.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setIsDragging(false);
+            const file = event.dataTransfer.files.item(0);
+            if (file) {
+              void loadFile(file);
+            }
+          }}
+          className={cls(
+            "mt-4 rounded-[1.2rem] border border-dashed px-4 py-3 text-sm",
+            isDragging ? "border-[var(--accent)] bg-white/80" : "border-[var(--line)] bg-white/55"
+          )}
+        >
+          <label className="block cursor-pointer">
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) {
+                  void loadFile(file);
+                }
+                event.currentTarget.value = "";
+              }}
+            />
+            Drop a CSV here or click to upload.
+          </label>
+        </div>
         <textarea
           value={csv}
           onChange={(event) => setCsv(event.target.value)}
@@ -139,6 +219,9 @@ export function ImportExperience() {
           </button>
           {status ? <p className="text-sm text-[var(--muted)]">{status}</p> : null}
         </div>
+        <p className="mt-3 text-xs text-[var(--muted)]">
+          Your latest target, CSV draft, and import report are kept for this browser session.
+        </p>
       </Card>
       <Card className="rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-6">
         <SectionHeading

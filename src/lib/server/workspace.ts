@@ -736,10 +736,11 @@ export async function saveProduct(ownerId: string, input: ProductInput) {
 
 export async function deleteProduct(ownerId: string, productId: string) {
   return mutateWorkspace(ownerId, (snapshot) => {
-    snapshot.products = snapshot.products.filter((product) => product.id !== productId);
-    for (const order of snapshot.orders) {
-      order.items = order.items.filter((item) => item.productId !== productId);
+    const linkedOrders = snapshot.orders.filter((order) => order.items.some((item) => item.productId === productId));
+    if (linkedOrders.length) {
+      throw new Error("Product is used by existing orders and cannot be deleted.");
     }
+    snapshot.products = snapshot.products.filter((product) => product.id !== productId);
   });
 }
 

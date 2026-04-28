@@ -20,7 +20,36 @@ const shortcuts = [
   }
 ] as const;
 
+type ChecklistStep = {
+  title: string;
+  done: boolean;
+  href: string;
+};
+
 export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+  const checklist: ChecklistStep[] = [
+    {
+      title: "Import products or orders",
+      done: snapshot.products.length > 0 || snapshot.orders.length > 0,
+      href: "/import"
+    },
+    {
+      title: "Review and edit your catalog",
+      done: snapshot.products.length > 0,
+      href: "/products"
+    },
+    {
+      title: "Create at least one order",
+      done: snapshot.orders.length > 0,
+      href: "/orders"
+    },
+    {
+      title: "Generate a purchasing plan",
+      done: snapshot.orders.some((order) => order.status === "open") && snapshot.products.length > 0,
+      href: "/purchasing"
+    }
+  ];
+
   return (
     <div className="space-y-5">
       <Card className="overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-0 shadow-[var(--shadow)]">
@@ -76,6 +105,24 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
           </Card>
         ))}
       </div>
+      <Card className="rounded-[1.75rem] border border-[var(--line)] bg-white/70 p-5">
+        <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">First-run checklist</p>
+        <h2 className="mt-2 font-[var(--font-display)] text-2xl">Complete the Revision 1 workflow</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {checklist.map((step) => (
+            <Link
+              key={step.title}
+              href={step.href}
+              className="flex items-center justify-between rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
+            >
+              <span>{step.title}</span>
+              <span className={step.done ? "text-[var(--sage-deep)]" : "text-[var(--muted)]"}>
+                {step.done ? "Done" : "Pending"}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }

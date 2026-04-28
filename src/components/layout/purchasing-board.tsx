@@ -13,6 +13,16 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
   return (
     <div className="space-y-6">
       <Card className="rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-6">
+        {!snapshot.orders.some((order) => order.status === "open") ? (
+          <p className="mb-4 rounded-[1rem] border border-[var(--line)] bg-white/70 p-4 text-sm text-[var(--muted)]">
+            No open orders yet. Add an order in Orders to generate required material quantities.
+          </p>
+        ) : null}
+        {!snapshot.products.length ? (
+          <p className="mb-4 rounded-[1rem] border border-[var(--line)] bg-white/70 p-4 text-sm text-[var(--muted)]">
+            Catalog is empty. Add products with formulas before generating a purchasing run.
+          </p>
+        ) : null}
         <div className="overflow-hidden rounded-[1.75rem] border border-[var(--line)] bg-white/70">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[var(--bg-strong)] text-[var(--muted)]">
@@ -51,6 +61,13 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
                   </td>
                 </tr>
               ))}
+              {!purchasingPlan.length ? (
+                <tr className="border-t border-[var(--line)]">
+                  <td className="px-4 py-4 text-sm text-[var(--muted)]" colSpan={4}>
+                    Purchasing plan is empty. Import or create products and open orders to populate this view.
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>

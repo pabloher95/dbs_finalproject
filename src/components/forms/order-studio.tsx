@@ -19,6 +19,8 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     quantity: "24"
   });
   const [status, setStatus] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [lastDeleted, setLastDeleted] = useState<Order | null>(null);
 
   const displaySnapshot = useMemo(() => ({ ...snapshot, orders }), [orders, snapshot]);
 
@@ -26,7 +28,34 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     setOrders(snapshot.orders);
   }, [snapshot.orders]);
 
+  const visibleOrders = useMemo(() => {
+    const key = search.trim().toLowerCase();
+    if (!key) return orders;
+    return orders.filter((order) =>
+      [order.orderNumber, order.clientName, order.status, order.dueDate].some((value) =>
+        value.toLowerCase().includes(key)
+      )
+    );
+  }, [orders, search]);
+
   async function saveOrder() {
+    if (!snapshot.clients.length) {
+      setStatus("Add a customer in Contacts before creating orders.");
+      return;
+    }
+    if (!snapshot.products.length) {
+      setStatus("Add a product in Catalog before creating orders.");
+      return;
+    }
+    if (!draft.orderNumber.trim()) {
+      setStatus("Order number is required.");
+      return;
+    }
+    if (Number(draft.quantity) <= 0) {
+      setStatus("Quantity must be greater than zero.");
+      return;
+    }
+
     setStatus("Saving order...");
     const response = await fetch("/api/orders", {
       method: "POST",
@@ -48,6 +77,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     }
 
     setOrders(data.snapshot.orders);
+    setLastDeleted(null);
     setStatus("Order saved.");
     setDraft((current) => ({
       ...current,
@@ -58,6 +88,10 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
   }
 
   async function deleteOrder(order: Order) {
+    if (!window.confirm(`Delete ${order.orderNumber}?`)) {
+      return;
+    }
+
     setStatus(`Deleting ${order.orderNumber}...`);
     const response = await fetch("/api/orders", {
       method: "POST",
@@ -71,6 +105,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     }
 
     setOrders(data.snapshot.orders);
+    setLastDeleted(order);
     if (draft.id === order.id) {
       setDraft({
         id: "",
@@ -82,7 +117,39 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         quantity: "24"
       });
     }
-    setStatus("Order deleted.");
+    setStatus("Order deleted. You can undo this action.");
+    router.refresh();
+  }
+
+  async function undoDelete() {
+    if (!lastDeleted) return;
+    setStatus(`Restoring ${lastDeleted.orderNumber}...`);
+    const firstItem = lastDeleted.items[0];
+    if (!firstItem) {
+      setStatus("Cannot restore an order with no line items.");
+      return;
+    }
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: lastDeleted.id,
+        orderNumber: lastDeleted.orderNumber,
+        clientId: lastDeleted.clientId,
+        dueDate: lastDeleted.dueDate,
+        status: lastDeleted.status,
+        productId: firstItem.productId,
+        quantity: firstItem.quantity
+      })
+    });
+    const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
+    if (!response.ok || !data.snapshot) {
+      setStatus(data.error ?? "Unable to restore order.");
+      return;
+    }
+    setOrders(data.snapshot.orders);
+    setLastDeleted(null);
+    setStatus("Order restored.");
     router.refresh();
   }
 
@@ -103,6 +170,16 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               Start with the customer, choose the product, and set a due date so purchasing and production can react
               early.
             </p>
+            {!snapshot.clients.length ? (
+              <p className="mt-2 text-xs text-[var(--accent-deep)]">
+                No customers available yet. Add one in Contacts first.
+              </p>
+            ) : null}
+            {!snapshot.products.length ? (
+              <p className="mt-1 text-xs text-[var(--accent-deep)]">
+                No products available yet. Add one in Catalog before saving orders.
+              </p>
+            ) : null}
           </div>
           <input
             value={draft.orderNumber}
@@ -154,17 +231,41 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             <option value="open">open</option>
             <option value="fulfilled">fulfilled</option>
           </select>
-          <button className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white" type="submit">
+          <button
+            className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            type="submit"
+            disabled={!snapshot.clients.length || !snapshot.products.length}
+          >
             {draft.id ? "Update order" : "Save order"}
           </button>
+          {!snapshot.clients.length || !snapshot.products.length ? (
+            <p className="xl:col-span-6 text-xs text-[var(--muted)]">
+              Add at least one customer and product before submitting an order.
+            </p>
+          ) : null}
         </form>
         {status ? <p className="mt-4 text-sm text-[var(--muted)]">{status}</p> : null}
+        {lastDeleted ? (
+          <button
+            type="button"
+            className="mt-3 rounded-full border border-[var(--line)] px-4 py-2 text-sm"
+            onClick={() => void undoDelete()}
+          >
+            Undo last delete
+          </button>
+        ) : null}
       </Card>
       <OrdersBoard snapshot={displaySnapshot} />
       <Card className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-5">
         <h3 className="font-[var(--font-display)] text-2xl">Manage orders</h3>
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search orders by number, customer, status, or date"
+          className="mt-4 w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
+        />
         <div className="mt-4 space-y-3">
-          {orders.map((order) => (
+          {visibleOrders.map((order) => (
             <article key={order.id} className="rounded-[1.25rem] border border-[var(--line)] bg-[#fffdf9] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -202,6 +303,10 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               </div>
             </article>
           ))}
+          {!orders.length ? <p className="text-sm text-[var(--muted)]">No orders yet. Create one to generate purchasing demand.</p> : null}
+          {orders.length > 0 && !visibleOrders.length ? (
+            <p className="text-sm text-[var(--muted)]">No orders match your search.</p>
+          ) : null}
         </div>
       </Card>
     </div>

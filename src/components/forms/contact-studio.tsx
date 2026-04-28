@@ -18,6 +18,13 @@ export function ContactStudio({
   const [clientDraft, setClientDraft] = useState({ id: "", name: "", email: "", channel: "" });
   const [supplierDraft, setSupplierDraft] = useState({ id: "", name: "", email: "", category: "" });
   const [status, setStatus] = useState<string | null>(null);
+  const [clientSearch, setClientSearch] = useState("");
+  const [supplierSearch, setSupplierSearch] = useState("");
+  const [lastDeleted, setLastDeleted] = useState<
+    | { kind: "client"; data: Client }
+    | { kind: "supplier"; data: Supplier }
+    | null
+  >(null);
 
   useEffect(() => {
     setClients(initialClients);
@@ -27,7 +34,32 @@ export function ContactStudio({
     setSuppliers(initialSuppliers);
   }, [initialSuppliers]);
 
+  const visibleClients = clients.filter((client) =>
+    [client.name, client.email, client.channel].some((value) => value.toLowerCase().includes(clientSearch.toLowerCase()))
+  );
+  const visibleSuppliers = suppliers.filter((supplier) =>
+    [supplier.name, supplier.email, supplier.category].some((value) =>
+      value.toLowerCase().includes(supplierSearch.toLowerCase())
+    )
+  );
+
+  function isValidEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  }
+
   async function persistContact(kind: "client" | "supplier", draft: typeof clientDraft | typeof supplierDraft) {
+    const name = draft.name.trim();
+    const email = draft.email.trim();
+    const categoryValue = "channel" in draft ? draft.channel.trim() : draft.category.trim();
+    if (!name || !email || !categoryValue) {
+      setStatus("Name, email, and category/channel are required.");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setStatus("Please enter a valid email address.");
+      return;
+    }
+
     const response = await fetch("/api/contacts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,11 +73,18 @@ export function ContactStudio({
 
     setClients(data.snapshot.clients);
     setSuppliers(data.snapshot.suppliers);
+    setLastDeleted(null);
     setStatus(`${kind === "client" ? "Customer" : "Supplier"} saved.`);
     router.refresh();
   }
 
   async function removeContact(kind: "client" | "supplier", id: string) {
+    const record = kind === "client" ? clients.find((item) => item.id === id) : suppliers.find((item) => item.id === id);
+    if (!record) return;
+    if (!window.confirm(`Delete ${record.name}?`)) {
+      return;
+    }
+
     const response = await fetch("/api/contacts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -59,13 +98,43 @@ export function ContactStudio({
 
     setClients(data.snapshot.clients);
     setSuppliers(data.snapshot.suppliers);
+    setLastDeleted(kind === "client" ? { kind: "client", data: record } : { kind: "supplier", data: record });
     if (kind === "client" && clientDraft.id === id) {
       setClientDraft({ id: "", name: "", email: "", channel: "" });
     }
     if (kind === "supplier" && supplierDraft.id === id) {
       setSupplierDraft({ id: "", name: "", email: "", category: "" });
     }
-    setStatus(`${kind === "client" ? "Customer" : "Supplier"} deleted.`);
+    setStatus(`${kind === "client" ? "Customer" : "Supplier"} deleted. You can undo this action.`);
+    router.refresh();
+  }
+
+  async function undoDelete() {
+    if (!lastDeleted) return;
+    const payload =
+      lastDeleted.kind === "client"
+        ? { kind: "client", id: lastDeleted.data.id, name: lastDeleted.data.name, email: lastDeleted.data.email, channel: lastDeleted.data.channel }
+        : {
+            kind: "supplier",
+            id: lastDeleted.data.id,
+            name: lastDeleted.data.name,
+            email: lastDeleted.data.email,
+            category: lastDeleted.data.category
+          };
+    const response = await fetch("/api/contacts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = (await response.json()) as { snapshot?: { clients: Client[]; suppliers: Supplier[] }; error?: string };
+    if (!response.ok || !data.snapshot) {
+      setStatus(data.error ?? "Unable to restore contact.");
+      return;
+    }
+    setClients(data.snapshot.clients);
+    setSuppliers(data.snapshot.suppliers);
+    setLastDeleted(null);
+    setStatus("Contact restored.");
     router.refresh();
   }
 
@@ -85,6 +154,9 @@ export function ContactStudio({
           <p className="text-sm text-[var(--muted)]">
             Create the customer record first so new orders can be assigned without retyping details.
           </p>
+          {!suppliers.length ? (
+            <p className="text-xs text-[var(--accent-deep)]">Tip: add at least one supplier so purchasing lines can link to a source.</p>
+          ) : null}
           <input
             value={clientDraft.name}
             onChange={(event) => setClientDraft((current) => ({ ...current, name: event.target.value }))}
@@ -107,7 +179,13 @@ export function ContactStudio({
             Save customer
           </button>
           <div className="space-y-3">
-            {clients.map((client) => (
+            <input
+              value={clientSearch}
+              onChange={(event) => setClientSearch(event.target.value)}
+              placeholder="Search customers"
+              className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
+            />
+            {visibleClients.map((client) => (
               <article key={client.id} className="rounded-[1.25rem] border border-[var(--line)] bg-[#fffdf9] p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -134,6 +212,8 @@ export function ContactStudio({
                 </div>
               </article>
             ))}
+            {!clients.length ? <p className="text-sm text-[var(--muted)]">No customers yet. Add one to start creating orders.</p> : null}
+            {clients.length > 0 && !visibleClients.length ? <p className="text-sm text-[var(--muted)]">No customers match your search.</p> : null}
           </div>
         </form>
         <form
@@ -171,7 +251,13 @@ export function ContactStudio({
             Save supplier
           </button>
           <div className="space-y-3">
-            {suppliers.map((supplier) => (
+            <input
+              value={supplierSearch}
+              onChange={(event) => setSupplierSearch(event.target.value)}
+              placeholder="Search suppliers"
+              className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
+            />
+            {visibleSuppliers.map((supplier) => (
               <article key={supplier.id} className="rounded-[1.25rem] border border-[var(--line)] bg-[#fffdf9] p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -200,10 +286,25 @@ export function ContactStudio({
                 </div>
               </article>
             ))}
+            {!suppliers.length ? (
+              <p className="text-sm text-[var(--muted)]">No suppliers yet. Add one to link materials in purchasing.</p>
+            ) : null}
+            {suppliers.length > 0 && !visibleSuppliers.length ? (
+              <p className="text-sm text-[var(--muted)]">No suppliers match your search.</p>
+            ) : null}
           </div>
         </form>
       </div>
       {status ? <p className="text-sm text-[var(--muted)]">{status}</p> : null}
+      {lastDeleted ? (
+        <button
+          type="button"
+          className="rounded-full border border-[var(--line)] px-4 py-2 text-sm"
+          onClick={() => void undoDelete()}
+        >
+          Undo last delete
+        </button>
+      ) : null}
       <ContactBoard clients={clients} suppliers={suppliers} />
     </div>
   );

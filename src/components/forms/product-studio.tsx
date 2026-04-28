@@ -51,6 +51,8 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
   const [products, setProducts] = useState(snapshot.products);
   const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
   const [status, setStatus] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [lastDeleted, setLastDeleted] = useState<Product | null>(null);
 
   const displaySnapshot = useMemo(() => ({ ...snapshot, products }), [products, snapshot]);
 
@@ -58,7 +60,30 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
     setProducts(snapshot.products);
   }, [snapshot.products]);
 
+  const filteredProducts = useMemo(() => {
+    const key = search.trim().toLowerCase();
+    if (!key) return products;
+    return products.filter((product) =>
+      [product.name, product.sku, product.category].some((value) => value.toLowerCase().includes(key))
+    );
+  }, [products, search]);
+
   async function saveProduct() {
+    if (!draft.sku.trim() || !draft.name.trim()) {
+      setStatus("Enter both SKU and product name before saving.");
+      return;
+    }
+    if (Number(draft.yieldQuantity) <= 0) {
+      setStatus("Yield quantity must be greater than zero.");
+      return;
+    }
+
+    const parsedFormula = textToFormula(draft.formula);
+    if (!parsedFormula.length) {
+      setStatus("Add at least one valid formula line in name:unit:quantity format.");
+      return;
+    }
+
     setStatus("Saving product...");
     const response = await fetch("/api/products", {
       method: "POST",
@@ -70,7 +95,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
         category: draft.category,
         unit: draft.unit,
         yieldQuantity: Number(draft.yieldQuantity),
-        formula: textToFormula(draft.formula)
+        formula: parsedFormula
       })
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
@@ -81,11 +106,16 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
 
     setProducts(data.snapshot.products);
     setDraft(emptyDraft);
+    setLastDeleted(null);
     setStatus("Product saved.");
     router.refresh();
   }
 
   async function deleteProduct(product: Product) {
+    if (!window.confirm(`Delete ${product.name}? This can affect related orders.`)) {
+      return;
+    }
+
     setStatus(`Deleting ${product.name}...`);
     const response = await fetch("/api/products", {
       method: "POST",
@@ -99,10 +129,42 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
     }
 
     setProducts(data.snapshot.products);
+    setLastDeleted(product);
     if (draft.id === product.id) {
       setDraft(emptyDraft);
     }
-    setStatus("Product deleted.");
+    setStatus("Product deleted. You can undo this action.");
+    router.refresh();
+  }
+
+  async function undoDelete() {
+    if (!lastDeleted) return;
+    setStatus(`Restoring ${lastDeleted.name}...`);
+    const response = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: lastDeleted.id,
+        sku: lastDeleted.sku,
+        name: lastDeleted.name,
+        category: lastDeleted.category,
+        unit: lastDeleted.unit,
+        yieldQuantity: lastDeleted.yieldQuantity,
+        formula: lastDeleted.materials.map((item) => ({
+          materialName: item.materialName,
+          unit: item.unit,
+          quantity: item.quantity
+        }))
+      })
+    });
+    const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
+    if (!response.ok || !data.snapshot) {
+      setStatus(data.error ?? "Unable to restore product.");
+      return;
+    }
+    setProducts(data.snapshot.products);
+    setLastDeleted(null);
+    setStatus("Product restored.");
     router.refresh();
   }
 
@@ -122,6 +184,9 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
             <p className="mt-2 text-sm text-[var(--muted)]">
               Give the product a name, SKU, unit, and batch yield so it can be scheduled and priced consistently.
             </p>
+            {!snapshot.clients.length ? (
+              <p className="mt-2 text-xs text-[var(--accent-deep)]">Tip: Add a customer next so this product can be used in orders.</p>
+            ) : null}
           </div>
           <input
             value={draft.sku}
@@ -179,6 +244,15 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
             </button>
           </div>
           {status ? <p className="text-sm text-[var(--muted)]">{status}</p> : null}
+          {lastDeleted ? (
+            <button
+              type="button"
+              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm"
+              onClick={() => void undoDelete()}
+            >
+              Undo last delete
+            </button>
+          ) : null}
         </form>
         <div className="space-y-4">
           <div className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-5">
@@ -188,7 +262,18 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
               Edit products when yields change, remove placeholders, and keep formulas aligned with how the item is actually made.
             </p>
           </div>
-          {products.map((product) => (
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search products by name, SKU, or category"
+            className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
+          />
+          {!products.length ? (
+            <p className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-4 text-sm text-[var(--muted)]">
+              No products yet. Save your first item to build formulas and unlock purchasing planning.
+            </p>
+          ) : null}
+          {filteredProducts.map((product) => (
             <article key={product.id} className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -228,6 +313,11 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
               </div>
             </article>
           ))}
+          {products.length > 0 && filteredProducts.length === 0 ? (
+            <p className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-4 text-sm text-[var(--muted)]">
+              No products match that search yet.
+            </p>
+          ) : null}
         </div>
       </div>
       <CatalogOverview snapshot={displaySnapshot} />
