@@ -1,10 +1,13 @@
-import { ImportPageContent } from "@/components/layout/import-page-content";
+import { HomePageContent } from "@/components/layout/home-page-content";
 import { OnboardingGate } from "@/components/layout/onboarding-gate";
+import { WorkspaceShell } from "@/components/layout/workspace-shell";
 
 export default function HomePage() {
   return (
-    <OnboardingGate>
-      <ImportPageContent />
-    </OnboardingGate>
+    <WorkspaceShell>
+      <OnboardingGate>
+        <HomePageContent />
+      </OnboardingGate>
+    </WorkspaceShell>
   );
 }

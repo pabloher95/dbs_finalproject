@@ -69,8 +69,8 @@ export function ImportExperience() {
     <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
       <Card className="rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-6">
         <SectionHeading
-          eyebrow="CSV Import"
-          title="Versioned import templates with preview"
+          eyebrow="Data intake"
+          title="Versioned templates with preview"
           description="Use clear templates for products, formulas, and orders so you can catch problems before they affect the rest of the workflow."
         />
         <div className="mt-6 flex flex-wrap gap-3">
@@ -97,7 +97,7 @@ export function ImportExperience() {
           <Link className="underline decoration-[var(--accent)] underline-offset-4" href={`/api/templates/${target}`}>
             Download {target} template
           </Link>
-          <span>Paste CSV below to preview import results.</span>
+          <span>Paste CSV below to preview intake results.</span>
         </div>
         <textarea
           value={csv}
@@ -109,7 +109,7 @@ export function ImportExperience() {
         <SectionHeading
           eyebrow="Preview"
           title="Row-level validation report"
-          description="See what is ready to import, what was skipped, and what needs correction before you move on."
+          description="See what is ready to load, what was skipped, and what needs correction before you move on."
         />
         <div className="mt-6">
           <PreviewTable preview={preview} />

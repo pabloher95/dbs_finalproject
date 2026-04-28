@@ -6,9 +6,9 @@ export default function ImportPage() {
   const snapshot = getDemoBusinessSnapshot();
   return (
     <WorkflowPageShell
-      eyebrow="Getting Started"
+      eyebrow="Data intake"
       title="Bring in your products, formulas, and orders"
-      description="Upload your catalog and orders with guided CSV templates, catch row-level issues before anything is saved, and move from incoming demand to material planning in one place."
+      description="Use guided CSV templates to catch row-level issues before anything is saved, then move from incoming demand to material planning in one place."
       metrics={[
         { label: "Catalog items", value: String(snapshot.products.length) },
         { label: "Open orders", value: String(snapshot.orders.length) },
@@ -16,19 +16,19 @@ export default function ImportPage() {
       ]}
       steps={[
         {
-          title: "Download the template",
+          title: "Choose a template",
           description: "Use the versioned CSV format for products/formulas or for orders."
         },
         {
           title: "Paste and preview",
-          description: "Check row-level validation before any import is committed."
+          description: "Check row-level validation before anything is committed."
         },
         {
           title: "Move to operations",
           description: "Review products, orders, and purchasing once the catalog is in shape."
         }
       ]}
-      nextStep="Once the imports look right, review products first so the purchasing plan has a clean source of truth."
+      nextStep="Once the intake looks right, review products first so the purchasing plan has a clean source of truth."
     >
       <ImportPageContent />
     </WorkflowPageShell>

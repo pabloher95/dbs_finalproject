@@ -3,7 +3,7 @@ import type { Route } from "next";
 export const appNav = [
   {
     href: "/import" as Route,
-    label: "Import",
+    label: "Data intake",
     description: "Versioned CSV templates and validation preview."
   },
   {
