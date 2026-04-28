@@ -6,8 +6,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "predev": "node scripts/check-node-version.mjs",
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs",
     "prebuild": "node scripts/check-node-version.mjs",
     "build": "next build",
     "prestart": "node scripts/check-node-version.mjs",
