@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
@@ -56,4 +57,16 @@ test("purchasing plan aggregates across open orders", () => {
 
   const purchasingPlan = buildPurchasingPlan(orders, products);
   assert.equal(purchasingPlan.get("mat_wax"), 3600);
+});
+
+test("purchasing plan returns required buy quantities for open demand", () => {
+  const product = {
+    id: "prd_croissant",
+    yieldQuantity: 12,
+    materials: [{ materialId: "mat_wax", quantity: 1200 }]
+  };
+  const orders = [{ status: "open", items: [{ productId: "prd_croissant", quantity: 12 }] }];
+
+  const purchasingPlan = buildPurchasingPlan(orders, [product]);
+  assert.equal(purchasingPlan.get("mat_wax"), 1200);
 });

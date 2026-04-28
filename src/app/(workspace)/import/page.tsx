@@ -1,9 +1,9 @@
 import { ImportPageContent } from "@/components/layout/import-page-content";
 import { WorkflowPageShell } from "@/components/layout/workflow-page-shell";
-import { getDemoBusinessSnapshot } from "@/lib/data/demo";
+import { getWorkspaceOverview } from "@/lib/server/workspace";
 
-export default function ImportPage() {
-  const snapshot = getDemoBusinessSnapshot();
+export default async function ImportPage() {
+  const { snapshot } = await getWorkspaceOverview();
   return (
     <WorkflowPageShell
       eyebrow="Data intake"

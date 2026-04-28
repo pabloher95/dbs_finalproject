@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, SectionHeading } from "@/components/ui/surfaces";
 import {
   parseOrderImport,
@@ -57,13 +58,37 @@ function Summary({ label, value }: Readonly<{ label: string; value: string }>) {
 }
 
 export function ImportExperience() {
+  const router = useRouter();
   const [target, setTarget] = useState<ImportTarget>("products");
   const [csv, setCsv] = useState(examples.products);
+  const [result, setResult] = useState<ImportPreview | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
   const preview = useMemo(
     () => (target === "products" ? parseProductImport(csv) : parseOrderImport(csv)),
     [csv, target]
   );
+
+  async function importRows() {
+    setStatus("Importing rows...");
+    const response = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ target, csv })
+    });
+    const data = (await response.json()) as {
+      preview?: ImportPreview;
+      error?: string;
+    };
+    if (!response.ok || !data.preview) {
+      setStatus(data.error ?? "Unable to import data.");
+      return;
+    }
+
+    setResult(data.preview);
+    setStatus("Import complete.");
+    router.refresh();
+  }
 
   return (
     <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
@@ -104,6 +129,16 @@ export function ImportExperience() {
           onChange={(event) => setCsv(event.target.value)}
           className="mt-6 min-h-[320px] w-full rounded-[1.5rem] border border-[var(--line)] bg-[#fffdf9] p-4 text-sm text-[var(--text)] shadow-inner outline-none focus:border-[var(--accent)]"
         />
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white"
+            onClick={() => void importRows()}
+          >
+            Import into workspace
+          </button>
+          {status ? <p className="text-sm text-[var(--muted)]">{status}</p> : null}
+        </div>
       </Card>
       <Card className="rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-6">
         <SectionHeading
@@ -112,7 +147,7 @@ export function ImportExperience() {
           description="See what is ready to load, what was skipped, and what needs correction before you move on."
         />
         <div className="mt-6">
-          <PreviewTable preview={preview} />
+          <PreviewTable preview={result ?? preview} />
         </div>
       </Card>
     </section>

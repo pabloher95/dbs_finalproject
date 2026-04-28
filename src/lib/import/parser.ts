@@ -13,6 +13,28 @@ export type ImportPreview = {
   rowReports: ImportRowReport[];
 };
 
+export type ParsedProductImportRow = {
+  rowNumber: number;
+  sku: string;
+  name: string;
+  category: string;
+  unit: string;
+  yieldQuantity: number;
+  materialName: string;
+  materialUnit: string;
+  materialQuantity: number;
+};
+
+export type ParsedOrderImportRow = {
+  rowNumber: number;
+  orderNumber: string;
+  clientName: string;
+  dueDate: string;
+  status: "draft" | "open" | "fulfilled";
+  productSku: string;
+  quantity: number;
+};
+
 function parseCsv(csv: string) {
   return csv
     .trim()
@@ -21,6 +43,13 @@ function parseCsv(csv: string) {
 }
 
 export function parseProductImport(csv: string): ImportPreview {
+  return parseProductImportRows(csv).preview;
+}
+
+export function parseProductImportRows(csv: string): {
+  preview: ImportPreview;
+  rows: ParsedProductImportRow[];
+} {
   const rows = parseCsv(csv);
   const header = rows[0] ?? [];
   const expected = [
@@ -35,17 +64,20 @@ export function parseProductImport(csv: string): ImportPreview {
   ];
 
   if (header.join(",") !== expected.join(",")) {
-    return {
+    const preview: ImportPreview = {
       createdRecords: 0,
       skippedRows: [],
       errors: [{ rowNumber: 1, message: "Header does not match products-formulas-v1 template." }],
       rowReports: [{ rowNumber: 1, status: "error", message: "Header does not match products-formulas-v1 template." }]
     };
+
+    return { preview, rows: [] };
   }
 
   const seenFormulaRows = new Set<string>();
   const reports: ImportRowReport[] = [];
   const errors: Array<{ rowNumber: number; message: string }> = [];
+  const parsedRows: ParsedProductImportRow[] = [];
   let created = 0;
 
   rows.slice(1).forEach((row, index) => {
@@ -74,33 +106,56 @@ export function parseProductImport(csv: string): ImportPreview {
     }
     seenFormulaRows.add(dedupeKey);
     created += 1;
+    parsedRows.push({
+      rowNumber,
+      sku,
+      name,
+      category,
+      unit,
+      yieldQuantity: Number(yieldQuantity),
+      materialName,
+      materialUnit,
+      materialQuantity: Number(materialQuantity)
+    });
     reports.push({ rowNumber, status: "created", message: `Prepared ${name} material row.` });
   });
 
-  return {
+  const preview: ImportPreview = {
     createdRecords: created,
     skippedRows: reports.filter((report) => report.status === "skipped").map((report) => report.rowNumber),
     errors,
     rowReports: reports
   };
+
+  return { preview, rows: parsedRows };
 }
 
 export function parseOrderImport(csv: string): ImportPreview {
+  return parseOrderImportRows(csv).preview;
+}
+
+export function parseOrderImportRows(csv: string): {
+  preview: ImportPreview;
+  rows: ParsedOrderImportRow[];
+} {
   const rows = parseCsv(csv);
   const header = rows[0] ?? [];
   const expected = ["order_number", "client_name", "due_date", "status", "product_sku", "quantity"];
 
   if (header.join(",") !== expected.join(",")) {
-    return {
+    const preview: ImportPreview = {
       createdRecords: 0,
       skippedRows: [],
       errors: [{ rowNumber: 1, message: "Header does not match orders-v1 template." }],
       rowReports: [{ rowNumber: 1, status: "error", message: "Header does not match orders-v1 template." }]
     };
+
+    return { preview, rows: [] };
   }
 
   const reports: ImportRowReport[] = [];
   const errors: Array<{ rowNumber: number; message: string }> = [];
+  const parsedRows: ParsedOrderImportRow[] = [];
   let created = 0;
 
   rows.slice(1).forEach((row, index) => {
@@ -129,13 +184,24 @@ export function parseOrderImport(csv: string): ImportPreview {
       return;
     }
     created += 1;
+    parsedRows.push({
+      rowNumber,
+      orderNumber,
+      clientName,
+      dueDate,
+      status: status as ParsedOrderImportRow["status"],
+      productSku,
+      quantity: Number(quantity)
+    });
     reports.push({ rowNumber, status: "created", message: `Prepared order line ${orderNumber}.` });
   });
 
-  return {
+  const preview: ImportPreview = {
     createdRecords: created,
     skippedRows: reports.filter((report) => report.status === "skipped").map((report) => report.rowNumber),
     errors,
     rowReports: reports
   };
+
+  return { preview, rows: parsedRows };
 }

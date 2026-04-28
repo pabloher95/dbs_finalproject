@@ -1,9 +1,9 @@
 import { ProductStudio } from "@/components/forms/product-studio";
 import { WorkflowPageShell } from "@/components/layout/workflow-page-shell";
-import { getDemoBusinessSnapshot } from "@/lib/data/demo";
+import { getWorkspaceOverview } from "@/lib/server/workspace";
 
-export default function ProductsPage() {
-  const snapshot = getDemoBusinessSnapshot();
+export default async function ProductsPage() {
+  const { snapshot } = await getWorkspaceOverview();
   return (
     <WorkflowPageShell
       eyebrow="Catalog"

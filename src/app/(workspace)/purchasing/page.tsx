@@ -1,14 +1,14 @@
 import { PurchasingBoard } from "@/components/layout/purchasing-board";
 import { WorkflowPageShell } from "@/components/layout/workflow-page-shell";
-import { getDemoBusinessSnapshot } from "@/lib/data/demo";
+import { getWorkspaceOverview } from "@/lib/server/workspace";
 
-export default function PurchasingPage() {
-  const snapshot = getDemoBusinessSnapshot();
+export default async function PurchasingPage() {
+  const { snapshot } = await getWorkspaceOverview();
   return (
     <WorkflowPageShell
       eyebrow="Purchasing"
       title="Turn open demand into a purchasing run"
-      description="Review the total quantity needed for each material, compare it with what is already on hand, and prepare your next purchasing run."
+      description="Review the total quantity needed for each material and prepare your next purchasing run."
       metrics={[
         { label: "Lines to buy", value: String(snapshot.materials.length) },
         {
@@ -23,8 +23,8 @@ export default function PurchasingPage() {
           description: "Check which materials are being pulled in by open orders."
         },
         {
-          title: "Compare with stock",
-          description: "Use the on-hand column to see what is already covered."
+          title: "Check supplier links",
+          description: "Use the supplier link to see who should hear from you next."
         },
         {
           title: "Place supplier orders",

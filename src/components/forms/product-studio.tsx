@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CatalogOverview } from "@/components/layout/catalog-overview";
 import type { BusinessSnapshot, Product, ProductMaterial } from "@/lib/domain/types";
 
@@ -46,27 +47,63 @@ function textToFormula(formula: string): ProductMaterial[] {
 }
 
 export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+  const router = useRouter();
   const [products, setProducts] = useState(snapshot.products);
   const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
+  const [status, setStatus] = useState<string | null>(null);
 
   const displaySnapshot = useMemo(() => ({ ...snapshot, products }), [products, snapshot]);
 
-  function saveProduct() {
-    const product: Product = {
-      id: draft.id ?? `prd_${draft.sku.toLowerCase()}`,
-      sku: draft.sku,
-      name: draft.name,
-      category: draft.category,
-      unit: draft.unit,
-      yieldQuantity: Number(draft.yieldQuantity),
-      materials: textToFormula(draft.formula)
-    };
+  useEffect(() => {
+    setProducts(snapshot.products);
+  }, [snapshot.products]);
 
-    setProducts((current) => {
-      const others = current.filter((item) => item.id !== product.id);
-      return [...others, product].sort((left, right) => left.name.localeCompare(right.name));
+  async function saveProduct() {
+    setStatus("Saving product...");
+    const response = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: draft.id,
+        sku: draft.sku,
+        name: draft.name,
+        category: draft.category,
+        unit: draft.unit,
+        yieldQuantity: Number(draft.yieldQuantity),
+        formula: textToFormula(draft.formula)
+      })
     });
+    const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
+    if (!response.ok || !data.snapshot) {
+      setStatus(data.error ?? "Unable to save product.");
+      return;
+    }
+
+    setProducts(data.snapshot.products);
     setDraft(emptyDraft);
+    setStatus("Product saved.");
+    router.refresh();
+  }
+
+  async function deleteProduct(product: Product) {
+    setStatus(`Deleting ${product.name}...`);
+    const response = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", productId: product.id })
+    });
+    const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
+    if (!response.ok || !data.snapshot) {
+      setStatus(data.error ?? "Unable to delete product.");
+      return;
+    }
+
+    setProducts(data.snapshot.products);
+    if (draft.id === product.id) {
+      setDraft(emptyDraft);
+    }
+    setStatus("Product deleted.");
+    router.refresh();
   }
 
   return (
@@ -76,7 +113,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
           className="space-y-4 rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-5"
           onSubmit={(event) => {
             event.preventDefault();
-            saveProduct();
+            void saveProduct();
           }}
         >
           <div>
@@ -141,6 +178,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
               Reset
             </button>
           </div>
+          {status ? <p className="text-sm text-[var(--muted)]">{status}</p> : null}
         </form>
         <div className="space-y-4">
           <div className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-5">
@@ -180,7 +218,9 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
                   <button
                     className="rounded-full border border-[var(--line)] px-3 py-2 text-sm text-[var(--accent-deep)]"
                     type="button"
-                    onClick={() => setProducts((current) => current.filter((item) => item.id !== product.id))}
+                    onClick={() => {
+                      void deleteProduct(product);
+                    }}
                   >
                     Delete
                   </button>

@@ -1,9 +1,9 @@
 import { OrderStudio } from "@/components/forms/order-studio";
 import { WorkflowPageShell } from "@/components/layout/workflow-page-shell";
-import { getDemoBusinessSnapshot } from "@/lib/data/demo";
+import { getWorkspaceOverview } from "@/lib/server/workspace";
 
-export default function OrdersPage() {
-  const snapshot = getDemoBusinessSnapshot();
+export default async function OrdersPage() {
+  const { snapshot } = await getWorkspaceOverview();
   return (
     <WorkflowPageShell
       eyebrow="Orders"

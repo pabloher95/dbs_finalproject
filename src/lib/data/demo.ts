@@ -12,11 +12,11 @@ const snapshot: BusinessSnapshot = {
     { id: "sup_pantry", name: "Atlas Packaging", email: "hello@atlaspackaging.test", category: "packaging" }
   ],
   materials: [
-    { id: "ing_flour", name: "Soy Wax", unit: "g", preferredSupplierId: "sup_mill", onHandQuantity: 0 },
-    { id: "ing_butter", name: "Fragrance Oil", unit: "g", preferredSupplierId: "sup_dairy", onHandQuantity: 0 },
-    { id: "ing_sugar", name: "Label Stock", unit: "sheet", preferredSupplierId: "sup_pantry", onHandQuantity: 0 },
-    { id: "ing_jam", name: "Gift Box Insert", unit: "each", preferredSupplierId: "sup_pantry", onHandQuantity: 0 },
-    { id: "ing_milk", name: "Cotton Wick", unit: "each", preferredSupplierId: "sup_dairy", onHandQuantity: 0 }
+    { id: "ing_flour", name: "Soy Wax", unit: "g", preferredSupplierId: "sup_mill" },
+    { id: "ing_butter", name: "Fragrance Oil", unit: "g", preferredSupplierId: "sup_dairy" },
+    { id: "ing_sugar", name: "Label Stock", unit: "sheet", preferredSupplierId: "sup_pantry" },
+    { id: "ing_jam", name: "Gift Box Insert", unit: "each", preferredSupplierId: "sup_pantry" },
+    { id: "ing_milk", name: "Cotton Wick", unit: "each", preferredSupplierId: "sup_dairy" }
   ],
   products: [
     {

@@ -16,7 +16,6 @@ export type Material = {
   name: string;
   unit: string;
   preferredSupplierId?: string;
-  onHandQuantity: number;
 };
 
 export type ProductMaterial = {

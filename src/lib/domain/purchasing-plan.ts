@@ -28,10 +28,10 @@ export function buildPurchasingPlan(
       materialId: string;
       materialName: string;
       requiredQuantity: number;
-      onHandQuantity: number;
       netToBuyQuantity: number;
       unit: string;
       supplierName?: string;
+      supplierEmail?: string;
     }
   >();
 
@@ -43,28 +43,28 @@ export function buildPurchasingPlan(
       const expansion = expandFormulaRequirements(product, item.quantity);
 
       for (const materialNeed of expansion) {
-        const material = materialLookup.get(materialNeed.materialId);
         const entry = aggregated.get(materialNeed.materialId) ?? {
           materialId: materialNeed.materialId,
           materialName: materialNeed.materialName,
           requiredQuantity: 0,
-          onHandQuantity: material?.onHandQuantity ?? 0,
           netToBuyQuantity: 0,
           unit: materialNeed.unit,
           supplierName: undefined
         };
         entry.requiredQuantity += materialNeed.requiredQuantity;
-        entry.netToBuyQuantity = entry.requiredQuantity;
         aggregated.set(materialNeed.materialId, entry);
       }
     }
   }
 
   for (const item of aggregated.values()) {
-    const material = materialLookup.get(item.materialId);
-    if (material?.preferredSupplierId) {
-      item.supplierName = supplierLookup.get(material.preferredSupplierId)?.name;
+    const preferredSupplierId = materialLookup.get(item.materialId)?.preferredSupplierId;
+    if (preferredSupplierId) {
+      const supplier = supplierLookup.get(preferredSupplierId);
+      item.supplierName = supplier?.name;
+      item.supplierEmail = supplier?.email;
     }
+    item.netToBuyQuantity = item.requiredQuantity;
   }
 
   return Array.from(aggregated.values()).sort((left, right) => left.materialName.localeCompare(right.materialName));

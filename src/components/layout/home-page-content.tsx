@@ -1,28 +1,26 @@
 import Link from "next/link";
 import { Card, StatPill } from "@/components/ui/surfaces";
-import { getDemoBusinessSnapshot } from "@/lib/data/demo";
+import type { BusinessSnapshot } from "@/lib/domain/types";
 
 const shortcuts = [
   {
     href: "/import",
-    title: "Open data intake",
-    description: "Validate products, formulas, and orders before they touch the workspace."
+    title: "Import records",
+    description: "Load products and orders with templates that catch issues before they slow you down."
   },
   {
     href: "/products",
     title: "Review catalog",
-    description: "Check yields, material formulas, and the structure of each product."
+    description: "Check yields, formulas, and the product structure your team uses to plan work."
   },
   {
     href: "/purchasing",
     title: "Plan purchasing",
-    description: "See what needs to be ordered from open demand."
+    description: "Turn open orders into a clear buy list with supplier context beside each material."
   }
 ] as const;
 
-export function HomePageContent() {
-  const snapshot = getDemoBusinessSnapshot();
-
+export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
   return (
     <div className="space-y-5">
       <Card className="overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-0 shadow-[var(--shadow)]">
@@ -30,15 +28,15 @@ export function HomePageContent() {
           <div className="p-6 md:p-7">
             <p className="text-xs uppercase tracking-[0.35em] text-[var(--accent)]">Home</p>
             <h1 className="mt-3 max-w-2xl font-[var(--font-display)] text-3xl leading-tight md:text-4xl">
-              A calm overview for makers who need one clean path from records to purchasing.
+              Run products, orders, and purchasing from one place.
             </h1>
-            <p className="mt-4 max-w-2xl text-sm text-[var(--muted)] md:text-base">
-              SmallBiz IQ keeps the whole operation legible: start with the home view, load data when you are ready,
-              and let open orders roll into the purchasing plan.
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)] md:text-base">
+              {snapshot.business.name} has one workspace for catalog changes, order capture, and purchasing so the next
+              decision stays close to the work.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/import" className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white">
-                Open data intake
+                Import data
               </Link>
               <Link href="/products" className="rounded-full border border-[var(--line)] bg-white/70 px-5 py-3 text-sm">
                 Review catalog
@@ -46,7 +44,7 @@ export function HomePageContent() {
             </div>
           </div>
           <div className="border-t border-[var(--line)] bg-white/50 p-6 md:p-7 lg:border-l lg:border-t-0">
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">Workspace snapshot</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">Today at a glance</p>
             <div className="mt-4 flex flex-wrap gap-3">
               <StatPill label="Products" value={String(snapshot.products.length)} />
               <StatPill
@@ -56,10 +54,10 @@ export function HomePageContent() {
               <StatPill label="Suppliers" value={String(snapshot.suppliers.length)} />
             </div>
             <div className="mt-6 rounded-[1.5rem] border border-[var(--line)] bg-[#fffdf9] p-4">
-              <p className="font-medium text-[var(--text)]">What happens here</p>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                The home screen stays light on purpose. It gives you the current shape of the business without
-                crowding out the actual workspaces.
+              <p className="font-medium text-[var(--text)]">Ready for the next move</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                Use this view to confirm the current workload, then jump into the catalog, orders, or purchasing page
+                to make the next decision with confidence.
               </p>
             </div>
           </div>
@@ -71,7 +69,7 @@ export function HomePageContent() {
           <Card key={item.href} className="rounded-[1.75rem] border border-[var(--line)] bg-white/70 p-5">
             <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">Next action</p>
             <h2 className="mt-2 font-[var(--font-display)] text-2xl">{item.title}</h2>
-            <p className="mt-3 text-sm text-[var(--muted)]">{item.description}</p>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{item.description}</p>
             <Link href={item.href} className="mt-5 inline-flex rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm">
               Open
             </Link>

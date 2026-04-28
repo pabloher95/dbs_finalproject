@@ -1,9 +1,9 @@
 import { ContactStudio } from "@/components/forms/contact-studio";
 import { WorkflowPageShell } from "@/components/layout/workflow-page-shell";
-import { getDemoBusinessSnapshot } from "@/lib/data/demo";
+import { getWorkspaceOverview } from "@/lib/server/workspace";
 
-export default function ContactsPage() {
-  const snapshot = getDemoBusinessSnapshot();
+export default async function ContactsPage() {
+  const { snapshot } = await getWorkspaceOverview();
   return (
     <WorkflowPageShell
       eyebrow="Contacts"
