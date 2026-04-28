@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ContactBoard } from "@/components/layout/contact-board";
+import { Card, Eyebrow, Pill, Toast } from "@/components/ui/surfaces";
 import type { Client, Supplier } from "@/lib/domain/types";
+
+type Tone = "info" | "success" | "warn" | "error";
 
 export function ContactStudio({
   clients: initialClients,
@@ -17,7 +20,7 @@ export function ContactStudio({
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [clientDraft, setClientDraft] = useState({ id: "", name: "", email: "", channel: "" });
   const [supplierDraft, setSupplierDraft] = useState({ id: "", name: "", email: "", category: "" });
-  const [status, setStatus] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; tone: Tone } | null>(null);
   const [clientSearch, setClientSearch] = useState("");
   const [supplierSearch, setSupplierSearch] = useState("");
   const [lastDeleted, setLastDeleted] = useState<
@@ -35,7 +38,9 @@ export function ContactStudio({
   }, [initialSuppliers]);
 
   const visibleClients = clients.filter((client) =>
-    [client.name, client.email, client.channel].some((value) => value.toLowerCase().includes(clientSearch.toLowerCase()))
+    [client.name, client.email, client.channel].some((value) =>
+      value.toLowerCase().includes(clientSearch.toLowerCase())
+    )
   );
   const visibleSuppliers = suppliers.filter((supplier) =>
     [supplier.name, supplier.email, supplier.category].some((value) =>
@@ -52,11 +57,11 @@ export function ContactStudio({
     const email = draft.email.trim();
     const categoryValue = "channel" in draft ? draft.channel.trim() : draft.category.trim();
     if (!name || !email || !categoryValue) {
-      setStatus("Name, email, and category/channel are required.");
+      setToast({ message: "Name, email, and category/channel are required.", tone: "warn" });
       return;
     }
     if (!isValidEmail(email)) {
-      setStatus("Please enter a valid email address.");
+      setToast({ message: "Please enter a valid email address.", tone: "warn" });
       return;
     }
 
@@ -67,23 +72,22 @@ export function ContactStudio({
     });
     const data = (await response.json()) as { snapshot?: { clients: Client[]; suppliers: Supplier[] }; error?: string };
     if (!response.ok || !data.snapshot) {
-      setStatus(data.error ?? "Unable to save contact.");
+      setToast({ message: data.error ?? "Unable to save contact.", tone: "error" });
       return;
     }
 
     setClients(data.snapshot.clients);
     setSuppliers(data.snapshot.suppliers);
     setLastDeleted(null);
-    setStatus(`${kind === "client" ? "Customer" : "Supplier"} saved.`);
+    setToast({ message: `${kind === "client" ? "Customer" : "Supplier"} saved.`, tone: "success" });
     router.refresh();
   }
 
   async function removeContact(kind: "client" | "supplier", id: string) {
-    const record = kind === "client" ? clients.find((item) => item.id === id) : suppliers.find((item) => item.id === id);
+    const record =
+      kind === "client" ? clients.find((item) => item.id === id) : suppliers.find((item) => item.id === id);
     if (!record) return;
-    if (!window.confirm(`Delete ${record.name}?`)) {
-      return;
-    }
+    if (!window.confirm(`Delete ${record.name}?`)) return;
 
     const response = await fetch("/api/contacts", {
       method: "POST",
@@ -92,20 +96,19 @@ export function ContactStudio({
     });
     const data = (await response.json()) as { snapshot?: { clients: Client[]; suppliers: Supplier[] }; error?: string };
     if (!response.ok || !data.snapshot) {
-      setStatus(data.error ?? "Unable to delete contact.");
+      setToast({ message: data.error ?? "Unable to delete contact.", tone: "error" });
       return;
     }
 
     setClients(data.snapshot.clients);
     setSuppliers(data.snapshot.suppliers);
-    setLastDeleted(kind === "client" ? { kind: "client", data: record } : { kind: "supplier", data: record });
-    if (kind === "client" && clientDraft.id === id) {
-      setClientDraft({ id: "", name: "", email: "", channel: "" });
-    }
-    if (kind === "supplier" && supplierDraft.id === id) {
-      setSupplierDraft({ id: "", name: "", email: "", category: "" });
-    }
-    setStatus(`${kind === "client" ? "Customer" : "Supplier"} deleted. You can undo this action.`);
+    setLastDeleted(kind === "client" ? { kind: "client", data: record as Client } : { kind: "supplier", data: record as Supplier });
+    if (kind === "client" && clientDraft.id === id) setClientDraft({ id: "", name: "", email: "", channel: "" });
+    if (kind === "supplier" && supplierDraft.id === id) setSupplierDraft({ id: "", name: "", email: "", category: "" });
+    setToast({
+      message: `${kind === "client" ? "Customer" : "Supplier"} deleted. Undo available.`,
+      tone: "info"
+    });
     router.refresh();
   }
 
@@ -113,7 +116,13 @@ export function ContactStudio({
     if (!lastDeleted) return;
     const payload =
       lastDeleted.kind === "client"
-        ? { kind: "client", id: lastDeleted.data.id, name: lastDeleted.data.name, email: lastDeleted.data.email, channel: lastDeleted.data.channel }
+        ? {
+            kind: "client",
+            id: lastDeleted.data.id,
+            name: lastDeleted.data.name,
+            email: lastDeleted.data.email,
+            channel: lastDeleted.data.channel
+          }
         : {
             kind: "supplier",
             id: lastDeleted.data.id,
@@ -128,184 +137,210 @@ export function ContactStudio({
     });
     const data = (await response.json()) as { snapshot?: { clients: Client[]; suppliers: Supplier[] }; error?: string };
     if (!response.ok || !data.snapshot) {
-      setStatus(data.error ?? "Unable to restore contact.");
+      setToast({ message: data.error ?? "Unable to restore contact.", tone: "error" });
       return;
     }
     setClients(data.snapshot.clients);
     setSuppliers(data.snapshot.suppliers);
     setLastDeleted(null);
-    setStatus("Contact restored.");
+    setToast({ message: "Contact restored.", tone: "success" });
     router.refresh();
   }
 
   return (
     <div className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-2">
-        <form
-          className="space-y-4 rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-5"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void persistContact("client", clientDraft);
-            setClientDraft({ id: "", name: "", email: "", channel: "" });
-          }}
-        >
-          <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent)]">Customer details</p>
-          <h3 className="font-[var(--font-display)] text-2xl">Add a customer</h3>
-          <p className="text-sm text-[var(--muted)]">
-            Create the customer record first so new orders can be assigned without retyping details.
-          </p>
-          {!suppliers.length ? (
-            <p className="text-xs text-[var(--accent-deep)]">Tip: add at least one supplier so purchasing lines can link to a source.</p>
-          ) : null}
-          <input
-            value={clientDraft.name}
-            onChange={(event) => setClientDraft((current) => ({ ...current, name: event.target.value }))}
-            placeholder="Client name"
-            className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
-          />
-          <input
-            value={clientDraft.email}
-            onChange={(event) => setClientDraft((current) => ({ ...current, email: event.target.value }))}
-            placeholder="Client email"
-            className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
-          />
-          <input
-            value={clientDraft.channel}
-            onChange={(event) => setClientDraft((current) => ({ ...current, channel: event.target.value }))}
-            placeholder="Sales channel"
-            className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
-          />
-          <button className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white" type="submit">
-            Save customer
-          </button>
-          <div className="space-y-3">
+        <Card className="p-6">
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void persistContact("client", clientDraft);
+              setClientDraft({ id: "", name: "", email: "", channel: "" });
+            }}
+          >
+            <div>
+              <Eyebrow tone="flame">Customer details</Eyebrow>
+              <p className="mt-2 font-display italic text-2xl">Add a customer</p>
+              <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
+                Capture customer details so new orders can be assigned without retyping.
+              </p>
+              {!suppliers.length ? (
+                <Pill tone="amber" className="mt-3">
+                  Tip · add a supplier so purchasing lines link to a source.
+                </Pill>
+              ) : null}
+            </div>
+            <input
+              value={clientDraft.name}
+              onChange={(event) => setClientDraft((current) => ({ ...current, name: event.target.value }))}
+              placeholder="Customer name"
+              className="field"
+            />
+            <input
+              value={clientDraft.email}
+              onChange={(event) => setClientDraft((current) => ({ ...current, email: event.target.value }))}
+              placeholder="Customer email"
+              className="field"
+            />
+            <input
+              value={clientDraft.channel}
+              onChange={(event) => setClientDraft((current) => ({ ...current, channel: event.target.value }))}
+              placeholder="Sales channel"
+              className="field"
+            />
+            <button className="btn btn-flame" type="submit">
+              Save customer
+            </button>
             <input
               value={clientSearch}
               onChange={(event) => setClientSearch(event.target.value)}
               placeholder="Search customers"
-              className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
+              className="field"
             />
-            {visibleClients.map((client) => (
-              <article key={client.id} className="rounded-[1.25rem] border border-[var(--line)] bg-[#fffdf9] p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-medium">{client.name}</p>
-                    <p className="mt-1 text-sm text-[var(--muted)]">{client.channel}</p>
-                    <p className="mt-2 text-sm text-[var(--muted)]">{client.email}</p>
+            <div className="space-y-2">
+              {visibleClients.map((client) => (
+                <article
+                  key={client.id}
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+                >
+                  <div className="min-w-0">
+                    <p className="font-display italic text-lg">{client.name}</p>
+                    <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
+                      {client.channel}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--muted-strong)]">{client.email}</p>
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      className="rounded-full border border-[var(--line)] px-3 py-2 text-xs"
-                      onClick={() => setClientDraft({ id: client.id, name: client.name, email: client.email, channel: client.channel })}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-full border border-[var(--line)] px-3 py-2 text-xs text-[var(--accent-deep)]"
-                      onClick={() => void removeContact("client", client.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-            {!clients.length ? <p className="text-sm text-[var(--muted)]">No customers yet. Add one to start creating orders.</p> : null}
-            {clients.length > 0 && !visibleClients.length ? <p className="text-sm text-[var(--muted)]">No customers match your search.</p> : null}
-          </div>
-        </form>
-        <form
-          className="space-y-4 rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-5"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void persistContact("supplier", supplierDraft);
-            setSupplierDraft({ id: "", name: "", email: "", category: "" });
-          }}
-        >
-          <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent)]">Supplier details</p>
-          <h3 className="font-[var(--font-display)] text-2xl">Add a supplier</h3>
-          <p className="text-sm text-[var(--muted)]">
-            Keep preferred suppliers on hand so the purchasing plan already points to the right source.
-          </p>
-          <input
-            value={supplierDraft.name}
-            onChange={(event) => setSupplierDraft((current) => ({ ...current, name: event.target.value }))}
-            placeholder="Supplier name"
-            className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
-          />
-          <input
-            value={supplierDraft.email}
-            onChange={(event) => setSupplierDraft((current) => ({ ...current, email: event.target.value }))}
-            placeholder="Supplier email"
-            className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
-          />
-          <input
-            value={supplierDraft.category}
-            onChange={(event) => setSupplierDraft((current) => ({ ...current, category: event.target.value }))}
-            placeholder="Category"
-            className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
-          />
-          <button className="rounded-full bg-[var(--sage)] px-5 py-3 text-sm font-medium text-white" type="submit">
-            Save supplier
-          </button>
-          <div className="space-y-3">
-            <input
-              value={supplierSearch}
-              onChange={(event) => setSupplierSearch(event.target.value)}
-              placeholder="Search suppliers"
-              className="w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
-            />
-            {visibleSuppliers.map((supplier) => (
-              <article key={supplier.id} className="rounded-[1.25rem] border border-[var(--line)] bg-[#fffdf9] p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-medium">{supplier.name}</p>
-                    <p className="mt-1 text-sm text-[var(--muted)]">{supplier.email}</p>
-                    <p className="mt-2 text-sm text-[var(--muted)]">{supplier.category}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="rounded-full border border-[var(--line)] px-3 py-2 text-xs"
+                      className="btn btn-ghost"
                       onClick={() =>
-                        setSupplierDraft({ id: supplier.id, name: supplier.name, email: supplier.email, category: supplier.category })
+                        setClientDraft({
+                          id: client.id,
+                          name: client.name,
+                          email: client.email,
+                          channel: client.channel
+                        })
                       }
                     >
                       Edit
                     </button>
-                    <button
-                      type="button"
-                      className="rounded-full border border-[var(--line)] px-3 py-2 text-xs text-[var(--accent-deep)]"
-                      onClick={() => void removeContact("supplier", supplier.id)}
-                    >
+                    <button type="button" className="btn btn-soft" onClick={() => void removeContact("client", client.id)}>
                       Delete
                     </button>
                   </div>
-                </div>
-              </article>
-            ))}
-            {!suppliers.length ? (
-              <p className="text-sm text-[var(--muted)]">No suppliers yet. Add one to link materials in purchasing.</p>
-            ) : null}
-            {suppliers.length > 0 && !visibleSuppliers.length ? (
-              <p className="text-sm text-[var(--muted)]">No suppliers match your search.</p>
-            ) : null}
-          </div>
-        </form>
+                </article>
+              ))}
+              {!clients.length ? (
+                <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+                  No customers yet. Add one to start creating orders.
+                </p>
+              ) : null}
+              {clients.length > 0 && !visibleClients.length ? (
+                <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+                  No customers match your search.
+                </p>
+              ) : null}
+            </div>
+          </form>
+        </Card>
+        <Card className="p-6">
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void persistContact("supplier", supplierDraft);
+              setSupplierDraft({ id: "", name: "", email: "", category: "" });
+            }}
+          >
+            <div>
+              <Eyebrow tone="flame">Supplier details</Eyebrow>
+              <p className="mt-2 font-display italic text-2xl">Add a supplier</p>
+              <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
+                Keep preferred suppliers on hand so the purchasing plan already points to the right source.
+              </p>
+            </div>
+            <input
+              value={supplierDraft.name}
+              onChange={(event) => setSupplierDraft((current) => ({ ...current, name: event.target.value }))}
+              placeholder="Supplier name"
+              className="field"
+            />
+            <input
+              value={supplierDraft.email}
+              onChange={(event) => setSupplierDraft((current) => ({ ...current, email: event.target.value }))}
+              placeholder="Supplier email"
+              className="field"
+            />
+            <input
+              value={supplierDraft.category}
+              onChange={(event) => setSupplierDraft((current) => ({ ...current, category: event.target.value }))}
+              placeholder="Category"
+              className="field"
+            />
+            <button className="btn btn-flame" type="submit">
+              Save supplier
+            </button>
+            <input
+              value={supplierSearch}
+              onChange={(event) => setSupplierSearch(event.target.value)}
+              placeholder="Search suppliers"
+              className="field"
+            />
+            <div className="space-y-2">
+              {visibleSuppliers.map((supplier) => (
+                <article
+                  key={supplier.id}
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+                >
+                  <div className="min-w-0">
+                    <p className="font-display italic text-lg">{supplier.name}</p>
+                    <p className="mt-1 text-sm text-[var(--muted-strong)]">{supplier.email}</p>
+                    <Pill className="mt-2">{supplier.category}</Pill>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() =>
+                        setSupplierDraft({
+                          id: supplier.id,
+                          name: supplier.name,
+                          email: supplier.email,
+                          category: supplier.category
+                        })
+                      }
+                    >
+                      Edit
+                    </button>
+                    <button type="button" className="btn btn-soft" onClick={() => void removeContact("supplier", supplier.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+              {!suppliers.length ? (
+                <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+                  No suppliers yet. Add one to link materials in purchasing.
+                </p>
+              ) : null}
+              {suppliers.length > 0 && !visibleSuppliers.length ? (
+                <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+                  No suppliers match your search.
+                </p>
+              ) : null}
+            </div>
+          </form>
+        </Card>
       </div>
-      {status ? <p className="text-sm text-[var(--muted)]">{status}</p> : null}
       {lastDeleted ? (
-        <button
-          type="button"
-          className="rounded-full border border-[var(--line)] px-4 py-2 text-sm"
-          onClick={() => void undoDelete()}
-        >
+        <button type="button" className="btn btn-soft" onClick={() => void undoDelete()}>
           Undo last delete
         </button>
       ) : null}
       <ContactBoard clients={clients} suppliers={suppliers} />
+      {toast ? <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast(null)} /> : null}
     </div>
   );
 }

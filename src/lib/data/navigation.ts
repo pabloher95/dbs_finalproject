@@ -1,29 +1,40 @@
 import type { Route } from "next";
 
-export const appNav = [
+export type NavItem = {
+  href: Route;
+  label: string;
+  description: string;
+};
+
+export const appNav: NavItem[] = [
+  {
+    href: "/" as Route,
+    label: "Home",
+    description: "Operations overview and the next step."
+  },
   {
     href: "/import" as Route,
-    label: "Data intake",
-    description: "Versioned CSV templates and validation preview."
+    label: "Intake",
+    description: "Versioned CSV templates with preview."
   },
   {
     href: "/products" as Route,
-    label: "Products",
-    description: "Review products, yields, and material bills."
+    label: "Catalog",
+    description: "Products, yields, and material formulas."
   },
   {
     href: "/contacts" as Route,
     label: "Contacts",
-    description: "Keep customer and supplier details close to daily work."
+    description: "Customers and supplier sources."
   },
   {
     href: "/orders" as Route,
     label: "Orders",
-    description: "Open demand by order and product."
+    description: "Open demand and the production queue."
   },
   {
     href: "/purchasing" as Route,
     label: "Purchasing",
-    description: "Material plan generated from open orders."
+    description: "Material plan from open demand."
   }
-] as const;
+];

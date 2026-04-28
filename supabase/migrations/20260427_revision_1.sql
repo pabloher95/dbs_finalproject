@@ -72,7 +72,7 @@ create table if not exists order_items (
 );
 
 insert into business (id, name, owner_user_id)
-values ('biz_sunday_crumb', 'Sunday Crumb Bakehouse', 'owner_demo')
+values ('biz_sunday_crumb', 'Your Business', 'owner_demo')
 on conflict (id) do nothing;
 
 insert into suppliers (id, business_id, name, email, category)

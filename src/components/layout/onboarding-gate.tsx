@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Eyebrow } from "@/components/ui/surfaces";
+
+const STORAGE_KEY = "smallbiz.onboarding.dismissed";
 
 export function OnboardingGate({
   children,
@@ -9,57 +13,57 @@ export function OnboardingGate({
   children: React.ReactNode;
   defaultOpen?: boolean;
 }>) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!defaultOpen) return;
+    try {
+      const dismissed = window.sessionStorage.getItem(STORAGE_KEY) === "1";
+      setOpen(!dismissed);
+    } catch {
+      setOpen(true);
+    }
+  }, [defaultOpen]);
+
+  function dismiss() {
+    setOpen(false);
+    try {
+      window.sessionStorage.setItem(STORAGE_KEY, "1");
+    } catch {
+      // ignore storage failures
+    }
+  }
 
   return (
     <>
-      {children}
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(34,24,18,0.52)] px-4 py-6 backdrop-blur-sm">
-          <div className="w-full max-w-3xl rounded-[2rem] border border-[var(--line)] bg-[var(--panel-strong)] p-6 shadow-[0_30px_90px_rgba(39,24,15,0.28)] md:p-8">
-            <p className="font-[var(--font-display)] text-3xl italic tracking-wide text-[var(--text)] md:text-4xl">
-              SmallBiz IQ
-            </p>
-            <h1 className="mt-4 max-w-2xl font-[var(--font-display)] text-2xl leading-tight md:text-4xl">
-              A faster way to run the work behind every order.
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)] md:text-base">
-              Start with the catalog, load your records when you are ready, and use purchasing to see exactly what
-              needs to be bought next.
-            </p>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              {[
-                {
-                  title: "Start with catalog",
-                  body: "Review products and formulas before you make changes."
-                },
-                {
-                  title: "Load records",
-                  body: "Import products and orders with clear templates."
-                },
-                {
-                  title: "Buy with clarity",
-                  body: "See open demand, required materials, and supplier context in one place."
-                }
-              ].map((item) => (
-                <div key={item.title} className="rounded-[1.25rem] border border-[var(--line)] bg-white/75 p-4">
-                  <p className="font-medium text-[var(--text)]">{item.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.body}</p>
-                </div>
-              ))}
+        <div className="reveal mb-5 overflow-hidden rounded-[20px] border border-[var(--line)] bg-gradient-to-br from-[var(--paper-bright)] to-[var(--paper-soft)]">
+          <div className="grid gap-5 p-5 md:grid-cols-[auto_1fr_auto] md:items-center md:p-6">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--ink)] font-display italic text-2xl text-[var(--paper-bright)]">
+              SI
             </div>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white"
-              >
-                Open workspace
+            <div>
+              <Eyebrow tone="flame">Welcome</Eyebrow>
+              <p className="mt-1 font-display italic text-2xl leading-tight md:text-3xl">
+                Three steps to your first purchasing plan.
+              </p>
+              <p className="mt-2 max-w-xl text-[0.9rem] leading-6 text-[var(--muted-strong)]">
+                Start with the catalog or import sample data, capture an order, then preview today&apos;s
+                buy list. The console keeps step state fresh as you go.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 md:justify-end">
+              <Link href="/import" className="btn btn-flame" onClick={dismiss}>
+                Begin intake
+              </Link>
+              <button type="button" onClick={dismiss} className="btn btn-ghost">
+                Skip tour
               </button>
             </div>
           </div>
         </div>
       ) : null}
+      {children}
     </>
   );
 }

@@ -3,8 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { OrdersBoard } from "@/components/layout/orders-board";
-import { Card } from "@/components/ui/surfaces";
+import { Card, Eyebrow, Pill, Toast } from "@/components/ui/surfaces";
 import type { BusinessSnapshot, Order } from "@/lib/domain/types";
+
+type Tone = "info" | "success" | "warn" | "error";
+
+function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
+  if (status === "open") return "flame";
+  if (status === "draft") return "amber";
+  return "moss";
+}
 
 export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
   const router = useRouter();
@@ -18,7 +26,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     productId: snapshot.products[0]?.id ?? "",
     quantity: "24"
   });
-  const [status, setStatus] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; tone: Tone } | null>(null);
   const [search, setSearch] = useState("");
   const [lastDeleted, setLastDeleted] = useState<Order | null>(null);
 
@@ -38,25 +46,26 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     );
   }, [orders, search]);
 
+  const blocked = !snapshot.clients.length || !snapshot.products.length;
+
   async function saveOrder() {
     if (!snapshot.clients.length) {
-      setStatus("Add a customer in Contacts before creating orders.");
+      setToast({ message: "Add a customer in Contacts before creating orders.", tone: "warn" });
       return;
     }
     if (!snapshot.products.length) {
-      setStatus("Add a product in Catalog before creating orders.");
+      setToast({ message: "Add a product in Catalog before creating orders.", tone: "warn" });
       return;
     }
     if (!draft.orderNumber.trim()) {
-      setStatus("Order number is required.");
+      setToast({ message: "Order number is required.", tone: "warn" });
       return;
     }
     if (Number(draft.quantity) <= 0) {
-      setStatus("Quantity must be greater than zero.");
+      setToast({ message: "Quantity must be greater than zero.", tone: "warn" });
       return;
     }
 
-    setStatus("Saving order...");
     const response = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -72,13 +81,13 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setStatus(data.error ?? "Unable to save order.");
+      setToast({ message: data.error ?? "Unable to save order.", tone: "error" });
       return;
     }
 
     setOrders(data.snapshot.orders);
     setLastDeleted(null);
-    setStatus("Order saved.");
+    setToast({ message: "Order saved.", tone: "success" });
     setDraft((current) => ({
       ...current,
       id: "",
@@ -88,11 +97,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
   }
 
   async function deleteOrder(order: Order) {
-    if (!window.confirm(`Delete ${order.orderNumber}?`)) {
-      return;
-    }
-
-    setStatus(`Deleting ${order.orderNumber}...`);
+    if (!window.confirm(`Delete ${order.orderNumber}?`)) return;
     const response = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -100,10 +105,9 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setStatus(data.error ?? "Unable to delete order.");
+      setToast({ message: data.error ?? "Unable to delete order.", tone: "error" });
       return;
     }
-
     setOrders(data.snapshot.orders);
     setLastDeleted(order);
     if (draft.id === order.id) {
@@ -117,16 +121,15 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         quantity: "24"
       });
     }
-    setStatus("Order deleted. You can undo this action.");
+    setToast({ message: "Order deleted. Undo available.", tone: "info" });
     router.refresh();
   }
 
   async function undoDelete() {
     if (!lastDeleted) return;
-    setStatus(`Restoring ${lastDeleted.orderNumber}...`);
     const firstItem = lastDeleted.items[0];
     if (!firstItem) {
-      setStatus("Cannot restore an order with no line items.");
+      setToast({ message: "Cannot restore an order with no line items.", tone: "warn" });
       return;
     }
     const response = await fetch("/api/orders", {
@@ -144,53 +147,52 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setStatus(data.error ?? "Unable to restore order.");
+      setToast({ message: data.error ?? "Unable to restore order.", tone: "error" });
       return;
     }
     setOrders(data.snapshot.orders);
     setLastDeleted(null);
-    setStatus("Order restored.");
+    setToast({ message: "Order restored.", tone: "success" });
     router.refresh();
   }
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-5">
+      <Card className="p-6">
         <form
-          className="grid gap-4 xl:grid-cols-6"
+          className="grid gap-4 lg:grid-cols-6"
           onSubmit={(event) => {
             event.preventDefault();
             void saveOrder();
           }}
         >
-          <div className="xl:col-span-6">
-            <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent)]">Order entry</p>
-            <h3 className="mt-2 font-[var(--font-display)] text-2xl">Add the next job to the queue</h3>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Start with the customer, choose the product, and set a due date so purchasing and production can react
-              early.
+          <div className="lg:col-span-6">
+            <Eyebrow tone="flame">Order intake</Eyebrow>
+            <p className="mt-2 font-display italic text-3xl leading-tight">Add the next job to the queue</p>
+            <p className="mt-2 text-[0.92rem] leading-6 text-[var(--muted-strong)]">
+              Pick the customer, the product, and a due date. The plan ahead reacts the moment you save.
             </p>
             {!snapshot.clients.length ? (
-              <p className="mt-2 text-xs text-[var(--accent-deep)]">
-                No customers available yet. Add one in Contacts first.
-              </p>
+              <Pill tone="amber" className="mt-3">
+                No customers yet. Add one in Contacts first.
+              </Pill>
             ) : null}
             {!snapshot.products.length ? (
-              <p className="mt-1 text-xs text-[var(--accent-deep)]">
-                No products available yet. Add one in Catalog before saving orders.
-              </p>
+              <Pill tone="amber" className="mt-3 ml-2">
+                No products yet. Add one in Catalog before saving orders.
+              </Pill>
             ) : null}
           </div>
           <input
             value={draft.orderNumber}
             onChange={(event) => setDraft((current) => ({ ...current, orderNumber: event.target.value }))}
             placeholder="Order number"
-            className="rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
+            className="field font-mono text-sm"
           />
           <select
             value={draft.clientId}
             onChange={(event) => setDraft((current) => ({ ...current, clientId: event.target.value }))}
-            className="rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
+            className="field"
           >
             {snapshot.clients.map((client) => (
               <option key={client.id} value={client.id}>
@@ -202,12 +204,12 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             value={draft.dueDate}
             onChange={(event) => setDraft((current) => ({ ...current, dueDate: event.target.value }))}
             type="date"
-            className="rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
+            className="field"
           />
           <select
             value={draft.productId}
             onChange={(event) => setDraft((current) => ({ ...current, productId: event.target.value }))}
-            className="rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
+            className="field"
           >
             {snapshot.products.map((product) => (
               <option key={product.id} value={product.id}>
@@ -220,95 +222,100 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             onChange={(event) => setDraft((current) => ({ ...current, quantity: event.target.value }))}
             type="number"
             min="1"
-            className="rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
+            className="field font-mono text-sm"
           />
           <select
             value={draft.status}
             onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as Order["status"] }))}
-            className="rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3"
+            className="field"
           >
             <option value="draft">draft</option>
             <option value="open">open</option>
             <option value="fulfilled">fulfilled</option>
           </select>
-          <button
-            className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-            type="submit"
-            disabled={!snapshot.clients.length || !snapshot.products.length}
-          >
-            {draft.id ? "Update order" : "Save order"}
-          </button>
-          {!snapshot.clients.length || !snapshot.products.length ? (
-            <p className="xl:col-span-6 text-xs text-[var(--muted)]">
-              Add at least one customer and product before submitting an order.
-            </p>
-          ) : null}
+          <div className="lg:col-span-6 flex flex-wrap items-center gap-2 pt-2">
+            <button className="btn btn-flame" type="submit" disabled={blocked}>
+              {draft.id ? "Update order" : "Save order"}
+            </button>
+            {lastDeleted ? (
+              <button type="button" className="btn btn-soft" onClick={() => void undoDelete()}>
+                Undo last delete
+              </button>
+            ) : null}
+            {blocked ? (
+              <span className="font-mono text-[0.66rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                Add a customer and a product before submitting an order.
+              </span>
+            ) : null}
+          </div>
         </form>
-        {status ? <p className="mt-4 text-sm text-[var(--muted)]">{status}</p> : null}
-        {lastDeleted ? (
-          <button
-            type="button"
-            className="mt-3 rounded-full border border-[var(--line)] px-4 py-2 text-sm"
-            onClick={() => void undoDelete()}
-          >
-            Undo last delete
-          </button>
-        ) : null}
       </Card>
       <OrdersBoard snapshot={displaySnapshot} />
-      <Card className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-5">
-        <h3 className="font-[var(--font-display)] text-2xl">Manage orders</h3>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search orders by number, customer, status, or date"
-          className="mt-4 w-full rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
-        />
+      <Card className="p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <Eyebrow tone="flame">Manage orders</Eyebrow>
+            <p className="mt-2 font-display italic text-2xl">{orders.length} on the queue</p>
+          </div>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search number, customer, status, date"
+            className="field max-w-xs"
+          />
+        </div>
         <div className="mt-4 space-y-3">
           {visibleOrders.map((order) => (
-            <article key={order.id} className="rounded-[1.25rem] border border-[var(--line)] bg-[#fffdf9] p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="font-medium">{order.orderNumber}</p>
-                  <p className="mt-1 text-sm text-[var(--muted)]">
-                    {order.clientName} · due {order.dueDate} · {order.status}
-                  </p>
+            <article
+              key={order.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-display italic text-lg">{order.orderNumber}</p>
+                  <Pill tone={statusTone(order.status)}>{order.status}</Pill>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="rounded-full border border-[var(--line)] px-3 py-2 text-xs"
-                    onClick={() =>
-                      setDraft({
-                        id: order.id,
-                        orderNumber: order.orderNumber,
-                        clientId: order.clientId,
-                        dueDate: order.dueDate,
-                        status: order.status,
-                        productId: order.items[0]?.productId ?? snapshot.products[0]?.id ?? "",
-                        quantity: String(order.items[0]?.quantity ?? 1)
-                      })
-                    }
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-full border border-[var(--line)] px-3 py-2 text-xs text-[var(--accent-deep)]"
-                    onClick={() => void deleteOrder(order)}
-                  >
-                    Delete
-                  </button>
-                </div>
+                <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
+                  {order.clientName} · due {order.dueDate}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() =>
+                    setDraft({
+                      id: order.id,
+                      orderNumber: order.orderNumber,
+                      clientId: order.clientId,
+                      dueDate: order.dueDate,
+                      status: order.status,
+                      productId: order.items[0]?.productId ?? snapshot.products[0]?.id ?? "",
+                      quantity: String(order.items[0]?.quantity ?? 1)
+                    })
+                  }
+                >
+                  Edit
+                </button>
+                <button type="button" className="btn btn-soft" onClick={() => void deleteOrder(order)}>
+                  Delete
+                </button>
               </div>
             </article>
           ))}
-          {!orders.length ? <p className="text-sm text-[var(--muted)]">No orders yet. Create one to generate purchasing demand.</p> : null}
+          {!orders.length ? (
+            <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+              No orders yet. Create one to generate purchasing demand.
+            </p>
+          ) : null}
           {orders.length > 0 && !visibleOrders.length ? (
-            <p className="text-sm text-[var(--muted)]">No orders match your search.</p>
+            <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+              No orders match your search.
+            </p>
           ) : null}
         </div>
       </Card>
+      {toast ? <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast(null)} /> : null}
     </div>
   );
 }

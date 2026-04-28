@@ -1,4 +1,4 @@
-import { Card, SectionHeading, StatPill } from "@/components/ui/surfaces";
+import { Card, Display, Eyebrow, Reveal, StatPill } from "@/components/ui/surfaces";
 
 type WorkflowStep = {
   title: string;
@@ -29,30 +29,54 @@ export function WorkflowPageShell({
 }>) {
   return (
     <div className="space-y-6">
-      <Card className="rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-6 shadow-[var(--shadow)]">
-        <SectionHeading eyebrow={eyebrow} title={title} description={description} />
-        <div className="mt-5 flex flex-wrap gap-3">
-          {metrics.map((metric) => (
-            <StatPill key={metric.label} label={metric.label} value={metric.value} />
-          ))}
-        </div>
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          {steps.map((step, index) => (
-            <div key={step.title} className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-4">
-              <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent)]">Step {index + 1}</p>
-              <p className="mt-2 font-medium text-[var(--text)]">{step.title}</p>
-              <p className="mt-2 text-sm text-[var(--muted)]">{step.description}</p>
+      <Reveal>
+        <Card className="overflow-hidden p-7 md:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-end">
+            <div>
+              <Eyebrow tone="flame">{eyebrow}</Eyebrow>
+              <Display size="xl" className="mt-3">
+                {title}
+              </Display>
+              <p className="mt-4 max-w-2xl text-[1rem] leading-7 text-[var(--muted-strong)]">{description}</p>
             </div>
-          ))}
-        </div>
-      </Card>
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              {metrics.map((metric) => (
+                <StatPill key={metric.label} label={metric.label} value={metric.value} />
+              ))}
+            </div>
+          </div>
+          <div className="mt-7 grid gap-3 md:grid-cols-3">
+            {steps.map((step, index) => (
+              <Reveal key={step.title} delay={120 + index * 80}>
+                <div className="paper-card relative h-full rounded-2xl p-4">
+                  <div className="flex items-start justify-between">
+                    <span className="font-mono text-[0.6rem] uppercase tracking-[0.32em] text-[var(--flame)]">
+                      Step {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="font-display italic text-2xl text-[var(--ink)]/40">{index + 1}</span>
+                  </div>
+                  <p className="mt-2 font-display italic text-lg text-[var(--text)]">{step.title}</p>
+                  <p className="mt-2 text-[0.85rem] leading-6 text-[var(--muted-strong)]">{step.description}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </Card>
+      </Reveal>
 
-      {children}
+      <Reveal delay={120}>{children}</Reveal>
 
-      <Card className="rounded-[2rem] border border-[var(--line)] bg-white/70 p-5">
-        <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">Next step</p>
-        <p className="mt-2 text-sm text-[var(--muted)]">{nextStep}</p>
-      </Card>
+      <Reveal delay={200}>
+        <Card className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--flame)]">
+              Next move
+            </span>
+            <span className="hidden h-px w-10 bg-[var(--line-strong)] md:inline-block" />
+          </div>
+          <p className="flex-1 text-[0.95rem] leading-7 text-[var(--muted-strong)]">{nextStep}</p>
+        </Card>
+      </Reveal>
     </div>
   );
 }

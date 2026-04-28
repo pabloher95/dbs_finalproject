@@ -1,128 +1,149 @@
 import Link from "next/link";
-import { Card, StatPill } from "@/components/ui/surfaces";
+import type { Route } from "next";
+import { Card, Display, Eyebrow, Pill, Reveal } from "@/components/ui/surfaces";
 import type { BusinessSnapshot } from "@/lib/domain/types";
+import { buildPurchasingPlan } from "@/lib/domain/purchasing-plan";
 
 const shortcuts = [
   {
-    href: "/import",
-    title: "Import records",
-    description: "Load products and orders with templates that catch issues before they slow you down."
+    href: "/import" as Route,
+    eyebrow: "01 · Intake",
+    title: "Bring records in",
+    description: "Drop a CSV or paste rows. Versioned templates with row-level validation.",
+    cta: "Start an intake"
   },
   {
-    href: "/products",
-    title: "Review catalog",
-    description: "Check yields, formulas, and the product structure your team uses to plan work."
+    href: "/products" as Route,
+    eyebrow: "02 · Catalog",
+    title: "Tune your formulas",
+    description: "Yields, units, and material bills are the source of truth for purchasing math.",
+    cta: "Open catalog"
   },
   {
-    href: "/purchasing",
-    title: "Plan purchasing",
-    description: "Turn open orders into a clear buy list with supplier context beside each material."
+    href: "/purchasing" as Route,
+    eyebrow: "03 · Purchasing",
+    title: "Run the buy list",
+    description: "Open orders translate to materials, with supplier links beside every line.",
+    cta: "View today\u2019s buy list"
   }
 ] as const;
 
-type ChecklistStep = {
-  title: string;
-  done: boolean;
-  href: string;
-};
-
 export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
-  const checklist: ChecklistStep[] = [
-    {
-      title: "Import products or orders",
-      done: snapshot.products.length > 0 || snapshot.orders.length > 0,
-      href: "/import"
-    },
-    {
-      title: "Review and edit your catalog",
-      done: snapshot.products.length > 0,
-      href: "/products"
-    },
-    {
-      title: "Create at least one order",
-      done: snapshot.orders.length > 0,
-      href: "/orders"
-    },
-    {
-      title: "Generate a purchasing plan",
-      done: snapshot.orders.some((order) => order.status === "open") && snapshot.products.length > 0,
-      href: "/purchasing"
-    }
-  ];
+  const openOrders = snapshot.orders.filter((order) => order.status === "open");
+  const planLines = buildPurchasingPlan(
+    snapshot.orders,
+    snapshot.products,
+    snapshot.materials,
+    snapshot.suppliers
+  );
+  const totalUnits = openOrders.reduce(
+    (sum, order) => sum + order.items.reduce((inner, item) => inner + item.quantity, 0),
+    0
+  );
 
   return (
-    <div className="space-y-5">
-      <Card className="overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-0 shadow-[var(--shadow)]">
-        <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="p-6 md:p-7">
-            <p className="text-xs uppercase tracking-[0.35em] text-[var(--accent)]">Home</p>
-            <h1 className="mt-3 max-w-2xl font-[var(--font-display)] text-3xl leading-tight md:text-4xl">
-              Run products, orders, and purchasing from one place.
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)] md:text-base">
-              {snapshot.business.name} has one workspace for catalog changes, order capture, and purchasing so the next
-              decision stays close to the work.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/import" className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white">
-                Import data
-              </Link>
-              <Link href="/products" className="rounded-full border border-[var(--line)] bg-white/70 px-5 py-3 text-sm">
-                Review catalog
-              </Link>
-            </div>
-          </div>
-          <div className="border-t border-[var(--line)] bg-white/50 p-6 md:p-7 lg:border-l lg:border-t-0">
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">Today at a glance</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <StatPill label="Products" value={String(snapshot.products.length)} />
-              <StatPill
-                label="Open orders"
-                value={String(snapshot.orders.filter((order) => order.status === "open").length)}
-              />
-              <StatPill label="Suppliers" value={String(snapshot.suppliers.length)} />
-            </div>
-            <div className="mt-6 rounded-[1.5rem] border border-[var(--line)] bg-[#fffdf9] p-4">
-              <p className="font-medium text-[var(--text)]">Ready for the next move</p>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                Use this view to confirm the current workload, then jump into the catalog, orders, or purchasing page
-                to make the next decision with confidence.
+    <div className="space-y-6">
+      <Reveal>
+        <Card className="overflow-hidden p-7 md:p-10">
+          <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-stretch">
+            <div className="flex flex-col">
+              <div className="flex flex-wrap items-center gap-3">
+                <Eyebrow tone="flame">
+                  Today · {new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
+                </Eyebrow>
+                <Pill tone="ink">{snapshot.business.name}</Pill>
+              </div>
+              <Display size="hero" className="mt-5">
+                Run the work
+                <br />
+                <span className="text-[var(--flame)]">behind every order.</span>
+              </Display>
+              <p className="mt-5 max-w-xl text-[1.02rem] leading-7 text-[var(--muted-strong)]">
+                One console for catalog, demand, and material purchasing. Snap from intake to a
+                purchase-ready list in a single sitting — no detours, no context switches.
               </p>
             </div>
+            <div className="relative">
+              <div className="flame-card flex h-full flex-col gap-5 rounded-[22px] p-6">
+                <p className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--ink)]/70">
+                  Snapshot
+                </p>
+                <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+                  {[
+                    {
+                      label: "Products",
+                      value: snapshot.products.length,
+                      hint: `${new Set(snapshot.products.map((p) => p.category)).size} categories`
+                    },
+                    {
+                      label: "Open orders",
+                      value: openOrders.length,
+                      hint: `${totalUnits} units due`
+                    },
+                    {
+                      label: "Suppliers",
+                      value: snapshot.suppliers.length,
+                      hint: "Sources linked"
+                    },
+                    {
+                      label: "Plan lines",
+                      value: planLines.length,
+                      hint: "Materials to buy"
+                    }
+                  ].map((stat) => (
+                    <div key={stat.label}>
+                      <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em] text-[var(--ink)]/65">
+                        {stat.label}
+                      </p>
+                      <p className="mt-1 font-display italic text-4xl leading-none text-[var(--paper-bright)]">
+                        {stat.value}
+                      </p>
+                      <p className="mt-1 text-[0.78rem] text-[var(--ink)]/70">{stat.hint}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="h-px w-full bg-[var(--ink)]/15" />
+                <div className="space-y-2">
+                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--ink)]/70">
+                    Next due
+                  </p>
+                  {openOrders.slice(0, 2).map((order) => (
+                    <div key={order.id} className="flex items-center justify-between gap-3">
+                      <span className="font-display italic text-base text-[var(--paper-bright)]">{order.orderNumber}</span>
+                      <span className="font-mono text-xs text-[var(--ink)]/75">
+                        {order.dueDate} · {order.clientName}
+                      </span>
+                    </div>
+                  ))}
+                  {!openOrders.length ? (
+                    <p className="text-[0.85rem] text-[var(--ink)]/75">
+                      No open orders yet. Capture one to start a purchasing run.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </Reveal>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {shortcuts.map((item) => (
-          <Card key={item.href} className="rounded-[1.75rem] border border-[var(--line)] bg-white/70 p-5">
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">Next action</p>
-            <h2 className="mt-2 font-[var(--font-display)] text-2xl">{item.title}</h2>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{item.description}</p>
-            <Link href={item.href} className="mt-5 inline-flex rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm">
-              Open
-            </Link>
-          </Card>
+        {shortcuts.map((item, index) => (
+          <Reveal key={item.href} delay={120 + index * 90}>
+            <div className="flex h-full flex-col rounded-[20px] border border-[var(--line)] bg-[var(--paper-bright)] p-6 transition hover:-translate-y-0.5 hover:border-[var(--ink)]">
+              <Eyebrow tone="flame">{item.eyebrow}</Eyebrow>
+              <Display size="md" className="mt-3">
+                {item.title}
+              </Display>
+              <p className="mt-3 flex-1 text-[0.92rem] leading-6 text-[var(--muted-strong)]">{item.description}</p>
+              <Link href={item.href} className="btn btn-flame mt-6 self-start">
+                {item.cta}
+                <span aria-hidden className="font-mono text-[0.62rem] tracking-[0.22em] opacity-80">→</span>
+              </Link>
+            </div>
+          </Reveal>
         ))}
       </div>
-      <Card className="rounded-[1.75rem] border border-[var(--line)] bg-white/70 p-5">
-        <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">First-run checklist</p>
-        <h2 className="mt-2 font-[var(--font-display)] text-2xl">Complete the Revision 1 workflow</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {checklist.map((step) => (
-            <Link
-              key={step.title}
-              href={step.href}
-              className="flex items-center justify-between rounded-xl border border-[var(--line)] bg-[#fffdf9] px-4 py-3 text-sm"
-            >
-              <span>{step.title}</span>
-              <span className={step.done ? "text-[var(--sage-deep)]" : "text-[var(--muted)]"}>
-                {step.done ? "Done" : "Pending"}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 }

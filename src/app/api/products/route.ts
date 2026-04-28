@@ -25,8 +25,9 @@ export async function POST(request: Request) {
     const category = nonEmpty(body.category);
     const unit = nonEmpty(body.unit);
     const yieldQuantity = Number(body.yieldQuantity ?? 0);
-    const formula = Array.isArray(body.formula)
-      ? body.formula.map((item: { materialName: string; unit: string; quantity: number }) => ({
+    type FormulaInput = { materialName: string; unit: string; quantity: number };
+    const formula: FormulaInput[] = Array.isArray(body.formula)
+      ? body.formula.map((item: { materialName?: unknown; unit?: unknown; quantity?: unknown }) => ({
           materialName: nonEmpty(item.materialName),
           unit: nonEmpty(item.unit),
           quantity: Number(item.quantity ?? 0)
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "At least one formula line is required." }, { status: 400 });
     }
 
-    if (formula.some((item) => !item.materialName || !item.unit || !Number.isFinite(item.quantity) || item.quantity <= 0)) {
+    if (formula.some((item: FormulaInput) => !item.materialName || !item.unit || !Number.isFinite(item.quantity) || item.quantity <= 0)) {
       return NextResponse.json(
         { error: "Each formula line needs material name, unit, and a quantity greater than zero." },
         { status: 400 }

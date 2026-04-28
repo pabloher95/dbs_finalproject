@@ -1,39 +1,49 @@
-import Link from "next/link";
-import { WorkspaceHeader } from "@/components/layout/workspace-header";
+import { CommandBar } from "@/components/layout/command-bar";
+import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { appNav } from "@/lib/data/navigation";
+import { getWorkspaceOverview } from "@/lib/server/workspace";
 
-export function WorkspaceShell({
-  children,
-  showHeader = true
+export async function WorkspaceShell({
+  children
 }: Readonly<{
   children: React.ReactNode;
-  showHeader?: boolean;
 }>) {
+  const { snapshot } = await getWorkspaceOverview();
+  const businessName = snapshot.business.name;
+  const openOrders = snapshot.orders.filter((order) => order.status === "open").length;
+
   return (
-    <div className="min-h-screen px-4 py-6 md:px-8">
-      <div className="mx-auto flex w-full max-w-7xl gap-6">
-        <aside className="hidden w-72 shrink-0 rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-6 shadow-[var(--shadow)] backdrop-blur md:block">
-          <div className="mb-8">
-            <p className="font-[var(--font-display)] text-3xl italic tracking-wide">SmallBiz IQ</p>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Warm operations tooling for makers who sell by batch, bundle, and order.
-            </p>
+    <div className="shell-outer min-h-screen px-4 py-6 md:px-8 md:py-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 md:flex-row">
+        <aside className="md:w-[18.5rem] md:flex-shrink-0">
+          <div className="sticky top-5 flex flex-col gap-3">
+            <div className="ink-rail">
+              <p className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[rgba(247,236,214,0.55)]">
+                Operations
+              </p>
+              <p className="mt-1 font-display italic text-3xl leading-[1] text-[var(--paper-bright)]">
+                SmallBiz / IQ
+              </p>
+            </div>
+            <div className="ink-rail">
+              <p className="font-mono text-[0.6rem] uppercase tracking-[0.3em] text-[rgba(247,236,214,0.6)]">
+                Workspace
+              </p>
+              <p className="mt-1 truncate font-display italic text-xl text-[var(--paper-bright)]">{businessName}</p>
+              <div className="mt-3 flex items-center gap-2 text-[0.7rem] text-[rgba(247,236,214,0.7)]">
+                <span className="pulse-dot inline-block h-2 w-2 rounded-full bg-[var(--flame)]" />
+                <span className="font-mono uppercase tracking-[0.24em]">
+                  {openOrders} open
+                </span>
+              </div>
+            </div>
+            <div className="ink-rail ink-rail--nav">
+              <SidebarNav items={appNav} />
+            </div>
           </div>
-          <nav className="space-y-2">
-            {appNav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="block rounded-2xl border border-transparent px-4 py-3 text-sm text-[var(--muted)] transition hover:border-[var(--line)] hover:bg-white/60 hover:text-[var(--text)]"
-              >
-                <span className="block font-medium text-[var(--text)]">{item.label}</span>
-                <span>{item.description}</span>
-              </Link>
-            ))}
-          </nav>
         </aside>
-        <main className="min-w-0 flex-1">
-          {showHeader ? <WorkspaceHeader /> : null}
+        <main className="min-w-0 flex-1 space-y-6">
+          <CommandBar businessName={businessName} />
           {children}
         </main>
       </div>

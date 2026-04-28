@@ -3,7 +3,7 @@ import type { BusinessSnapshot } from "@/lib/domain/types";
 const snapshot: BusinessSnapshot = {
   business: {
     id: "biz_sunday_crumb",
-    name: "Studio Meridian",
+    name: "Your Business",
     ownerUserId: "owner_demo"
   },
   suppliers: [

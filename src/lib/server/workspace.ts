@@ -129,7 +129,7 @@ function createEmptySnapshot(ownerId: string): BusinessSnapshot {
   return {
     business: {
       id: `biz_${slugify(ownerId) || "owner"}`,
-      name: ownerId === "owner_demo" ? "Sunday Crumb Bakehouse" : "My Business",
+      name: "Your Business",
       ownerUserId: ownerId
     },
     suppliers: [],
