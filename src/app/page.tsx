@@ -69,7 +69,7 @@ function TopBar({ isSignedIn }: { isSignedIn: boolean }) {
             <Link href={"/dashboard" as Route} className="btn btn-vermilion">
               Open studio →
             </Link>
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
             </>
           )}
         </div>
