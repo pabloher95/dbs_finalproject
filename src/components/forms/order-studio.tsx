@@ -168,7 +168,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         >
           <div className="lg:col-span-6">
             <Eyebrow tone="flame">Order intake</Eyebrow>
-            <p className="mt-2 font-display italic text-3xl leading-tight">Add the next job to the queue</p>
+            <p className="mt-2 font-display text-3xl leading-tight text-[var(--ink)]">Add the next job to the queue</p>
             <p className="mt-2 text-[0.92rem] leading-6 text-[var(--muted-strong)]">
               Pick the customer, the product, and a due date. The plan ahead reacts the moment you save.
             </p>
@@ -255,7 +255,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <Eyebrow tone="flame">Manage orders</Eyebrow>
-            <p className="mt-2 font-display italic text-2xl">{orders.length} on the queue</p>
+            <p className="mt-2 font-display text-2xl text-[var(--ink)]">{orders.length} on the queue</p>
           </div>
           <input
             value={search}
@@ -268,11 +268,11 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
           {visibleOrders.map((order) => (
             <article
               key={order.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="font-display italic text-lg">{order.orderNumber}</p>
+                  <p className="font-display text-lg text-[var(--ink)]">{order.orderNumber}</p>
                   <Pill tone={statusTone(order.status)}>{order.status}</Pill>
                 </div>
                 <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
@@ -304,12 +304,12 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             </article>
           ))}
           {!orders.length ? (
-            <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+            <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
               No orders yet. Create one to generate purchasing demand.
             </p>
           ) : null}
           {orders.length > 0 && !visibleOrders.length ? (
-            <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+            <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
               No orders match your search.
             </p>
           ) : null}

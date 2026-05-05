@@ -25,7 +25,7 @@ export function Card({
   return (
     <div
       className={clsx(
-        "relative rounded-[20px]",
+        "relative rounded-[28px]",
         cardVariantClass[variant],
         className
       )}
@@ -124,10 +124,10 @@ export function Stat({
     flame: "flame-card"
   };
   return (
-    <div className={clsx("relative rounded-[18px] px-4 py-3", tones[variant])}>
+    <div className={clsx("relative rounded-[22px] px-4 py-3", tones[variant])}>
       <Eyebrow tone={variant === "paper" ? "ink" : "paper"}>{label}</Eyebrow>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="font-display text-3xl md:text-4xl tracking-tight">{value}</span>
+        <span className="font-display text-3xl tracking-tight md:text-4xl">{value}</span>
       </div>
       {hint ? (
         <p
@@ -145,8 +145,8 @@ export function Stat({
 
 export function StatPill({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="inline-flex items-center gap-3 rounded-full border border-[var(--line-strong)] bg-[var(--paper-bright)] px-4 py-2">
-      <span className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--muted-strong)]">{label}</span>
+    <div className="inline-flex items-center gap-3 rounded-full border border-[rgba(19,36,58,0.12)] bg-[rgba(255,255,255,0.56)] px-4 py-2 backdrop-blur">
+      <span className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--muted)]">{label}</span>
       <span className="font-display text-xl">{value}</span>
     </div>
   );
@@ -193,17 +193,17 @@ export function Toast({
   if (!visible) return null;
 
   const toneClass: Record<ToastTone, string> = {
-    info: "border-[var(--line-strong)] bg-[var(--paper-bright)] text-[var(--text)]",
-    success: "border-[rgba(47,69,32,0.4)] bg-[rgba(90,122,60,0.16)] text-[var(--moss-deep)]",
-    warn: "border-[rgba(106,71,8,0.4)] bg-[rgba(224,165,47,0.18)] text-[#5a3a06]",
-    error: "border-[var(--flame)] bg-[var(--flame)] text-[var(--paper-bright)]"
+    info: "border-[rgba(61,124,156,0.22)] bg-[rgba(255,255,255,0.96)] text-[var(--text)]",
+    success: "border-[rgba(111,159,104,0.28)] bg-[rgba(255,255,255,0.96)] text-[var(--moss-deep)]",
+    warn: "border-[rgba(217,169,58,0.3)] bg-[rgba(255,255,255,0.96)] text-[#72510d]",
+    error: "border-[rgba(239,107,88,0.36)] bg-[rgba(255,255,255,0.96)] text-[#9e3526]"
   };
 
   return (
     <div className="pointer-events-none fixed bottom-6 right-6 z-50 max-w-sm">
       <div
         className={clsx(
-          "toast-in pointer-events-auto rounded-2xl border px-4 py-3 shadow-[0_20px_50px_-20px_rgba(20,16,8,0.45)]",
+          "toast-in pointer-events-auto rounded-2xl border px-4 py-3 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.65)] backdrop-blur",
           toneClass[tone]
         )}
       >

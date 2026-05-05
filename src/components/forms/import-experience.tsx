@@ -36,7 +36,7 @@ function PreviewTable({ preview }: Readonly<{ preview: ImportPreview }>) {
         <SummaryCell label="Skipped" value={String(preview.skippedRows.length)} tone="amber" />
         <SummaryCell label="Errors" value={String(preview.errors.length)} tone="flame" />
       </div>
-      <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)]">
+      <div className="overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
         <table className="console-table">
           <thead>
             <tr>
@@ -82,7 +82,7 @@ function SummaryCell({
   return (
     <div className={`rounded-2xl border ${toneClass[tone]} px-4 py-3`}>
       <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em]">{label}</p>
-      <p className="mt-1 font-display italic text-3xl">{value}</p>
+      <p className="mt-1 font-display text-3xl text-[var(--ink)]">{value}</p>
     </div>
   );
 }
@@ -203,8 +203,8 @@ export function ImportExperience() {
           }}
           className={`mt-5 cursor-pointer rounded-2xl border-2 border-dashed px-5 py-4 text-center transition ${
             isDragging
-              ? "border-[var(--flame)] bg-[var(--flame-glow)]"
-              : "border-[var(--line-strong)] bg-[var(--paper-bright)]"
+            ? "border-[var(--flame)] bg-[rgba(239,107,88,0.08)]"
+              : "border-[var(--line-strong)] bg-[rgba(255,255,255,0.72)]"
           }`}
           onClick={() => fileInputRef.current?.click()}
         >
@@ -219,7 +219,7 @@ export function ImportExperience() {
               event.currentTarget.value = "";
             }}
           />
-          <p className="font-display italic text-lg">Drop a CSV or click to upload</p>
+          <p className="font-display text-lg text-[var(--ink)]">Drop a CSV or click to upload</p>
           <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
             Drafts are kept for this browser session
           </p>

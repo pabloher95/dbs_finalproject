@@ -21,12 +21,12 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
   const totalUnits = purchasingPlan.reduce((sum, line) => sum + line.requiredQuantity, 0);
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6">
+    <div className="space-y-4">
+      <Card className="rounded-[28px] p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <Eyebrow tone="flame">Today&apos;s run</Eyebrow>
-            <p className="mt-2 font-display italic text-3xl leading-tight">
+            <p className="mt-2 font-display text-3xl leading-tight text-[var(--ink)]">
               {totalLines} material line{totalLines === 1 ? "" : "s"} ready to source
             </p>
             <p className="mt-2 text-[0.92rem] leading-6 text-[var(--muted-strong)]">
@@ -41,16 +41,16 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
           </div>
         </div>
         {!snapshot.orders.some((order) => order.status === "open") ? (
-          <p className="mt-5 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+          <p className="mt-5 rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
             No open orders yet. Add an order in Orders to generate required material quantities.
           </p>
         ) : null}
         {!snapshot.products.length ? (
-          <p className="mt-3 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+          <p className="mt-3 rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
             Catalog is empty. Add products with formulas before generating a purchasing run.
           </p>
         ) : null}
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)]">
+        <div className="mt-6 overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
           <table className="console-table">
             <thead>
               <tr>
@@ -67,13 +67,13 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
                 return (
                   <tr key={item.materialId}>
                     <td>
-                      <p className="font-display italic text-lg">{item.materialName}</p>
+                      <p className="font-display text-lg text-[var(--ink)]">{item.materialName}</p>
                     </td>
                     <td className="font-mono text-[0.78rem] uppercase tracking-[0.18em]">
                       {item.requiredQuantity.toFixed(2)} {item.unit}
                     </td>
                     <td className="font-mono text-[0.92rem]">
-                      <span className="font-display italic text-2xl text-[var(--ink)]">
+                      <span className="font-display text-2xl text-[var(--ink)]">
                         {item.netToBuyQuantity.toFixed(2)}
                       </span>{" "}
                       <span className="text-xs text-[var(--muted-strong)]">{item.unit}</span>

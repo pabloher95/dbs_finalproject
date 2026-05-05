@@ -12,26 +12,26 @@ export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
   const demand = summarizeOrderDemand(snapshot.orders, snapshot.products);
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6">
+    <div className="space-y-4">
+      <Card className="rounded-[28px] p-6">
         <SectionHeading
           eyebrow="Orders"
           title="Open production demand"
           description="See what is due, who it belongs to, and how order volume is building across the product line."
         />
       </Card>
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="p-6">
-          <div className="space-y-4">
+      <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <Card className="rounded-[28px] p-6">
+          <div className="space-y-3">
             {snapshot.orders.map((order) => (
               <article
                 key={order.id}
-                className="rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-5"
+                className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-display italic text-2xl">{order.orderNumber}</p>
+                      <p className="font-display text-2xl text-[var(--ink)]">{order.orderNumber}</p>
                       <Pill tone={statusTone(order.status)}>{order.status}</Pill>
                     </div>
                     <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
@@ -53,13 +53,13 @@ export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               </article>
             ))}
             {!snapshot.orders.length ? (
-              <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+              <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.7)] p-4 text-sm text-[var(--muted-strong)]">
                 No orders captured yet.
               </p>
             ) : null}
           </div>
         </Card>
-        <Card className="p-6">
+        <Card className="rounded-[28px] p-6">
           <SectionHeading
             eyebrow="Rollup"
             title="Demand by product"
@@ -69,19 +69,19 @@ export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             {demand.map((row) => (
               <div
                 key={row.productId}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+                className="flex items-center justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
               >
                 <div className="min-w-0">
-                  <p className="font-display italic text-xl">{row.productName}</p>
+                  <p className="font-display text-xl text-[var(--ink)]">{row.productName}</p>
                   <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
                     {row.openOrders} open order{row.openOrders === 1 ? "" : "s"}
                   </p>
                 </div>
-                <span className="font-display italic text-3xl">{row.totalQuantity}</span>
+                <span className="font-display text-3xl text-[var(--ink)]">{row.totalQuantity}</span>
               </div>
             ))}
             {!demand.length ? (
-              <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+              <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.7)] p-4 text-sm text-[var(--muted-strong)]">
                 No open demand yet.
               </p>
             ) : null}

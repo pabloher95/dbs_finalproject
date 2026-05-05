@@ -161,7 +161,7 @@ export function ContactStudio({
           >
             <div>
               <Eyebrow tone="flame">Customer details</Eyebrow>
-              <p className="mt-2 font-display italic text-2xl">Add a customer</p>
+              <p className="mt-2 font-display text-2xl text-[var(--ink)]">Add a customer</p>
               <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
                 Capture customer details so new orders can be assigned without retyping.
               </p>
@@ -202,10 +202,10 @@ export function ContactStudio({
               {visibleClients.map((client) => (
                 <article
                   key={client.id}
-                  className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
                 >
                   <div className="min-w-0">
-                    <p className="font-display italic text-lg">{client.name}</p>
+                    <p className="font-display text-lg text-[var(--ink)]">{client.name}</p>
                     <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
                       {client.channel}
                     </p>
@@ -233,12 +233,12 @@ export function ContactStudio({
                 </article>
               ))}
               {!clients.length ? (
-                <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+                <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
                   No customers yet. Add one to start creating orders.
                 </p>
               ) : null}
               {clients.length > 0 && !visibleClients.length ? (
-                <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+                <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
                   No customers match your search.
                 </p>
               ) : null}
@@ -256,7 +256,7 @@ export function ContactStudio({
           >
             <div>
               <Eyebrow tone="flame">Supplier details</Eyebrow>
-              <p className="mt-2 font-display italic text-2xl">Add a supplier</p>
+              <p className="mt-2 font-display text-2xl text-[var(--ink)]">Add a supplier</p>
               <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
                 Keep preferred suppliers on hand so the purchasing plan already points to the right source.
               </p>
@@ -292,10 +292,10 @@ export function ContactStudio({
               {visibleSuppliers.map((supplier) => (
                 <article
                   key={supplier.id}
-                  className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
                 >
                   <div className="min-w-0">
-                    <p className="font-display italic text-lg">{supplier.name}</p>
+                    <p className="font-display text-lg text-[var(--ink)]">{supplier.name}</p>
                     <p className="mt-1 text-sm text-[var(--muted-strong)]">{supplier.email}</p>
                     <Pill className="mt-2">{supplier.category}</Pill>
                   </div>
@@ -321,12 +321,12 @@ export function ContactStudio({
                 </article>
               ))}
               {!suppliers.length ? (
-                <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+                <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
                   No suppliers yet. Add one to link materials in purchasing.
                 </p>
               ) : null}
               {suppliers.length > 0 && !visibleSuppliers.length ? (
-                <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+                <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
                   No suppliers match your search.
                 </p>
               ) : null}

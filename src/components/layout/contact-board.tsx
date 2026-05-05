@@ -9,8 +9,8 @@ export function ContactBoard({
   suppliers: Supplier[];
 }>) {
   return (
-    <div className="grid gap-6 xl:grid-cols-2">
-      <Card className="p-6">
+    <div className="grid gap-4 xl:grid-cols-2">
+      <Card className="rounded-[28px] p-6">
         <SectionHeading
           eyebrow="Customers"
           title="Order destinations"
@@ -20,23 +20,23 @@ export function ContactBoard({
           {clients.map((client) => (
             <article
               key={client.id}
-              className="rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+              className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="font-display italic text-xl">{client.name}</p>
+                <p className="font-display text-xl text-[var(--ink)]">{client.name}</p>
                 <Pill>{client.channel}</Pill>
               </div>
               <p className="mt-2 text-sm text-[var(--muted-strong)]">{client.email}</p>
             </article>
           ))}
           {!clients.length ? (
-            <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+            <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
               No customers yet.
             </p>
           ) : null}
         </div>
       </Card>
-      <Card className="p-6">
+      <Card className="rounded-[28px] p-6">
         <SectionHeading
           eyebrow="Suppliers"
           title="Material sourcing links"
@@ -46,11 +46,11 @@ export function ContactBoard({
           {suppliers.map((supplier) => (
             <article
               key={supplier.id}
-              className="rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4"
+              className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-display italic text-xl">{supplier.name}</p>
+                  <p className="font-display text-xl text-[var(--ink)]">{supplier.name}</p>
                   <p className="mt-1 text-sm text-[var(--muted-strong)]">{supplier.email}</p>
                 </div>
                 <Pill tone="ink">{supplier.category}</Pill>
@@ -58,7 +58,7 @@ export function ContactBoard({
             </article>
           ))}
           {!suppliers.length ? (
-            <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+            <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
               No suppliers yet.
             </p>
           ) : null}

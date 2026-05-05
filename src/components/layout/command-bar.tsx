@@ -30,18 +30,20 @@ export function CommandBar({ businessName }: Readonly<{ businessName: string }>)
 
   return (
     <div className="command-bar">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--muted-strong)]">
-          {businessName}
-        </span>
-        <span className="hidden text-[var(--line-strong)] md:inline">/</span>
-        <span className="hidden font-display italic text-lg md:inline">{label}</span>
+      <div className="flex min-w-0 items-center gap-4">
+        <span className="pulse-dot inline-block h-2 w-2 rounded-full bg-[var(--vermilion)]" />
+        <div className="min-w-0">
+          <p className="marginalia">{businessName}</p>
+          <p className="truncate font-display text-xl leading-none tracking-tight text-[var(--ink)]">
+            {label}
+          </p>
+        </div>
       </div>
-      {now ? (
-        <span className="hidden font-mono text-[0.66rem] uppercase tracking-[0.28em] text-[var(--muted-strong)] md:inline">
-          {formatTime(now)}
-        </span>
-      ) : null}
+      <div className="hidden items-center gap-4 md:flex">
+        <span className="marginalia">{formatTime(now ?? new Date())}</span>
+        <span className="h-3 w-px bg-[var(--line-strong)]" />
+        <span className="marginalia">{now ? "synced" : "syncing"}</span>
+      </div>
     </div>
   );
 }

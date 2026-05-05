@@ -174,7 +174,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
           >
             <div>
               <Eyebrow tone="flame">Product details</Eyebrow>
-              <p className="mt-2 font-display italic text-2xl leading-tight">Add or update an item</p>
+              <p className="mt-2 font-display text-2xl leading-tight text-[var(--ink)]">Add or update an item</p>
               <p className="mt-2 text-[0.92rem] leading-6 text-[var(--muted-strong)]">
                 Capture name, SKU, unit, and batch yield so the item can be planned and priced consistently.
               </p>
@@ -246,7 +246,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <Eyebrow tone="flame">Catalog</Eyebrow>
-              <p className="mt-2 font-display italic text-2xl">{products.length} items</p>
+              <p className="mt-2 font-display text-2xl text-[var(--ink)]">{products.length} items</p>
               <p className="mt-2 text-[0.9rem] text-[var(--muted-strong)]">
                 Edit yields, replace placeholders, and keep formulas aligned with how items are actually made.
               </p>
@@ -259,7 +259,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
             />
           </div>
           {!products.length ? (
-            <p className="mt-5 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-6 text-sm text-[var(--muted-strong)]">
+            <p className="mt-5 rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-6 text-sm text-[var(--muted-strong)]">
               No products yet. Save your first item to build formulas and unlock purchasing planning.
             </p>
           ) : null}
@@ -267,12 +267,12 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
             {filteredProducts.map((product) => (
               <article
                 key={product.id}
-                className="group rounded-2xl border border-[var(--line)] bg-[var(--paper-bright)] p-4 transition hover:border-[var(--ink)]"
+                className="group rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 transition hover:border-[var(--ink)]"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-display italic text-xl">{product.name}</p>
+                      <p className="font-display text-xl text-[var(--ink)]">{product.name}</p>
                       <Pill>{product.category}</Pill>
                     </div>
                     <p className="mt-1 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-[var(--muted-strong)]">
@@ -311,7 +311,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
               </article>
             ))}
             {products.length > 0 && filteredProducts.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--paper-bright)] p-4 text-sm text-[var(--muted-strong)]">
+              <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
                 No products match that search yet.
               </p>
             ) : null}

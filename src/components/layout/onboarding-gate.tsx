@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { useEffect, useState } from "react";
-import { Eyebrow } from "@/components/ui/surfaces";
 
 const STORAGE_KEY = "smallbiz.onboarding.dismissed";
 
@@ -37,27 +37,24 @@ export function OnboardingGate({
   return (
     <>
       {open ? (
-        <div className="reveal mb-5 overflow-hidden rounded-[20px] border border-[var(--line)] bg-gradient-to-br from-[var(--paper-bright)] to-[var(--paper-soft)]">
-          <div className="grid gap-5 p-5 md:grid-cols-[auto_1fr_auto] md:items-center md:p-6">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--ink)] font-display italic text-2xl text-[var(--paper-bright)]">
-              SI
-            </div>
-            <div>
-              <Eyebrow tone="flame">Welcome</Eyebrow>
-              <p className="mt-1 font-display italic text-2xl leading-tight md:text-3xl">
-                Three steps to your first purchasing plan.
+        <div className="reveal mb-8 border-y border-[var(--ink)] bg-[var(--paper-bright)]">
+          <div className="grid gap-6 px-6 py-6 md:grid-cols-12 md:items-center md:px-8 md:py-7">
+            <div className="md:col-span-9">
+              <p className="eyebrow text-[var(--vermilion)]">Start here</p>
+              <p className="font-display mt-2 text-3xl leading-tight tracking-tight text-[var(--ink)] md:text-4xl">
+                Three steps to your first <em>buy list.</em>
               </p>
-              <p className="mt-2 max-w-xl text-[0.9rem] leading-6 text-[var(--muted-strong)]">
-                Start with the catalog or import sample data, capture an order, then preview today&apos;s
-                buy list. The console keeps step state fresh as you go.
+              <p className="mt-3 max-w-xl text-[0.95rem] leading-6 text-[var(--ink-soft)]">
+                Start with the catalog or import a sample CSV, capture an order, and the studio
+                writes the rest.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 md:justify-end">
-              <Link href="/import" className="btn btn-flame" onClick={dismiss}>
-                Begin intake
+            <div className="md:col-span-3 flex flex-wrap items-center gap-2 md:justify-end">
+              <Link href={"/import" as Route} className="btn btn-vermilion" onClick={dismiss}>
+                Begin intake →
               </Link>
-              <button type="button" onClick={dismiss} className="btn btn-ghost">
-                Skip tour
+              <button type="button" onClick={dismiss} className="link-rule">
+                Skip
               </button>
             </div>
           </div>

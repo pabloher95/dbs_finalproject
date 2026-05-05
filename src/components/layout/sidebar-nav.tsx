@@ -21,8 +21,8 @@ export function SidebarNav({ items }: Readonly<{ items: NavItem[] }>) {
           <Link key={item.href} href={item.href} data-active={active} className="nav-row">
             <span className="nav-index">{String(index + 1).padStart(2, "0")}</span>
             <div className="min-w-0 flex-1">
-              <span className="block font-display italic text-lg leading-[1.05] text-inherit">{item.label}</span>
-              <p className="mt-1 text-[0.78rem] leading-5 text-[rgba(247,236,214,0.62)]">{item.description}</p>
+              <span className="block font-display text-xl leading-[1.05] tracking-tight text-inherit">{item.label}</span>
+              <p className="mt-1 text-[0.78rem] leading-5 opacity-70">{item.description}</p>
             </div>
           </Link>
         );
