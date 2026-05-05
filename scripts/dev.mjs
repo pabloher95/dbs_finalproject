@@ -5,6 +5,10 @@ import path from "node:path";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const nextBin = path.resolve(scriptDir, "../node_modules/next/dist/bin/next");
+const host = process.env.HOST?.trim() || "localhost";
+const port = process.env.PORT?.trim() || "3000";
+const nodeOptions = process.env.NODE_OPTIONS?.trim() || "";
+const dnsFlag = "--dns-result-order=ipv4first";
 
 function nodeMajor(nodePath) {
   const result = spawnSync(nodePath, ["-p", "process.versions.node"], {
@@ -58,10 +62,11 @@ if (!nodeBin) {
   process.exit(1);
 }
 
-const child = spawn(nodeBin, [nextBin, "dev", "-H", "127.0.0.1"], {
+const child = spawn(nodeBin, [nextBin, "dev", "-H", host, "-p", port], {
   stdio: "inherit",
   env: {
     ...process.env,
+    NODE_OPTIONS: nodeOptions.includes(dnsFlag) ? nodeOptions : `${dnsFlag} ${nodeOptions}`.trim(),
   },
 });
 

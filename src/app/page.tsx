@@ -1,35 +1,48 @@
 import { Fragment } from "react";
+import { ClerkProvider, UserButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
-import type { Route } from "next";
 
 export const metadata = {
   title: "SmallBiz IQ — A practical operating studio for the hands-on business."
 };
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { userId } = await auth();
+
   return (
-    <div className="relative z-[1] min-h-screen">
-      <TopBar />
+    <ClerkProvider
+      dynamic
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInForceRedirectUrl="/dashboard"
+      signUpForceRedirectUrl="/dashboard"
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/dashboard"
+    >
+      <div className="relative z-[1] min-h-screen">
+        <TopBar isSignedIn={Boolean(userId)} />
 
-      <main className="px-6 md:px-10">
-        <Hero />
-        <Marquee />
-        <Method />
-        <StudioPreview />
-      </main>
+        <main className="px-6 md:px-10">
+          <Hero />
+          <Marquee />
+          <Method />
+          <StudioPreview />
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </ClerkProvider>
   );
 }
 
 /* —————————————————————————————————————————————————————— */
 
-function TopBar() {
+function TopBar({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <header className="px-6 pt-6 md:px-10 md:pt-8">
       <div className="mx-auto flex max-w-[1320px] items-center justify-between">
-        <Link href={"/" as Route} className="brand-mark brand-mark-lg shrink-0">
+        <Link href="/" className="brand-mark brand-mark-lg shrink-0">
           smallbiz<em className="not-italic font-normal text-[var(--vermilion)]">·</em>iq
         </Link>
         <nav className="hidden items-center gap-8 text-[0.85rem] tracking-wide text-[var(--ink-soft)] md:flex">
@@ -40,9 +53,25 @@ function TopBar() {
             What it measures
           </a>
         </nav>
-        <Link href={"/dashboard" as Route} className="btn btn-vermilion">
-          Open studio →
-        </Link>
+        <div className="flex items-center gap-3">
+          {!isSignedIn ? (
+            <>
+            <Link href="/sign-in" className="link-rule text-sm">
+              Sign in
+            </Link>
+            <Link href="/sign-up" className="btn btn-vermilion">
+              Open studio →
+            </Link>
+            </>
+          ) : (
+            <>
+            <Link href="/dashboard" className="btn btn-vermilion">
+              Open studio →
+            </Link>
+            <UserButton afterSignOutUrl="/" />
+            </>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -284,11 +313,11 @@ function StudioPreview() {
           ))}
         </div>
 
-        <div className="mt-10">
-          <Link href={"/dashboard" as Route} className="btn btn-vermilion">
-            Enter studio →
-          </Link>
-        </div>
+      <div className="mt-10">
+        <a href="#studio" className="btn btn-vermilion">
+          Enter studio →
+        </a>
+      </div>
       </div>
     </section>
   );
@@ -305,18 +334,18 @@ function Footer() {
           <p className="marginalia">© {new Date().getFullYear()}</p>
         </div>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--ink-soft)]">
-          <Link href={"/dashboard" as Route} className="hover:text-[var(--vermilion)]">
+          <a href="#studio" className="hover:text-[var(--vermilion)]">
             Studio
-          </Link>
-          <Link href={"/products" as Route} className="hover:text-[var(--vermilion)]">
+          </a>
+          <a href="#method" className="hover:text-[var(--vermilion)]">
             Catalog
-          </Link>
-          <Link href={"/orders" as Route} className="hover:text-[var(--vermilion)]">
+          </a>
+          <a href="#method" className="hover:text-[var(--vermilion)]">
             Orders
-          </Link>
-          <Link href={"/purchasing" as Route} className="hover:text-[var(--vermilion)]">
+          </a>
+          <a href="#method" className="hover:text-[var(--vermilion)]">
             Purchasing
-          </Link>
+          </a>
         </div>
       </div>
     </footer>

@@ -32,7 +32,11 @@ Minimal handoff for future Codex sessions in this repo.
 
 ## Current Architecture Notes
 - `src/lib/server/workspace.ts` is the server-side workspace data layer, with memory fallback plus Supabase read/write helpers.
-- `src/app/page.tsx` is the home page and now loads live workspace data before wrapping `HomePageContent` in `WorkspaceShell` and `OnboardingGate`.
+- Clerk auth is wired through `src/app/layout.tsx`, `middleware.ts`, and the dedicated `src/app/sign-in/` and `src/app/sign-up/` routes.
+- Workspace API routes validate Clerk auth server-side, and Supabase access now uses the Clerk session token plus the publishable key.
+- Supabase RLS policies live in `supabase/migrations/20260505_clerk_rls_policies_v2.sql` and key off `auth.jwt()->>'sub'`.
+- Local Supabase persistence uses `SUPABASE_URL` plus `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the root `.env.local`; `SUPABASE_SECRET_KEY` is only kept as a fallback during the transition.
+- `src/app/page.tsx` is the public home page.
 - `src/app/(workspace)/layout.tsx` wraps workspace routes in `WorkspaceShell`.
 - `src/app/api/products/route.ts`, `src/app/api/contacts/route.ts`, `src/app/api/orders/route.ts`, and `src/app/api/import/route.ts` handle workspace mutations.
 - `src/lib/domain/purchasing-plan.ts` contains the production purchasing-plan logic.

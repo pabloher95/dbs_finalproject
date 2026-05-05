@@ -22,6 +22,10 @@ const storageKeys = {
   result: "smallbiz.import.result"
 } as const;
 
+function templateHeader(target: ImportTarget) {
+  return examples[target].split("\n")[0] ?? "";
+}
+
 function statusPill(status: ImportPreview["rowReports"][number]["status"]) {
   if (status === "created") return <Pill tone="moss">Ready</Pill>;
   if (status === "skipped") return <Pill tone="amber">Skipped</Pill>;
@@ -101,6 +105,16 @@ export function ImportExperience() {
     () => (target === "products" ? parseProductImport(csv) : parseOrderImport(csv)),
     [csv, target]
   );
+  const activePreview = result ?? preview;
+  const errorRows = activePreview.rowReports.filter((row) => row.status === "error" && row.raw && row.rowNumber > 1);
+
+  function recoverErrorRows() {
+    if (!errorRows.length) return;
+    const nextCsv = [templateHeader(target), ...errorRows.map((row) => row.raw ?? "")].join("\n");
+    setCsv(nextCsv);
+    setResult(null);
+    setToast({ message: "Loaded only the invalid rows so you can repair them.", tone: "info" });
+  }
 
   useEffect(() => {
     try {
@@ -246,7 +260,27 @@ export function ImportExperience() {
           description="See what is ready to load, what was skipped, and what needs correction before committing."
         />
         <div className="mt-6">
-          <PreviewTable preview={result ?? preview} />
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.65)] px-4 py-3">
+            <div>
+              <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                Recovery
+              </p>
+              <p className="mt-1 text-sm text-[var(--muted-strong)]">
+                {errorRows.length
+                  ? "Pull only the rows with errors back into the editor and fix them in place."
+                  : "No row-level errors are currently blocking recovery."}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-soft"
+              disabled={!errorRows.length}
+              onClick={recoverErrorRows}
+            >
+              Load error rows
+            </button>
+          </div>
+          <PreviewTable preview={activePreview} />
         </div>
       </Card>
       {toast ? <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast(null)} /> : null}

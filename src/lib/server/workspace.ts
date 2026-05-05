@@ -1,5 +1,6 @@
 import "server-only";
 
+import { auth } from "@clerk/nextjs/server";
 import { getDemoBusinessSnapshot } from "@/lib/data/demo";
 import { parseOrderImportRows, parseProductImportRows, type ImportPreview } from "@/lib/import/parser";
 import type { Business, BusinessSnapshot, Client, Material, Order, Product } from "@/lib/domain/types";
@@ -114,6 +115,8 @@ type WorkspaceBackend = {
 type ImportResult = WorkspaceState & { preview: ImportPreview };
 
 const memoryStore = new Map<string, BusinessSnapshot>();
+const CLERK_TOKEN_TIMEOUT_MS = 2_000;
+const SUPABASE_REQUEST_TIMEOUT_MS = 4_000;
 
 function cloneSnapshot(snapshot: BusinessSnapshot): BusinessSnapshot {
   return structuredClone(snapshot);
@@ -146,6 +149,80 @@ function createEmptySnapshot(ownerId: string): BusinessSnapshot {
   };
 }
 
+function createFallbackSnapshot(ownerId: string) {
+  return namespaceDemoSnapshot(getDemoBusinessSnapshot(), ownerId);
+}
+
+function namespaceDemoSnapshot(snapshot: BusinessSnapshot, ownerId: string): BusinessSnapshot {
+  const namespace = slugify(ownerId) || "owner";
+  const remap = (prefix: string, value: string) => `${prefix}_${namespace}_${value}`;
+  const supplierIdMap = new Map<string, string>();
+  const materialIdMap = new Map<string, string>();
+  const productIdMap = new Map<string, string>();
+  const clientIdMap = new Map<string, string>();
+  const orderIdMap = new Map<string, string>();
+
+  const namespaced: BusinessSnapshot = structuredClone(snapshot);
+  namespaced.business = {
+    ...namespaced.business,
+    id: `biz_${namespace}`,
+    ownerUserId: ownerId
+  };
+
+  namespaced.suppliers = namespaced.suppliers.map((supplier) => {
+    const nextId = remap("sup", supplier.id);
+    supplierIdMap.set(supplier.id, nextId);
+    return { ...supplier, id: nextId };
+  });
+
+  namespaced.materials = namespaced.materials.map((material) => {
+    const nextId = remap("mat", material.id);
+    materialIdMap.set(material.id, nextId);
+    return {
+      ...material,
+      id: nextId,
+      preferredSupplierId: material.preferredSupplierId
+        ? supplierIdMap.get(material.preferredSupplierId) ?? material.preferredSupplierId
+        : undefined
+    };
+  });
+
+  namespaced.products = namespaced.products.map((product) => {
+    const nextId = remap("prd", product.id);
+    productIdMap.set(product.id, nextId);
+    return {
+      ...product,
+      id: nextId,
+      materials: product.materials.map((material) => ({
+        ...material,
+        materialId: materialIdMap.get(material.materialId) ?? material.materialId
+      }))
+    };
+  });
+
+  namespaced.clients = namespaced.clients.map((client) => {
+    const nextId = remap("cl", client.id);
+    clientIdMap.set(client.id, nextId);
+    return { ...client, id: nextId };
+  });
+
+  namespaced.orders = namespaced.orders.map((order) => {
+    const nextId = remap("ord", order.id);
+    orderIdMap.set(order.id, nextId);
+    return {
+      ...order,
+      id: nextId,
+      clientId: clientIdMap.get(order.clientId) ?? order.clientId,
+      items: order.items.map((item) => ({
+        ...item,
+        productId: productIdMap.get(item.productId) ?? item.productId
+      }))
+    };
+  });
+
+  return namespaced;
+}
+
 function sortSnapshot(snapshot: BusinessSnapshot) {
   snapshot.suppliers.sort((left, right) => left.name.localeCompare(right.name));
   snapshot.materials.sort((left, right) => left.name.localeCompare(right.name));
@@ -172,15 +249,35 @@ function getOwnerId() {
   return process.env.SMALLBIZ_OWNER_ID ?? "owner_demo";
 }
 
-function getBackend(): WorkspaceBackend {
-  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+function getSupabaseConfig() {
+  const supabaseUrl = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+  const publishableKey = (
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_SECRET_KEY ??
+    ""
+  ).trim();
 
-  if (supabaseUrl && serviceKey) {
-    return createSupabaseBackend(supabaseUrl, serviceKey);
+  if (!supabaseUrl || !publishableKey) {
+    return null;
   }
 
-  return createMemoryBackend();
+  return { supabaseUrl, publishableKey };
+}
+
+async function withTimeout<T>(work: Promise<T>, timeoutMs: number, label: string) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      work,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
 }
 
 function createMemoryBackend(): WorkspaceBackend {
@@ -193,7 +290,7 @@ function createMemoryBackend(): WorkspaceBackend {
         return { snapshot, initialized: isInitialized(snapshot), source: "memory" };
       }
 
-      const seeded = ownerId === "owner_demo" ? getDemoBusinessSnapshot() : createEmptySnapshot(ownerId);
+      const seeded = ownerId === "owner_demo" ? getDemoBusinessSnapshot() : createFallbackSnapshot(ownerId);
       memoryStore.set(ownerId, cloneSnapshot(seeded));
       const snapshot = cloneSnapshot(seeded);
       sortSnapshot(snapshot);
@@ -208,21 +305,35 @@ function createMemoryBackend(): WorkspaceBackend {
   };
 }
 
-function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBackend {
+function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionToken: string): WorkspaceBackend {
   const headers = {
-    apikey: serviceKey,
-    Authorization: `Bearer ${serviceKey}`,
+    apikey: publishableKey,
+    Authorization: `Bearer ${sessionToken}`,
     "Content-Type": "application/json"
   };
 
   async function request(path: string, init?: RequestInit) {
-    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/rest/v1${path}`, {
-      ...init,
-      headers: {
-        ...headers,
-        ...(init?.headers ?? {})
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SUPABASE_REQUEST_TIMEOUT_MS);
+    let response: Response;
+
+    try {
+      response = await fetch(`${baseUrl.replace(/\/$/, "")}/rest/v1${path}`, {
+        ...init,
+        signal: controller.signal,
+        headers: {
+          ...headers,
+          ...(init?.headers ?? {})
+        }
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(`Supabase request timed out after ${SUPABASE_REQUEST_TIMEOUT_MS}ms: ${path}`);
       }
-    });
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       const body = await response.text();
@@ -240,8 +351,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
     const rows = await request(`/business?select=id,name,owner_user_id&owner_user_id=eq.${encodeURIComponent(ownerId)}&limit=1`, {
       method: "GET",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`
       }
     }) as BusinessRow[];
 
@@ -254,11 +365,11 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
     }
 
     const business = createEmptySnapshot(ownerId).business;
-    await request("/business?on_conflict=id", {
+    await request("/business?on_conflict=owner_user_id", {
       method: "POST",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`,
         Prefer: "resolution=merge-duplicates,return=representation"
       },
       body: JSON.stringify({
@@ -275,8 +386,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
     return request(path, {
       method: "GET",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`
       }
     }) as Promise<T[]>;
   }
@@ -381,16 +492,24 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
     };
 
     sortSnapshot(snapshot);
-    return { snapshot, initialized: isInitialized(snapshot), source: "supabase" };
+    const initialized = isInitialized(snapshot);
+
+    if (!initialized) {
+      const seeded = namespaceDemoSnapshot(getDemoBusinessSnapshot(), ownerId);
+      await write(ownerId, seeded);
+      return { snapshot: cloneSnapshot(seeded), initialized: true, source: "supabase" };
+    }
+
+    return { snapshot, initialized, source: "supabase" };
   }
 
   async function write(ownerId: string, snapshot: BusinessSnapshot): Promise<WorkspaceState> {
     const business = snapshot.business;
-    await request("/business?on_conflict=id", {
+    await request("/business?on_conflict=owner_user_id", {
       method: "POST",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`,
         Prefer: "resolution=merge-duplicates,return=representation"
       },
       body: JSON.stringify({
@@ -407,16 +526,16 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request(`/order_items?order_id=in.(${encodeURIComponent(orderIds.join(","))})`, {
         method: "DELETE",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`
         }
       });
     }
     await request(`/orders?business_id=eq.${encodeURIComponent(business.id)}`, {
       method: "DELETE",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`
       }
     });
 
@@ -424,37 +543,37 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request(`/product_materials?product_id=in.(${encodeURIComponent(productIds.join(","))})`, {
         method: "DELETE",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`
         }
       });
     }
     await request(`/products?business_id=eq.${encodeURIComponent(business.id)}`, {
       method: "DELETE",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`
       }
     });
     await request(`/materials?business_id=eq.${encodeURIComponent(business.id)}`, {
       method: "DELETE",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`
       }
     });
     await request(`/clients?business_id=eq.${encodeURIComponent(business.id)}`, {
       method: "DELETE",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`
       }
     });
     await request(`/suppliers?business_id=eq.${encodeURIComponent(business.id)}`, {
       method: "DELETE",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`
       }
     });
 
@@ -462,8 +581,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request("/suppliers", {
         method: "POST",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`,
           Prefer: "return=representation"
         },
         body: JSON.stringify(snapshot.suppliers.map((supplier) => ({
@@ -480,8 +599,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request("/materials", {
         method: "POST",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`,
           Prefer: "return=representation"
         },
         body: JSON.stringify(snapshot.materials.map((material) => ({
@@ -499,8 +618,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request("/products", {
         method: "POST",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`,
           Prefer: "return=representation"
         },
         body: JSON.stringify(snapshot.products.map((product) => ({
@@ -519,8 +638,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request("/product_materials", {
         method: "POST",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`,
           Prefer: "return=representation"
         },
         body: JSON.stringify(
@@ -540,8 +659,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request("/clients", {
         method: "POST",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`,
           Prefer: "return=representation"
         },
         body: JSON.stringify(snapshot.clients.map((client) => ({
@@ -558,8 +677,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request("/orders", {
         method: "POST",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`,
           Prefer: "return=representation"
         },
         body: JSON.stringify(
@@ -579,8 +698,8 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
       await request("/order_items", {
         method: "POST",
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`,
           Prefer: "return=representation"
         },
         body: JSON.stringify(
@@ -601,16 +720,97 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
   return { read, write };
 }
 
+async function getClerkBearerForSupabase(session: Awaited<ReturnType<typeof auth>>) {
+  const templates = Array.from(
+    new Set(
+      [process.env.CLERK_JWT_TEMPLATE?.trim(), "supabase"].filter(
+        (value): value is string => Boolean(value)
+      )
+    )
+  );
+
+  for (const template of templates) {
+    try {
+      const token = await withTimeout(
+        session.getToken({ template }),
+        CLERK_TOKEN_TIMEOUT_MS,
+        "Clerk template token lookup"
+      );
+      if (token) return token;
+    } catch {
+      /* Try the next configured template before falling back to the default session token. */
+    }
+  }
+
+  return withTimeout(session.getToken(), CLERK_TOKEN_TIMEOUT_MS, "Clerk session token lookup");
+}
+
+async function resolveWorkspaceAccess(ownerId?: string) {
+  try {
+    const session = await auth();
+    const resolvedOwnerId = ownerId ?? session.userId ?? getOwnerId();
+    const supabaseConfig = getSupabaseConfig();
+
+    if (supabaseConfig && session.userId) {
+      try {
+        const sessionToken = await getClerkBearerForSupabase(session);
+        if (sessionToken) {
+          return {
+            ownerId: resolvedOwnerId,
+            backend: createSupabaseBackend(supabaseConfig.supabaseUrl, supabaseConfig.publishableKey, sessionToken)
+          };
+        }
+      } catch (error) {
+        console.warn("Workspace auth token lookup failed; falling back to memory.", error);
+      }
+    }
+
+    return {
+      ownerId: resolvedOwnerId,
+      backend: createMemoryBackend()
+    };
+  } catch (error) {
+    console.warn("Workspace auth lookup failed; falling back to memory.", error);
+    return {
+      ownerId: ownerId ?? getOwnerId(),
+      backend: createMemoryBackend()
+    };
+  }
+}
+
+async function readWorkspaceState(ownerId?: string) {
+  const access = await resolveWorkspaceAccess(ownerId);
+  try {
+    const workspace = await access.backend.read(access.ownerId);
+    return { ownerId: access.ownerId, workspace };
+  } catch (error) {
+    console.warn("Workspace read failed; falling back to memory.", error);
+    const workspace = await createMemoryBackend().read(access.ownerId);
+    return { ownerId: access.ownerId, workspace };
+  }
+}
+
 async function mutateWorkspace(
-  ownerId: string,
+  ownerId: string | undefined,
   mutator: (snapshot: BusinessSnapshot) => void | Promise<void>
 ): Promise<WorkspaceState> {
-  const backend = getBackend();
-  const current = await backend.read(ownerId);
+  const { backend, ownerId: resolvedOwnerId } = await resolveWorkspaceAccess(ownerId);
+  let current: WorkspaceState;
+  try {
+    current = await backend.read(resolvedOwnerId);
+  } catch (error) {
+    console.warn("Workspace read failed during mutation; falling back to memory.", error);
+    current = await createMemoryBackend().read(resolvedOwnerId);
+  }
   const next = cloneSnapshot(current.snapshot);
   await mutator(next);
   sortSnapshot(next);
-  return backend.write(ownerId, next);
+  try {
+    return await backend.write(resolvedOwnerId, next);
+  } catch (error) {
+    console.warn("Workspace write failed; falling back to memory.", error);
+    return createMemoryBackend().write(resolvedOwnerId, next);
+  }
 }
 
 function findProduct(snapshot: BusinessSnapshot, value: string) {
@@ -730,16 +930,28 @@ function buildOrderItems(snapshot: BusinessSnapshot, productId: string, quantity
   ];
 }
 
-export async function readWorkspace(ownerId = getOwnerId()) {
-  return getBackend().read(ownerId);
+export async function readWorkspace(ownerId?: string) {
+  const { workspace } = await readWorkspaceState(ownerId);
+  return workspace;
 }
 
-export async function getWorkspaceOverview(ownerId = getOwnerId()) {
-  const workspace = await readWorkspace(ownerId);
+export async function getWorkspaceOverview(ownerId?: string) {
+  const { ownerId: resolvedOwnerId, workspace } = await readWorkspaceState(ownerId);
   return {
     ...workspace,
-    ownerId
+    ownerId: resolvedOwnerId
   };
+}
+
+export async function renameBusiness(ownerId: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error("Business name is required.");
+  }
+
+  return mutateWorkspace(ownerId, (snapshot) => {
+    snapshot.business.name = trimmed;
+  });
 }
 
 export async function saveProduct(ownerId: string, input: ProductInput) {
@@ -1015,6 +1227,7 @@ type ParsedOrderGroup = {
   items: Array<{ productId: string; quantity: number }>;
 };
 
-export function getWorkspaceOwner() {
-  return getOwnerId();
+export async function getWorkspaceOwner() {
+  const session = await auth();
+  return session.userId ?? getOwnerId();
 }

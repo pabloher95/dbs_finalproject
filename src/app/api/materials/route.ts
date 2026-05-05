@@ -1,5 +1,6 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { adjustMaterialStock, getWorkspaceOwner } from "@/lib/server/workspace";
+import { adjustMaterialStock } from "@/lib/server/workspace";
 
 function nonEmpty(value: unknown) {
   return String(value ?? "").trim();
@@ -7,7 +8,12 @@ function nonEmpty(value: unknown) {
 
 export async function POST(request: Request) {
   try {
-    const ownerId = getWorkspaceOwner();
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const ownerId = userId;
     const body = await request.json();
     const materialId = nonEmpty(body.materialId);
     const delta = Number(body.delta ?? 0);

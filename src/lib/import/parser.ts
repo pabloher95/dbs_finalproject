@@ -4,6 +4,7 @@ export type ImportRowReport = {
   rowNumber: number;
   status: "created" | "skipped" | "error";
   message: string;
+  raw?: string;
 };
 
 export type ImportPreview = {
@@ -35,11 +36,100 @@ export type ParsedOrderImportRow = {
   quantity: number;
 };
 
-function parseCsv(csv: string) {
-  return csv
-    .trim()
-    .split(/\r?\n/)
-    .map((line) => line.split(",").map((cell) => cell.trim()));
+type CsvRow = {
+  cells: string[];
+  raw: string;
+};
+
+function parseCsv(csv: string): CsvRow[] {
+  const rows: CsvRow[] = [];
+  const source = csv.replace(/^\uFEFF/, "");
+  let cells: string[] = [];
+  let cell = "";
+  let raw = "";
+  let inQuotes = false;
+
+  const pushCell = () => {
+    cells.push(cell.trim());
+    cell = "";
+  };
+
+  const pushRow = () => {
+    if (!cells.length && !cell.length && !raw.trim().length) {
+      cells = [];
+      cell = "";
+      raw = "";
+      return;
+    }
+
+    pushCell();
+    rows.push({ cells: [...cells], raw });
+    cells = [];
+    cell = "";
+    raw = "";
+  };
+
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+    const next = source[index + 1];
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (next === '"') {
+          cell += '"';
+          raw += '""';
+          index += 1;
+          continue;
+        }
+
+        inQuotes = false;
+        raw += char;
+        continue;
+      }
+
+      cell += char;
+      raw += char;
+      continue;
+    }
+
+    if (char === '"') {
+      inQuotes = true;
+      raw += char;
+      continue;
+    }
+
+    if (char === ",") {
+      pushCell();
+      raw += char;
+      continue;
+    }
+
+    if (char === "\r" || char === "\n") {
+      if (char === "\r" && next === "\n") {
+        index += 1;
+      }
+      pushRow();
+      continue;
+    }
+
+    cell += char;
+    raw += char;
+  }
+
+  if (inQuotes) {
+    throw new Error("CSV contains an unclosed quoted field.");
+  }
+
+  pushRow();
+  return rows;
+}
+
+function normalizeHeader(header: string[]) {
+  return header.map((cell) => cell.trim().toLowerCase());
+}
+
+function rowHasArityMismatch(row: string[], expectedLength: number) {
+  return row.length !== expectedLength;
 }
 
 export function parseProductImport(csv: string): ImportPreview {
@@ -51,7 +141,7 @@ export function parseProductImportRows(csv: string): {
   rows: ParsedProductImportRow[];
 } {
   const rows = parseCsv(csv);
-  const header = rows[0] ?? [];
+  const header = rows[0]?.cells ?? [];
   const expected = [
     "sku",
     "name",
@@ -63,12 +153,19 @@ export function parseProductImportRows(csv: string): {
     "material_quantity"
   ];
 
-  if (header.join(",") !== expected.join(",")) {
+  if (normalizeHeader(header).join(",") !== expected.join(",")) {
     const preview: ImportPreview = {
       createdRecords: 0,
       skippedRows: [],
       errors: [{ rowNumber: 1, message: "Header does not match products-formulas-v1 template." }],
-      rowReports: [{ rowNumber: 1, status: "error", message: "Header does not match products-formulas-v1 template." }]
+      rowReports: [
+        {
+          rowNumber: 1,
+          status: "error",
+          message: "Header does not match products-formulas-v1 template.",
+          raw: rows[0]?.raw
+        }
+      ]
     };
 
     return { preview, rows: [] };
@@ -82,26 +179,32 @@ export function parseProductImportRows(csv: string): {
 
   rows.slice(1).forEach((row, index) => {
     const rowNumber = index + 2;
-    if (row.every((cell) => cell === "")) {
-      reports.push({ rowNumber, status: "skipped", message: "Blank row skipped." });
+    if (row.cells.every((cell) => cell === "")) {
+      reports.push({ rowNumber, status: "skipped", message: "Blank row skipped.", raw: row.raw });
       return;
     }
-    const [sku, name, category, unit, yieldQuantity, materialName, materialUnit, materialQuantity] = row;
+    if (rowHasArityMismatch(row.cells, expected.length)) {
+      const message = `Expected ${expected.length} columns but found ${row.cells.length}. Check for missing values or unescaped commas.`;
+      errors.push({ rowNumber, message });
+      reports.push({ rowNumber, status: "error", message, raw: row.raw });
+      return;
+    }
+    const [sku, name, category, unit, yieldQuantity, materialName, materialUnit, materialQuantity] = row.cells;
     if (![sku, name, category, unit, yieldQuantity, materialName, materialUnit, materialQuantity].every(Boolean)) {
       const message = "Missing one or more required product fields.";
       errors.push({ rowNumber, message });
-      reports.push({ rowNumber, status: "error", message });
+      reports.push({ rowNumber, status: "error", message, raw: row.raw });
       return;
     }
     const dedupeKey = `${sku}:${materialName}`;
     if (seenFormulaRows.has(dedupeKey)) {
-      reports.push({ rowNumber, status: "skipped", message: "Duplicate product material row skipped." });
+      reports.push({ rowNumber, status: "skipped", message: "Duplicate product material row skipped.", raw: row.raw });
       return;
     }
     if (Number.isNaN(Number(yieldQuantity)) || Number.isNaN(Number(materialQuantity))) {
       const message = "Yield quantity and material quantity must be numeric.";
       errors.push({ rowNumber, message });
-      reports.push({ rowNumber, status: "error", message });
+      reports.push({ rowNumber, status: "error", message, raw: row.raw });
       return;
     }
     seenFormulaRows.add(dedupeKey);
@@ -117,7 +220,7 @@ export function parseProductImportRows(csv: string): {
       materialUnit,
       materialQuantity: Number(materialQuantity)
     });
-    reports.push({ rowNumber, status: "created", message: `Prepared ${name} material row.` });
+    reports.push({ rowNumber, status: "created", message: `Prepared ${name} material row.`, raw: row.raw });
   });
 
   const preview: ImportPreview = {
@@ -139,15 +242,22 @@ export function parseOrderImportRows(csv: string): {
   rows: ParsedOrderImportRow[];
 } {
   const rows = parseCsv(csv);
-  const header = rows[0] ?? [];
+  const header = rows[0]?.cells ?? [];
   const expected = ["order_number", "client_name", "due_date", "status", "product_sku", "quantity"];
 
-  if (header.join(",") !== expected.join(",")) {
+  if (normalizeHeader(header).join(",") !== expected.join(",")) {
     const preview: ImportPreview = {
       createdRecords: 0,
       skippedRows: [],
       errors: [{ rowNumber: 1, message: "Header does not match orders-v1 template." }],
-      rowReports: [{ rowNumber: 1, status: "error", message: "Header does not match orders-v1 template." }]
+      rowReports: [
+        {
+          rowNumber: 1,
+          status: "error",
+          message: "Header does not match orders-v1 template.",
+          raw: rows[0]?.raw
+        }
+      ]
     };
 
     return { preview, rows: [] };
@@ -161,32 +271,38 @@ export function parseOrderImportRows(csv: string): {
 
   rows.slice(1).forEach((row, index) => {
     const rowNumber = index + 2;
-    if (row.every((cell) => cell === "")) {
-      reports.push({ rowNumber, status: "skipped", message: "Blank row skipped." });
+    if (row.cells.every((cell) => cell === "")) {
+      reports.push({ rowNumber, status: "skipped", message: "Blank row skipped.", raw: row.raw });
       return;
     }
-    const [orderNumber, clientName, dueDate, status, productSku, quantity] = row;
+    if (rowHasArityMismatch(row.cells, expected.length)) {
+      const message = `Expected ${expected.length} columns but found ${row.cells.length}. Check for missing values or unescaped commas.`;
+      errors.push({ rowNumber, message });
+      reports.push({ rowNumber, status: "error", message, raw: row.raw });
+      return;
+    }
+    const [orderNumber, clientName, dueDate, status, productSku, quantity] = row.cells;
     if (![orderNumber, clientName, dueDate, status, productSku, quantity].every(Boolean)) {
       const message = "Missing one or more required order fields.";
       errors.push({ rowNumber, message });
-      reports.push({ rowNumber, status: "error", message });
+      reports.push({ rowNumber, status: "error", message, raw: row.raw });
       return;
     }
     if (!["draft", "open", "fulfilled"].includes(status)) {
       const message = "Status must be draft, open, or fulfilled.";
       errors.push({ rowNumber, message });
-      reports.push({ rowNumber, status: "error", message });
+      reports.push({ rowNumber, status: "error", message, raw: row.raw });
       return;
     }
     if (Number.isNaN(Number(quantity))) {
       const message = "Quantity must be numeric.";
       errors.push({ rowNumber, message });
-      reports.push({ rowNumber, status: "error", message });
+      reports.push({ rowNumber, status: "error", message, raw: row.raw });
       return;
     }
     const dedupeKey = `${orderNumber}:${productSku}`;
     if (seenOrderLines.has(dedupeKey)) {
-      reports.push({ rowNumber, status: "skipped", message: "Duplicate order line skipped." });
+      reports.push({ rowNumber, status: "skipped", message: "Duplicate order line skipped.", raw: row.raw });
       return;
     }
     seenOrderLines.add(dedupeKey);
@@ -200,7 +316,7 @@ export function parseOrderImportRows(csv: string): {
       productSku,
       quantity: Number(quantity)
     });
-    reports.push({ rowNumber, status: "created", message: `Prepared order line ${orderNumber}.` });
+    reports.push({ rowNumber, status: "created", message: `Prepared order line ${orderNumber}.`, raw: row.raw });
   });
 
   const preview: ImportPreview = {

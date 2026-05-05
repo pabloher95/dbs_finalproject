@@ -1,3 +1,4 @@
+import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import type { Route } from "next";
 import { CommandBar } from "@/components/layout/command-bar";
@@ -12,19 +13,20 @@ export async function WorkspaceShell({
 }>) {
   const { snapshot } = await getWorkspaceOverview();
   const businessName = snapshot.business.name;
-  const openOrders = snapshot.orders.filter((order) => order.status === "open").length;
-
-  const editionDate = new Intl.DateTimeFormat("en-US", {
+  const openOrdersList = snapshot.orders
+    .filter((order) => order.status === "open")
+    .slice(0, 4);
+  const openOrders = openOrdersList.length;
+  const today = new Intl.DateTimeFormat("en-US", {
     month: "short",
-    day: "numeric",
-    year: "numeric"
+    day: "numeric"
   }).format(new Date());
 
   return (
     <div className="shell-outer min-h-screen px-4 py-4 md:px-6 md:py-6">
       <div className="mx-auto max-w-[1640px] space-y-5">
         {/* Editorial masthead — quiet, ruled, magazine-style */}
-        <header className="flex flex-col gap-4 border-b border-[var(--ink)] pb-5 md:flex-row md:items-end md:justify-between">
+        <header className="flex flex-col gap-4 border-b border-[var(--ink)] pb-5 md:flex-row md:items-center md:justify-between">
           <div className="flex items-end gap-4 md:gap-6">
             <Link href={"/" as Route} className="brand-mark">
               smallbiz<em className="not-italic font-normal text-[var(--vermilion)]">·</em>iq
@@ -35,18 +37,49 @@ export async function WorkspaceShell({
               <span className="text-[var(--ink)]">{businessName}</span>
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 md:hidden">
-            <p className="marginalia">Edition · {editionDate}</p>
-            <span className="h-3 w-px bg-[var(--line-strong)]" />
-            <p className="marginalia">{openOrders} open</p>
-          </div>
-          <div className="hidden items-center gap-5 md:flex">
-            <p className="marginalia">Edition · {editionDate}</p>
-            <span className="h-3 w-px bg-[var(--line-strong)]" />
-            <p className="marginalia">{openOrders} open</p>
-            <Link href={"/" as Route} className="link-rule text-sm">
-              ← View site
-            </Link>
+          <div className="flex flex-wrap items-center gap-3 md:gap-5">
+            <p className="marginalia">{today}</p>
+            <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
+            <div className="group relative">
+              <Link href={"/orders" as Route} className="link-rule text-sm">
+                {openOrders} order{openOrders === 1 ? "" : "s"} open
+              </Link>
+              <div
+                className="pointer-events-none absolute left-1/2 top-full z-20 mt-3 w-[18rem] -translate-x-1/2 translate-y-1 opacity-0 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.45)] transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100"
+                role="tooltip"
+              >
+                <div className="rounded-[20px] border border-[var(--ink)] bg-[var(--paper-bright)] px-4 py-3 text-left">
+                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
+                    Open demand
+                  </p>
+                  <div className="mt-2 space-y-2">
+                    {openOrdersList.length ? (
+                      openOrdersList.map((order) => (
+                        <div key={order.id} className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <p className="font-display text-[1rem] leading-tight text-[var(--ink)]">
+                              {order.orderNumber}
+                            </p>
+                            <p className="mt-1 text-[0.78rem] leading-5 text-[var(--muted-strong)]">
+                              {order.clientName}
+                            </p>
+                          </div>
+                          <p className="shrink-0 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-[var(--muted-strong)]">
+                            Due {order.dueDate}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm leading-6 text-[var(--muted-strong)]">No open orders yet.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
+            <p className="marginalia">synced</p>
+            <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
+            <UserButton />
           </div>
         </header>
 
@@ -55,23 +88,6 @@ export async function WorkspaceShell({
             <div className="flex flex-col gap-4">
               <div className="ink-rail ink-rail--nav">
                 <SidebarNav items={appNav} />
-              </div>
-              <div className="ink-rail">
-                <p className="eyebrow text-[var(--vermilion)]">Signal</p>
-                <p className="font-display mt-2 text-4xl leading-none tracking-tight text-[var(--ink)]">
-                  {String(openOrders).padStart(2, "0")}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">
-                  open order{openOrders === 1 ? "" : "s"} driving the current plan.
-                </p>
-                <div className="rule-thick mt-4" />
-                <p className="marginalia mt-3">
-                  Read the buy list →
-                  <br />
-                  <Link href={"/purchasing" as Route} className="link-rule text-[var(--ink)]">
-                    Purchasing
-                  </Link>
-                </p>
               </div>
             </div>
           </aside>

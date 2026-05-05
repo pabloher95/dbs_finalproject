@@ -39,9 +39,7 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
   );
   const sourcingGaps = planLines.filter((line) => !line.supplierName).length;
   const nextOrders = [...openOrders].slice(0, 3);
-
   const today = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
     month: "long",
     day: "numeric"
   });
@@ -66,38 +64,38 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
 
           <div className="pt-8">
             <p className="eyebrow text-[var(--vermilion)]">{snapshot.business.name}</p>
-              <h1 className="editorial mt-4 text-[clamp(2.6rem,6vw,5.4rem)]">
-                The work, <em>written down.</em>
-              </h1>
-              <p className="mt-6 max-w-2xl text-[1.02rem] leading-7 text-[var(--ink-soft)]">
-                A clean intake lane, a readable catalog, and a measured path from open demand to a
-                supplier-ready buy list. Begin where it makes sense — the rest follows.
-              </p>
+            <h1 className="editorial mt-4 text-[clamp(2.6rem,6vw,5.4rem)]">
+              The work, <em>written down.</em>
+            </h1>
+            <p className="mt-6 max-w-2xl text-[1.02rem] leading-7 text-[var(--ink-soft)]">
+              A clean intake lane, a readable catalog, and a measured path from open demand to a
+              supplier-ready buy list. Begin where it makes sense — the rest follows.
+            </p>
 
-              <div className="mt-10 grid gap-px bg-[var(--ink)] md:grid-cols-4">
-                {[
-                  { label: "Products", value: snapshot.products.length },
-                  { label: "Open orders", value: openOrders.length },
-                  { label: "Units due", value: totalUnits },
-                  { label: "Suppliers", value: snapshot.suppliers.length }
-                ].map((stat) => (
-                  <div key={stat.label} className="bg-[var(--paper-bright)] px-5 py-5">
-                    <p className="marginalia">— {stat.label}</p>
-                    <p className="font-display mt-2 text-4xl leading-none tracking-tight text-[var(--ink)] md:text-5xl">
-                      {String(stat.value).padStart(2, "0")}
-                    </p>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-10 grid gap-px bg-[var(--ink)] md:grid-cols-4">
+              {[
+                { label: "Products", value: snapshot.products.length },
+                { label: "Open orders", value: openOrders.length },
+                { label: "Units due", value: totalUnits },
+                { label: "Suppliers", value: snapshot.suppliers.length }
+              ].map((stat) => (
+                <div key={stat.label} className="bg-[var(--paper-bright)] px-5 py-5">
+                  <p className="marginalia">— {stat.label}</p>
+                  <p className="font-display mt-2 text-4xl leading-none tracking-tight text-[var(--ink)] md:text-5xl">
+                    {String(stat.value).padStart(2, "0")}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Link href={"/import" as Route} className="btn btn-vermilion">
-                  Begin intake →
-                </Link>
-                <Link href={"/orders" as Route} className="link-rule">
-                  Review orders
-                </Link>
-              </div>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href={"/import" as Route} className="btn btn-vermilion">
+                Begin intake →
+              </Link>
+              <Link href={"/orders" as Route} className="link-rule">
+                Review orders
+              </Link>
+            </div>
           </div>
         </section>
       </Reveal>

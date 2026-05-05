@@ -1,9 +1,15 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { getWorkspaceOwner, importWorkspaceData } from "@/lib/server/workspace";
+import { importWorkspaceData } from "@/lib/server/workspace";
 
 export async function POST(request: Request) {
   try {
-    const ownerId = getWorkspaceOwner();
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const ownerId = userId;
     const body = await request.json();
     const target = body.target === "orders" ? "orders" : body.target === "products" ? "products" : null;
     const csv = String(body.csv ?? "").trim();

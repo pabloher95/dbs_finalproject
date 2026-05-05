@@ -1,5 +1,6 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { deleteContact, getWorkspaceOwner, saveContact } from "@/lib/server/workspace";
+import { deleteContact, saveContact } from "@/lib/server/workspace";
 
 function nonEmpty(value: unknown) {
   return String(value ?? "").trim();
@@ -11,7 +12,12 @@ function isValidEmail(email: string) {
 
 export async function POST(request: Request) {
   try {
-    const ownerId = getWorkspaceOwner();
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const ownerId = userId;
     const body = await request.json();
     const kind = String(body.kind) === "supplier" ? "supplier" : "client";
 
