@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { ClerkProvider, UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
+import type { Route } from "next";
 
 export const metadata = {
   title: "SmallBiz IQ — A practical operating studio for the hands-on business."
@@ -56,16 +57,16 @@ function TopBar({ isSignedIn }: { isSignedIn: boolean }) {
         <div className="flex items-center gap-3">
           {!isSignedIn ? (
             <>
-            <Link href="/sign-in" className="link-rule text-sm">
+            <Link href={"/sign-in" as Route} className="link-rule text-sm">
               Sign in
             </Link>
-            <Link href="/sign-up" className="btn btn-vermilion">
+            <Link href={"/sign-up" as Route} className="btn btn-vermilion">
               Open studio →
             </Link>
             </>
           ) : (
             <>
-            <Link href="/dashboard" className="btn btn-vermilion">
+            <Link href={"/dashboard" as Route} className="btn btn-vermilion">
               Open studio →
             </Link>
             <UserButton afterSignOutUrl="/" />
