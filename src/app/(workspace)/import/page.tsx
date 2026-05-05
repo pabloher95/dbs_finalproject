@@ -8,7 +8,7 @@ export default async function ImportPage() {
     <WorkflowPageShell
       eyebrow="Data intake"
       title="Bring in your products, formulas, and orders"
-      description="Use guided CSV templates to catch row-level issues before anything is saved, then move from incoming demand to material planning in one place."
+      description="Use guided CSV templates to catch row-level issues and duplicate lines before anything is saved, then move from incoming demand to material planning in one place."
       metrics={[
         { label: "Catalog items", value: String(snapshot.products.length) },
         { label: "Open orders", value: String(snapshot.orders.length) },

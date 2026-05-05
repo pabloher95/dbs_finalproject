@@ -23,6 +23,7 @@ type MaterialRow = {
   name: string;
   unit: string;
   preferred_supplier_id: string | null;
+  on_hand_quantity: number;
   business_id: string;
 };
 
@@ -80,6 +81,11 @@ type ProductInput = {
   unit: string;
   yieldQuantity: number;
   formula: Array<{ materialName: string; unit: string; quantity: number }>;
+};
+
+type MaterialAdjustmentInput = {
+  materialId: string;
+  delta: number;
 };
 
 type ContactInput = {
@@ -279,7 +285,9 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
     const business = await ensureBusiness(ownerId);
     const [suppliers, materials, products, clients, orders] = await Promise.all([
       readRows<SupplierRow>(`/suppliers?select=id,name,email,category,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
-      readRows<MaterialRow>(`/materials?select=id,name,unit,preferred_supplier_id,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
+      readRows<MaterialRow>(
+        `/materials?select=id,name,unit,preferred_supplier_id,on_hand_quantity,business_id&business_id=eq.${encodeURIComponent(business.id)}`
+      ),
       readRows<ProductRow>(`/products?select=id,sku,name,category,unit,yield_quantity,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
       readRows<ClientRow>(`/clients?select=id,name,email,channel,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
       readRows<OrderRow>(
@@ -307,6 +315,7 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
         id: row.id,
         name: row.name,
         unit: row.unit,
+        onHandQuantity: Number(row.on_hand_quantity ?? 0),
         preferredSupplierId: row.preferred_supplier_id ?? undefined
       });
     }
@@ -480,6 +489,7 @@ function createSupabaseBackend(baseUrl: string, serviceKey: string): WorkspaceBa
           business_id: business.id,
           name: material.name,
           unit: material.unit,
+          on_hand_quantity: material.onHandQuantity,
           preferred_supplier_id: material.preferredSupplierId ?? null
         })))
       });
@@ -629,13 +639,17 @@ function ensureMaterial(snapshot: BusinessSnapshot, materialName: string, unit: 
     if (!existing.unit) {
       existing.unit = unit;
     }
+    if (typeof existing.onHandQuantity !== "number") {
+      existing.onHandQuantity = 0;
+    }
     return existing;
   }
 
   const material = {
     id: `mat_${slugify(materialName) || crypto.randomUUID()}`,
     name: materialName,
-    unit
+    unit,
+    onHandQuantity: 0
   };
 
   snapshot.materials.push(material);
@@ -805,6 +819,18 @@ export async function deleteContact(ownerId: string, input: { kind: "client" | "
   });
 }
 
+export async function adjustMaterialStock(ownerId: string, input: MaterialAdjustmentInput) {
+  return mutateWorkspace(ownerId, (snapshot) => {
+    const material = snapshot.materials.find((item) => item.id === input.materialId);
+    if (!material) {
+      throw new Error("Material not found.");
+    }
+
+    const currentQuantity = Number(material.onHandQuantity ?? 0);
+    material.onHandQuantity = Math.max(currentQuantity + input.delta, 0);
+  });
+}
+
 export async function saveOrder(ownerId: string, input: OrderInput) {
   return mutateWorkspace(ownerId, (snapshot) => {
     const client = snapshot.clients.find((item) => item.id === input.clientId);
@@ -900,6 +926,18 @@ export async function importWorkspaceData(ownerId: string, target: "products" | 
         status: row.status,
         items: []
       };
+      const existingItem = current.items.find((item) => item.productId === product.id);
+      if (existingItem) {
+        existingItem.quantity += row.quantity;
+        reports.set(row.rowNumber, {
+          rowNumber: row.rowNumber,
+          status: "skipped",
+          message: "Duplicate order line merged into the existing item."
+        });
+        grouped.set(row.orderNumber, current);
+        continue;
+      }
+
       current.items.push({
         productId: product.id,
         quantity: row.quantity
@@ -910,12 +948,16 @@ export async function importWorkspaceData(ownerId: string, target: "products" | 
     for (const order of grouped.values()) {
       const client = ensureClientForImport(snapshot, order.clientName);
       const existing = snapshot.orders.find((item) => item.orderNumber === order.orderNumber);
-      const nextItems = order.items.map((item) => {
-        const product = snapshot.products.find((product) => product.id === item.productId);
+      const mergedItems = new Map<string, number>();
+      for (const item of order.items) {
+        mergedItems.set(item.productId, (mergedItems.get(item.productId) ?? 0) + item.quantity);
+      }
+      const nextItems = Array.from(mergedItems.entries()).map(([productId, quantity]) => {
+        const product = snapshot.products.find((product) => product.id === productId);
         return {
-          productId: item.productId,
-          productName: product?.name ?? item.productId,
-          quantity: item.quantity
+          productId,
+          productName: product?.name ?? productId,
+          quantity
         };
       });
 

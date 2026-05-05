@@ -29,15 +29,15 @@ function TopBar() {
   return (
     <header className="px-6 pt-6 md:px-10 md:pt-8">
       <div className="mx-auto flex max-w-[1320px] items-center justify-between">
-        <Link href={"/" as Route} className="brand-mark">
+        <Link href={"/" as Route} className="brand-mark brand-mark-lg shrink-0">
           smallbiz<em className="not-italic font-normal text-[var(--vermilion)]">·</em>iq
         </Link>
-        <nav className="hidden items-center gap-7 text-[0.9rem] text-[var(--ink-soft)] md:flex">
-          <a href="#method" className="hover:text-[var(--vermilion)] transition-colors">
-            Method
+        <nav className="hidden items-center gap-8 text-[0.85rem] tracking-wide text-[var(--ink-soft)] md:flex">
+          <a href="#method" className="transition-colors hover:text-[var(--vermilion)]">
+            How it works
           </a>
-          <a href="#studio" className="hover:text-[var(--vermilion)] transition-colors">
-            The studio
+          <a href="#studio" className="transition-colors hover:text-[var(--vermilion)]">
+            What it measures
           </a>
         </nav>
         <Link href={"/dashboard" as Route} className="btn btn-vermilion">
@@ -67,7 +67,7 @@ function Hero() {
 
       <div className="rule-thick mt-12" />
       <a href="#method" className="link-rule mt-5 inline-flex">
-        Read the method
+        How it works
       </a>
     </section>
   );
@@ -77,18 +77,41 @@ function Hero() {
 
 function Marquee() {
   const words = [
-    "Ceramics",
-    "Candles",
-    "Soap",
     "Bakeries",
-    "Apothecary",
-    "Stationery",
+    "Bookshops",
+    "Breweries",
+    "Builders",
+    "Caterers",
+    "Ceramics",
     "Coffee",
-    "Letterpress",
+    "Co-ops",
+    "Contractors",
+    "Distributors",
+    "Farm stands",
+    "Family businesses",
+    "Food trucks",
+    "Hardware",
+    "Import firms",
+    "Indie brands",
+    "Landscapers",
+    "Light assembly",
+    "Machine shops",
+    "Medical supply",
+    "Neighborhood shops",
+    "Online brands",
+    "Packaging",
+    "Pet supply",
+    "Pharmacies",
+    "Print shops",
+    "Repair shops",
+    "Retailers",
+    "Side projects",
+    "Subscription boxes",
     "Textiles",
-    "Jewelry",
-    "Florists",
-    "Beekeepers"
+    "Trades",
+    "Wholesale",
+    "Woodshops",
+    "Auto parts"
   ];
   const repeated = [...words, ...words];
 
@@ -173,19 +196,19 @@ function DataFlow() {
   return (
     <figure className="mt-20 hidden md:block">
       <p className="marginalia mb-6">— How the data moves</p>
-      <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch border-y border-[var(--ink)]">
+      <div className="data-flow-track grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch border-y border-[var(--ink)]">
         {stages.map((s, i) => (
           <Fragment key={s.label}>
-            <div className="flex flex-col justify-center px-6 py-7">
-              <p className="font-display text-[clamp(1.6rem,2.2vw,2rem)] leading-none text-[var(--ink)]">
+            <div className="data-flow-node flex flex-col justify-center px-6 py-7">
+              <p className="data-flow-label font-display text-[clamp(1.6rem,2.2vw,2rem)] leading-none text-[var(--ink)]">
                 {s.label}
               </p>
-              <p className="marginalia mt-3">{s.note}</p>
+              <p className="data-flow-note marginalia mt-3">{s.note}</p>
             </div>
             {i < stages.length - 1 && (
               <div
                 aria-hidden
-                className="flex items-center justify-center px-3 text-[var(--vermilion)]"
+                className="data-flow-arrow px-3 text-[var(--vermilion)]"
               >
                 <svg width="40" height="14" viewBox="0 0 40 14" fill="none">
                   <path
@@ -240,7 +263,8 @@ function StudioPreview() {
           Four <em>readings</em> of the business.
         </h2>
         <p className="mt-6 max-w-2xl text-[1.02rem] leading-7 text-[var(--ink-soft)]">
-          Not a wall of dashboards. A small set of running figures that tell you what to do next.
+          A handful of running figures, each wired to a real question—what to stock, what to buy,
+          where the business leans, what goes out the door next.
         </p>
       </header>
 
@@ -260,12 +284,9 @@ function StudioPreview() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center gap-4">
+        <div className="mt-10">
           <Link href={"/dashboard" as Route} className="btn btn-vermilion">
             Enter studio →
-          </Link>
-          <Link href={"/import" as Route} className="link-rule">
-            Start with a CSV
           </Link>
         </div>
       </div>

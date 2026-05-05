@@ -156,6 +156,7 @@ export function parseOrderImportRows(csv: string): {
   const reports: ImportRowReport[] = [];
   const errors: Array<{ rowNumber: number; message: string }> = [];
   const parsedRows: ParsedOrderImportRow[] = [];
+  const seenOrderLines = new Set<string>();
   let created = 0;
 
   rows.slice(1).forEach((row, index) => {
@@ -183,6 +184,12 @@ export function parseOrderImportRows(csv: string): {
       reports.push({ rowNumber, status: "error", message });
       return;
     }
+    const dedupeKey = `${orderNumber}:${productSku}`;
+    if (seenOrderLines.has(dedupeKey)) {
+      reports.push({ rowNumber, status: "skipped", message: "Duplicate order line skipped." });
+      return;
+    }
+    seenOrderLines.add(dedupeKey);
     created += 1;
     parsedRows.push({
       rowNumber,

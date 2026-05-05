@@ -10,8 +10,9 @@ function expandFormulaRequirements(product, quantityOrdered) {
   }));
 }
 
-function buildPurchasingPlan(orders, products) {
+function buildPurchasingPlan(orders, products, materials) {
   const productLookup = new Map(products.map((product) => [product.id, product]));
+  const materialLookup = new Map(materials.map((material) => [material.id, material]));
   const aggregated = new Map();
 
   for (const order of orders) {
@@ -27,7 +28,15 @@ function buildPurchasingPlan(orders, products) {
     }
   }
 
-  return aggregated;
+  return Array.from(aggregated.entries()).map(([materialId, requiredQuantity]) => {
+    const onHandQuantity = materialLookup.get(materialId)?.onHandQuantity ?? 0;
+    return {
+      materialId,
+      requiredQuantity,
+      onHandQuantity,
+      netToBuyQuantity: Math.max(requiredQuantity - onHandQuantity, 0)
+    };
+  });
 }
 
 test("formula expansion scales material quantities by ordered units", () => {
@@ -54,19 +63,23 @@ test("purchasing plan aggregates across open orders", () => {
     { status: "open", items: [{ productId: "prd_croissant", quantity: 12 }] },
     { status: "fulfilled", items: [{ productId: "prd_croissant", quantity: 120 }] }
   ];
+  const materials = [{ id: "mat_wax", onHandQuantity: 0 }];
 
-  const purchasingPlan = buildPurchasingPlan(orders, products);
-  assert.equal(purchasingPlan.get("mat_wax"), 3600);
+  const purchasingPlan = buildPurchasingPlan(orders, products, materials);
+  assert.equal(purchasingPlan[0].requiredQuantity, 3600);
 });
 
-test("purchasing plan returns required buy quantities for open demand", () => {
+test("purchasing plan subtracts on-hand inventory before buy quantities", () => {
   const product = {
     id: "prd_croissant",
     yieldQuantity: 12,
     materials: [{ materialId: "mat_wax", quantity: 1200 }]
   };
   const orders = [{ status: "open", items: [{ productId: "prd_croissant", quantity: 12 }] }];
+  const materials = [{ id: "mat_wax", onHandQuantity: 400 }];
 
-  const purchasingPlan = buildPurchasingPlan(orders, [product]);
-  assert.equal(purchasingPlan.get("mat_wax"), 1200);
+  const purchasingPlan = buildPurchasingPlan(orders, [product], materials);
+  assert.equal(purchasingPlan[0].requiredQuantity, 1200);
+  assert.equal(purchasingPlan[0].onHandQuantity, 400);
+  assert.equal(purchasingPlan[0].netToBuyQuantity, 800);
 });

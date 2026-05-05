@@ -27,6 +27,7 @@ export function buildPurchasingPlan(
     {
       materialId: string;
       materialName: string;
+      onHandQuantity: number;
       requiredQuantity: number;
       netToBuyQuantity: number;
       unit: string;
@@ -46,6 +47,7 @@ export function buildPurchasingPlan(
         const entry = aggregated.get(materialNeed.materialId) ?? {
           materialId: materialNeed.materialId,
           materialName: materialNeed.materialName,
+          onHandQuantity: 0,
           requiredQuantity: 0,
           netToBuyQuantity: 0,
           unit: materialNeed.unit,
@@ -58,13 +60,16 @@ export function buildPurchasingPlan(
   }
 
   for (const item of aggregated.values()) {
-    const preferredSupplierId = materialLookup.get(item.materialId)?.preferredSupplierId;
+    const material = materialLookup.get(item.materialId);
+    const preferredSupplierId = material?.preferredSupplierId;
+    const onHandQuantity = Number(material?.onHandQuantity ?? 0);
     if (preferredSupplierId) {
       const supplier = supplierLookup.get(preferredSupplierId);
       item.supplierName = supplier?.name;
       item.supplierEmail = supplier?.email;
     }
-    item.netToBuyQuantity = item.requiredQuantity;
+    item.onHandQuantity = onHandQuantity;
+    item.netToBuyQuantity = Math.max(item.requiredQuantity - onHandQuantity, 0);
   }
 
   return Array.from(aggregated.values()).sort((left, right) => left.materialName.localeCompare(right.materialName));

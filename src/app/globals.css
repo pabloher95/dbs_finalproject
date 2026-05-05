@@ -66,9 +66,9 @@
   --shadow: 0 22px 48px -34px rgba(22, 22, 24, 0.22);
   --shadow-tight: 0 1px 0 rgba(255, 255, 255, 0.42);
 
-  --font-display: "Fraunces", "Iowan Old Style", "Hoefler Text", serif;
-  --font-body: "Inter Tight", "Inter", "Helvetica Neue", sans-serif;
-  --font-mono: "IBM Plex Mono", "Menlo", monospace;
+  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --font-body: "Aptos", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SFMono-Regular", "Cascadia Mono", "Menlo", Consolas, monospace;
 }
 
 * {
@@ -328,7 +328,7 @@ textarea {
 
 .marquee-track {
   display: inline-flex;
-  animation: marquee 42s linear infinite;
+  animation: marquee 120s linear infinite;
 }
 
 .marquee-track:hover {
@@ -687,10 +687,11 @@ textarea.field {
   color: var(--ink);
 }
 
-.brand-mark::after {
-  content: "·";
-  margin-left: 0.5rem;
-  color: var(--vermilion);
+/* Landing masthead — larger wordmark until a real logo ships */
+.brand-mark-lg {
+  font-size: clamp(1.75rem, 2.5vw, 2.2rem);
+  letter-spacing: -0.035em;
+  line-height: 1;
 }
 
 .crosshatch {
@@ -796,6 +797,116 @@ textarea.field {
 
 .ledger-cell:hover .ledger-figure {
   transform: translateY(-2px);
+}
+
+/* Data flow — calm hover: no vertical shift; left rail, not a bottom sweep */
+.data-flow-track {
+  position: relative;
+}
+
+.data-flow-node {
+  position: relative;
+  cursor: default;
+  transition: background 0.22s ease;
+}
+
+.data-flow-node::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 2px;
+  background: var(--vermilion);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.data-flow-node:hover {
+  background: var(--paper-bright);
+}
+
+.data-flow-node:hover::before {
+  transform: scaleY(1);
+}
+
+.data-flow-node:active {
+  background: var(--paper-deep);
+}
+
+.data-flow-node .data-flow-note {
+  transition: color 0.2s ease;
+}
+
+.data-flow-node:hover .data-flow-note {
+  color: var(--vermilion);
+}
+
+.data-flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+}
+
+.data-flow-arrow svg {
+  display: block;
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.85, 0.2, 1),
+    opacity 0.18s ease;
+}
+
+.data-flow-arrow:hover svg {
+  transform: translateX(4px);
+  opacity: 0.92;
+}
+
+/* Outgoing arrow nudge when the stage before it is hovered */
+.data-flow-track:has(.data-flow-node:nth-child(1):hover) .data-flow-arrow:nth-child(2) svg {
+  transform: translateX(4px);
+}
+
+.data-flow-track:has(.data-flow-node:nth-child(3):hover) .data-flow-arrow:nth-child(4) svg {
+  transform: translateX(4px);
+}
+
+.data-flow-track:has(.data-flow-node:nth-child(5):hover) .data-flow-arrow:nth-child(6) svg {
+  transform: translateX(4px);
+}
+
+/* Last stage: smaller nudge on the inbound arrow */
+.data-flow-track:has(.data-flow-node:nth-child(7):hover) .data-flow-arrow:nth-child(6) svg {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-flow-node,
+  .data-flow-node::before,
+  .data-flow-node .data-flow-note,
+  .data-flow-arrow svg {
+    transition-duration: 0.01ms !important;
+  }
+
+  .data-flow-arrow:hover svg,
+  .data-flow-track:has(.data-flow-node:nth-child(1):hover)
+    .data-flow-arrow:nth-child(2)
+    svg,
+  .data-flow-track:has(.data-flow-node:nth-child(3):hover)
+    .data-flow-arrow:nth-child(4)
+    svg,
+  .data-flow-track:has(.data-flow-node:nth-child(5):hover)
+    .data-flow-arrow:nth-child(6)
+    svg,
+  .data-flow-track:has(.data-flow-node:nth-child(7):hover)
+    .data-flow-arrow:nth-child(6)
+    svg {
+    transform: none;
+  }
+
+  .marquee-track {
+    animation-play-state: paused;
+  }
 }
 
 /* Buttons gain a subtle arrow shift on hover */

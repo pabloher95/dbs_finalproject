@@ -159,7 +159,7 @@ export function ImportExperience() {
         <SectionHeading
           eyebrow="Versioned templates"
           title="Validate before you commit"
-          description="Pick a template, drop a CSV or paste rows, and see exactly what will land in the workspace."
+          description="Pick a template, drop a CSV or paste rows, and see exactly what will land in the workspace. Duplicate lines are reported before anything is saved."
         />
         <div className="mt-6 flex flex-wrap gap-2">
           {(["products", "orders"] as const).map((option) => {

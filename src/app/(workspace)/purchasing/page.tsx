@@ -8,12 +8,12 @@ export default async function PurchasingPage() {
     <WorkflowPageShell
       eyebrow="Purchasing"
       title="Turn open demand into a purchasing run"
-      description="Review the total quantity needed for each material and prepare your next purchasing run."
+      description="Review the total quantity needed for each material, subtract what is already on hand, and prepare your next purchasing run."
       metrics={[
-        { label: "Lines to buy", value: String(snapshot.materials.length) },
+        { label: "Materials tracked", value: String(snapshot.materials.length) },
         {
-          label: "Linked suppliers",
-          value: String(snapshot.materials.filter((material) => material.preferredSupplierId).length)
+          label: "Stocked materials",
+          value: String(snapshot.materials.filter((material) => material.onHandQuantity > 0).length)
         },
         { label: "Open orders", value: String(snapshot.orders.filter((order) => order.status === "open").length) }
       ]}

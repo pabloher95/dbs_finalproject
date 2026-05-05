@@ -1,10 +1,12 @@
 import { Card, Eyebrow, Pill } from "@/components/ui/surfaces";
+import { MaterialStockStudio } from "@/components/forms/material-stock-studio";
 import { buildPurchasingPlan } from "@/lib/domain/purchasing-plan";
 import type { BusinessSnapshot } from "@/lib/domain/types";
 
-function priorityFor(quantity: number, hasSupplier: boolean) {
-  if (!hasSupplier) return { tone: "amber" as const, label: "Source" };
-  if (quantity > 1000) return { tone: "flame" as const, label: "Heavy" };
+function priorityFor(line: { netToBuyQuantity: number; supplierName?: string }) {
+  if (!line.supplierName) return { tone: "amber" as const, label: "Source" };
+  if (line.netToBuyQuantity <= 0) return { tone: "moss" as const, label: "Covered" };
+  if (line.netToBuyQuantity > 1000) return { tone: "flame" as const, label: "Heavy" };
   return { tone: "moss" as const, label: "Ready" };
 }
 
@@ -19,6 +21,8 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
   const totalLines = purchasingPlan.length;
   const linkedLines = purchasingPlan.filter((line) => Boolean(line.supplierName)).length;
   const totalUnits = purchasingPlan.reduce((sum, line) => sum + line.requiredQuantity, 0);
+  const uncoveredLines = purchasingPlan.filter((line) => line.netToBuyQuantity > 0).length;
+  const stockedMaterials = snapshot.materials.filter((material) => material.onHandQuantity > 0).length;
 
   return (
     <div className="space-y-4">
@@ -38,6 +42,7 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
             <Pill tone={linkedLines === totalLines && totalLines > 0 ? "moss" : "amber"}>
               {linkedLines}/{totalLines || 0} sourced
             </Pill>
+            <Pill tone={stockedMaterials > 0 ? "moss" : "amber"}>{stockedMaterials} stocked materials</Pill>
           </div>
         </div>
         {!snapshot.orders.some((order) => order.status === "open") ? (
@@ -50,11 +55,20 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
             Catalog is empty. Add products with formulas before generating a purchasing run.
           </p>
         ) : null}
+        <div className="mt-5">
+          <MaterialStockStudio materials={snapshot.materials} suppliers={snapshot.suppliers} />
+        </div>
+        {uncoveredLines > 0 ? (
+          <p className="mt-4 rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
+            {uncoveredLines} material line{uncoveredLines === 1 ? "" : "s"} still need buying after stock is counted.
+          </p>
+        ) : null}
         <div className="mt-6 overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
           <table className="console-table">
             <thead>
               <tr>
                 <th>Material</th>
+                <th>On hand</th>
                 <th>Required</th>
                 <th>Net to buy</th>
                 <th>Supplier</th>
@@ -63,11 +77,14 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
             </thead>
             <tbody>
               {purchasingPlan.map((item) => {
-                const priority = priorityFor(item.netToBuyQuantity, Boolean(item.supplierName));
+                const priority = priorityFor(item);
                 return (
                   <tr key={item.materialId}>
                     <td>
                       <p className="font-display text-lg text-[var(--ink)]">{item.materialName}</p>
+                    </td>
+                    <td className="font-mono text-[0.8rem] uppercase tracking-[0.18em]">
+                      {item.onHandQuantity.toFixed(2)} {item.unit}
                     </td>
                     <td className="font-mono text-[0.78rem] uppercase tracking-[0.18em]">
                       {item.requiredQuantity.toFixed(2)} {item.unit}
@@ -102,7 +119,7 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
               })}
               {!purchasingPlan.length ? (
                 <tr>
-                  <td colSpan={5} className="text-center text-sm text-[var(--muted-strong)]">
+                  <td colSpan={6} className="text-center text-sm text-[var(--muted-strong)]">
                     Purchasing plan is empty. Import or create products and open orders to populate this view.
                   </td>
                 </tr>

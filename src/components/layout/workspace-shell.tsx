@@ -24,8 +24,8 @@ export async function WorkspaceShell({
     <div className="shell-outer min-h-screen px-4 py-4 md:px-6 md:py-6">
       <div className="mx-auto max-w-[1640px] space-y-5">
         {/* Editorial masthead — quiet, ruled, magazine-style */}
-        <header className="flex items-end justify-between border-b border-[var(--ink)] pb-5">
-          <div className="flex items-end gap-6">
+        <header className="flex flex-col gap-4 border-b border-[var(--ink)] pb-5 md:flex-row md:items-end md:justify-between">
+          <div className="flex items-end gap-4 md:gap-6">
             <Link href={"/" as Route} className="brand-mark">
               smallbiz<em className="not-italic font-normal text-[var(--vermilion)]">·</em>iq
             </Link>
@@ -34,6 +34,11 @@ export async function WorkspaceShell({
               <br />
               <span className="text-[var(--ink)]">{businessName}</span>
             </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 md:hidden">
+            <p className="marginalia">Edition · {editionDate}</p>
+            <span className="h-3 w-px bg-[var(--line-strong)]" />
+            <p className="marginalia">{openOrders} open</p>
           </div>
           <div className="hidden items-center gap-5 md:flex">
             <p className="marginalia">Edition · {editionDate}</p>
