@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { toErrorResponse } from "@/lib/server/route-error-response";
 import { adjustMaterialStock } from "@/lib/server/workspace";
 
 function nonEmpty(value: unknown) {
@@ -29,9 +30,9 @@ export async function POST(request: Request) {
     const result = await adjustMaterialStock(ownerId, { materialId, delta });
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to update material stock." },
-      { status: 400 }
-    );
+    return toErrorResponse(error, {
+      fallback: "Unable to update material stock.",
+      logContext: "POST /api/materials"
+    });
   }
 }

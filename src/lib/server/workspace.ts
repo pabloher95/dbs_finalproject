@@ -2,6 +2,7 @@ import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
 import { getDemoBusinessSnapshot } from "@/lib/data/demo";
+import { UserFacingError } from "@/lib/user-facing-error";
 import { parseOrderImportRows, parseProductImportRows, type ImportPreview } from "@/lib/import/parser";
 import type { Business, BusinessSnapshot, Client, Material, Order, Product } from "@/lib/domain/types";
 
@@ -251,11 +252,7 @@ function getOwnerId() {
 
 function getSupabaseConfig() {
   const supabaseUrl = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
-  const publishableKey = (
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-    process.env.SUPABASE_SECRET_KEY ??
-    ""
-  ).trim();
+  const publishableKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
 
   if (!supabaseUrl || !publishableKey) {
     return null;
@@ -918,7 +915,7 @@ function ensureProduct(snapshot: BusinessSnapshot, input: ProductInput) {
 function buildOrderItems(snapshot: BusinessSnapshot, productId: string, quantity: number) {
   const product = snapshot.products.find((item) => item.id === productId);
   if (!product) {
-    throw new Error("Product not found for order item.");
+    throw new UserFacingError("Product not found for order item.");
   }
 
   return [
@@ -946,7 +943,7 @@ export async function getWorkspaceOverview(ownerId?: string) {
 export async function renameBusiness(ownerId: string, name: string) {
   const trimmed = name.trim();
   if (!trimmed) {
-    throw new Error("Business name is required.");
+    throw new UserFacingError("Business name is required.");
   }
 
   return mutateWorkspace(ownerId, (snapshot) => {
@@ -964,7 +961,7 @@ export async function deleteProduct(ownerId: string, productId: string) {
   return mutateWorkspace(ownerId, (snapshot) => {
     const linkedOrders = snapshot.orders.filter((order) => order.items.some((item) => item.productId === productId));
     if (linkedOrders.length) {
-      throw new Error("Product is used by existing orders and cannot be deleted.");
+      throw new UserFacingError("Product is used by existing orders and cannot be deleted.");
     }
     snapshot.products = snapshot.products.filter((product) => product.id !== productId);
   });
@@ -1016,7 +1013,7 @@ export async function deleteContact(ownerId: string, input: { kind: "client" | "
     if (input.kind === "client") {
       const referenced = snapshot.orders.some((order) => order.clientId === input.id);
       if (referenced) {
-        throw new Error("Client is used by an order and cannot be deleted.");
+        throw new UserFacingError("Client is used by an order and cannot be deleted.");
       }
       snapshot.clients = snapshot.clients.filter((client) => client.id !== input.id);
       return;
@@ -1035,7 +1032,7 @@ export async function adjustMaterialStock(ownerId: string, input: MaterialAdjust
   return mutateWorkspace(ownerId, (snapshot) => {
     const material = snapshot.materials.find((item) => item.id === input.materialId);
     if (!material) {
-      throw new Error("Material not found.");
+      throw new UserFacingError("Material not found.");
     }
 
     const currentQuantity = Number(material.onHandQuantity ?? 0);
@@ -1047,7 +1044,7 @@ export async function saveOrder(ownerId: string, input: OrderInput) {
   return mutateWorkspace(ownerId, (snapshot) => {
     const client = snapshot.clients.find((item) => item.id === input.clientId);
     if (!client) {
-      throw new Error("Client not found for order.");
+      throw new UserFacingError("Client not found for order.");
     }
 
     const items = buildOrderItems(snapshot, input.productId, input.quantity);

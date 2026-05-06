@@ -32,10 +32,10 @@ Minimal handoff for future Codex sessions in this repo.
 
 ## Current Architecture Notes
 - `src/lib/server/workspace.ts` is the server-side workspace data layer, with memory fallback plus Supabase read/write helpers.
-- Clerk auth is wired through `src/app/layout.tsx`, `middleware.ts`, and the dedicated `src/app/sign-in/` and `src/app/sign-up/` routes.
-- Workspace API routes validate Clerk auth server-side, and Supabase access now uses the Clerk session token plus the publishable key.
+- Clerk auth: `src/middleware.ts` protects workspace routes and mutating API prefixes; `ClerkProvider` is on the landing page (`src/app/page.tsx`) and workspace layout (`src/app/(workspace)/layout.tsx`); sign-in/up live under `src/app/sign-in/` and `src/app/sign-up/`.
+- Workspace API routes validate Clerk auth server-side; Supabase REST calls use the Clerk-issued bearer token plus **only** `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as the `apikey` header (never the service-role / secret key).
 - Supabase RLS policies live in `supabase/migrations/20260505_clerk_rls_policies_v2.sql` and key off `auth.jwt()->>'sub'`.
-- Local Supabase persistence uses `SUPABASE_URL` plus `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the root `.env.local`; `SUPABASE_SECRET_KEY` is only kept as a fallback during the transition.
+- Local Supabase persistence: set `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`) and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local`. The app does not read `SUPABASE_SERVICE_ROLE_KEY` or any secret Supabase key for this path—keep service-role keys out of the Next.js app.
 - `src/app/page.tsx` is the public home page.
 - `src/app/(workspace)/layout.tsx` wraps workspace routes in `WorkspaceShell`.
 - `src/app/api/products/route.ts`, `src/app/api/contacts/route.ts`, `src/app/api/orders/route.ts`, and `src/app/api/import/route.ts` handle workspace mutations.
@@ -47,9 +47,10 @@ Minimal handoff for future Codex sessions in this repo.
 ## What Not To Commit
 - `node_modules/`
 - `.next/`
-- `.env` files
+- `.env` files (and do not load real `.env` / `.env.local` into agent context—use `.env.example` only)
 - log files
 - local editor and OS files
+- Supabase service-role keys, `CLERK_SECRET_KEY`, or other production secrets in code or docs
 
 ## Working Rules
 - Do not revert user changes unless explicitly asked.

@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { toErrorResponse } from "@/lib/server/route-error-response";
 import { importWorkspaceData } from "@/lib/server/workspace";
 
 export async function POST(request: Request) {
@@ -25,6 +26,6 @@ export async function POST(request: Request) {
     const result = await importWorkspaceData(ownerId, target, csv);
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to import data." }, { status: 400 });
+    return toErrorResponse(error, { fallback: "Unable to import data.", logContext: "POST /api/import" });
   }
 }

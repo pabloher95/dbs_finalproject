@@ -1,3 +1,5 @@
+import { UserFacingError } from "@/lib/user-facing-error";
+
 export type ImportTarget = "products" | "orders";
 
 export type ImportRowReport = {
@@ -117,7 +119,7 @@ function parseCsv(csv: string): CsvRow[] {
   }
 
   if (inQuotes) {
-    throw new Error("CSV contains an unclosed quoted field.");
+    throw new UserFacingError("CSV contains an unclosed quoted field.");
   }
 
   pushRow();

@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { toErrorResponse } from "@/lib/server/route-error-response";
 import { deleteOrder, saveOrder } from "@/lib/server/workspace";
 import type { Order } from "@/lib/domain/types";
 
@@ -72,6 +73,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to save order." }, { status: 400 });
+    return toErrorResponse(error, { fallback: "Unable to save order.", logContext: "POST /api/orders" });
   }
 }
