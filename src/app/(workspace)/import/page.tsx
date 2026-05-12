@@ -9,11 +9,11 @@ export default async function ImportPage() {
   return (
     <WorkflowPageShell
       eyebrow={language === "es" ? "Entrada directa" : "Direct intake"}
-      title={language === "es" ? "Captura productos y pedidos en línea" : "Capture products and orders online"}
+      title={language === "es" ? "Crea productos y pedidos en línea" : "Create products and orders online"}
       description={
         language === "es"
-          ? "Registra productos rápidos y pedidos sin subir archivos. Termina precios, rendimiento y materiales en el catálogo."
-          : "Register quick products and orders without uploading files. Finish price, yield, and materials in the catalog."
+          ? "Completa los formularios de productos y pedidos para que el espacio de trabajo se actualice al instante, sin subir archivos."
+          : "Fill out the product and order forms so the workspace updates instantly, without uploading files."
       }
       metrics={[
         { label: language === "es" ? "Elementos del catálogo" : "Catalog items", value: String(snapshot.products.length) },
@@ -22,11 +22,11 @@ export default async function ImportPage() {
       ]}
       steps={[
         {
-          title: language === "es" ? "Captura un producto rápido" : "Capture a quick product",
+          title: language === "es" ? "Escribe un producto" : "Enter a product",
           description:
             language === "es"
-              ? "Registra la identidad del producto y deja la fórmula para el catálogo."
-              : "Record the product identity and leave the formula for the catalog."
+              ? "Captura el SKU, el rendimiento y la fórmula en una sola forma."
+              : "Capture the SKU, yield, and formula in one form."
         },
         {
           title: language === "es" ? "Registra un pedido" : "Record an order",
@@ -45,8 +45,8 @@ export default async function ImportPage() {
       ]}
       nextStep={
         language === "es"
-          ? "Empieza por un producto rápido; después termina su definición en el catálogo cuando lo necesites."
-          : "Start with a quick product, then finish its definition in the catalog when needed."
+          ? "Empieza por un producto; después registra el pedido que lo pone en marcha."
+          : "Start with one product, then record the order that puts it to work."
       }
     >
       <ImportPageContent snapshot={snapshot} />

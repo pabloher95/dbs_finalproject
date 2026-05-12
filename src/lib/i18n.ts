@@ -530,16 +530,11 @@ export function importExperienceCopy(language: Language) {
         ? "Completa los formularios, guarda cada registro y deja que el espacio de trabajo se actualice al instante."
         : "Fill out the forms, save each record, and let the workspace update instantly.",
     productEyebrow: language === "es" ? "Producto" : "Product",
-    productTitle: language === "es" ? "Agregar producto rápido" : "Quick-add a product",
+    productTitle: language === "es" ? "Agregar producto con fórmula" : "Add a product with a formula",
     productDescription:
       language === "es"
-        ? "Captura SKU, nombre, categoría y unidad. La fórmula completa vive en el catálogo."
-        : "Capture SKU, name, category, and unit. The full formula lives in the catalog.",
-    productCatalogNote:
-      language === "es"
-        ? "¿Necesitas precio, rendimiento o materiales? Termina ese producto en el catálogo."
-        : "Need price, yield, or materials? Finish that product in the catalog.",
-    openCatalog: language === "es" ? "Abrir catálogo" : "Open catalog",
+        ? "Captura SKU, precio y rendimiento; después agrega los materiales una fila a la vez."
+        : "Capture SKU, price, and yield, then add materials one row at a time.",
     orderEyebrow: language === "es" ? "Pedido" : "Order",
     orderTitle: language === "es" ? "Registrar el siguiente trabajo" : "Record the next job",
     orderDescription:
@@ -572,7 +567,6 @@ export function productStudioCopy(language: Language) {
     categoryPlaceholder: language === "es" ? "Categoría" : "Category",
     unitPlaceholder: language === "es" ? "Unidad" : "Unit",
     save: language === "es" ? "Guardar producto" : "Save product",
-    saveQuick: language === "es" ? "Guardar producto rápido" : "Save quick product",
     search: language === "es" ? "Buscar productos" : "Search products",
     edit: language === "es" ? "Editar" : "Edit",
     delete: language === "es" ? "Eliminar" : "Delete",

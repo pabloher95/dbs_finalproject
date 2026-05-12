@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -10,12 +9,22 @@ import { importExperienceCopy, orderStudioCopy, productStudioCopy } from "@/lib/
 
 type Tone = "info" | "success" | "warn" | "error";
 
+type FormulaDraft = {
+  id: string;
+  materialName: string;
+  unit: string;
+  quantity: string;
+};
+
 type ProductDraft = {
   id?: string;
   sku: string;
   name: string;
   category: string;
   unit: string;
+  yieldQuantity: string;
+  unitPrice: string;
+  formula: FormulaDraft[];
 };
 
 type OrderDraft = {
@@ -28,10 +37,13 @@ type OrderDraft = {
   quantity: string;
 };
 
-function formatDueDate(offsetDays = 7) {
-  const date = new Date();
-  date.setDate(date.getDate() + offsetDays);
-  return date.toISOString().slice(0, 10);
+function createFormulaRow(): FormulaDraft {
+  return {
+    id: crypto.randomUUID(),
+    materialName: "",
+    unit: "g",
+    quantity: ""
+  };
 }
 
 function createProductDraft(): ProductDraft {
@@ -39,8 +51,17 @@ function createProductDraft(): ProductDraft {
     sku: "",
     name: "",
     category: "general",
-    unit: "each"
+    unit: "each",
+    yieldQuantity: "12",
+    unitPrice: "0",
+    formula: [createFormulaRow()]
   };
+}
+
+function formatDueDate(offsetDays = 7) {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  return date.toISOString().slice(0, 10);
 }
 
 function createOrderDraft(snapshot: BusinessSnapshot): OrderDraft {
@@ -58,7 +79,70 @@ function toNumber(value: string) {
   return Number(value.trim());
 }
 
-function QuickStat({
+function FormulaRowField({
+  row,
+  index,
+  onChange,
+  onRemove,
+  canRemove,
+  language
+}: Readonly<{
+  row: FormulaDraft;
+  index: number;
+  onChange: (next: FormulaDraft) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+  language: "en" | "es";
+}>) {
+  return (
+    <div className="grid gap-2 rounded-[20px] border border-[var(--line)] bg-[rgba(255,255,255,0.66)] p-3 md:grid-cols-[1.4fr_0.7fr_0.8fr_auto] md:items-end">
+      <label className="grid gap-1">
+        <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+          {language === "es" ? "Material" : "Material"}
+        </span>
+        <input
+          value={row.materialName}
+          onChange={(event) => onChange({ ...row, materialName: event.target.value })}
+          placeholder={language === "es" ? `Material ${index + 1}` : `Material ${index + 1}`}
+          className="field"
+        />
+      </label>
+      <label className="grid gap-1">
+        <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+          {language === "es" ? "Unidad" : "Unit"}
+        </span>
+        <input
+          value={row.unit}
+          onChange={(event) => onChange({ ...row, unit: event.target.value })}
+          placeholder={language === "es" ? "g" : "g"}
+          className="field"
+        />
+      </label>
+      <label className="grid gap-1">
+        <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+          {language === "es" ? "Cantidad" : "Quantity"}
+        </span>
+        <input
+          value={row.quantity}
+          onChange={(event) => onChange({ ...row, quantity: event.target.value })}
+          placeholder="100"
+          className="field font-mono text-sm"
+          inputMode="decimal"
+        />
+      </label>
+      <button
+        type="button"
+        onClick={onRemove}
+        disabled={!canRemove}
+        className="btn btn-ghost md:justify-self-end"
+      >
+        {language === "es" ? "Quitar" : "Remove"}
+      </button>
+    </div>
+  );
+}
+
+function IntakeSummary({
   label,
   value,
   tone
@@ -91,20 +175,48 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
 
   useEffect(() => {
     setWorkspace(snapshot);
-    setOrderDraft((current) => ({
-      ...current,
-      productId: snapshot.products.find((product) => product.id === current.productId)?.id ?? snapshot.products[0]?.id ?? ""
-    }));
   }, [snapshot]);
+
+  useEffect(() => {
+    if (!workspace.products.length) {
+      setOrderDraft((current) => ({ ...current, productId: "" }));
+      return;
+    }
+    setOrderDraft((current) => {
+      if (current.productId) return current;
+      return { ...current, productId: workspace.products[0].id };
+    });
+  }, [workspace.products]);
 
   async function saveProduct() {
     const sku = productDraft.sku.trim();
     const name = productDraft.name.trim();
     const category = productDraft.category.trim();
     const unit = productDraft.unit.trim();
+    const yieldQuantity = toNumber(productDraft.yieldQuantity);
+    const unitPrice = toNumber(productDraft.unitPrice);
+    const formula = productDraft.formula
+      .map((row) => ({
+        materialName: row.materialName.trim(),
+        unit: row.unit.trim(),
+        quantity: toNumber(row.quantity)
+      }))
+      .filter((row) => row.materialName && row.unit && Number.isFinite(row.quantity) && row.quantity > 0);
 
     if (!sku || !name || !category || !unit) {
       setToast({ message: productCopy.enterRequired, tone: "warn" });
+      return;
+    }
+    if (!Number.isFinite(yieldQuantity) || yieldQuantity <= 0) {
+      setToast({ message: productCopy.yieldRequired, tone: "warn" });
+      return;
+    }
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      setToast({ message: productCopy.priceNegative, tone: "warn" });
+      return;
+    }
+    if (!formula.length) {
+      setToast({ message: productCopy.formulaRequired, tone: "warn" });
       return;
     }
 
@@ -120,7 +232,10 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
             sku,
             name,
             category,
-            unit
+            unit,
+            yieldQuantity,
+            unitPrice,
+            formula
           }
         })
       });
@@ -204,14 +319,35 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
     }
   }
 
+  const productCount = String(workspace.products.length);
+  const orderCount = String(workspace.orders.length);
+  const clientCount = String(workspace.clients.length);
+  const productOptions = workspace.products;
+
   return (
     <section className="space-y-6">
       <Card className="p-6">
-        <SectionHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description} />
+        <SectionHeading
+          eyebrow={copy.eyebrow}
+          title={copy.title}
+          description={copy.description}
+        />
         <div className="mt-5 grid gap-2 md:grid-cols-3">
-          <QuickStat label={language === "es" ? "Productos" : "Products"} value={String(workspace.products.length)} tone="moss" />
-          <QuickStat label={language === "es" ? "Pedidos" : "Orders"} value={String(workspace.orders.length)} tone="amber" />
-          <QuickStat label={language === "es" ? "Clientes" : "Customers"} value={String(workspace.clients.length)} tone="flame" />
+          <IntakeSummary
+            label={language === "es" ? "Productos" : "Products"}
+            value={productCount}
+            tone="moss"
+          />
+          <IntakeSummary
+            label={language === "es" ? "Pedidos" : "Orders"}
+            value={orderCount}
+            tone="amber"
+          />
+          <IntakeSummary
+            label={language === "es" ? "Clientes" : "Customers"}
+            value={clientCount}
+            tone="flame"
+          />
         </div>
       </Card>
 
@@ -254,16 +390,78 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
                 placeholder={productCopy.unitPlaceholder}
                 className="field"
               />
+              <input
+                value={productDraft.yieldQuantity}
+                onChange={(event) => setProductDraft((current) => ({ ...current, yieldQuantity: event.target.value }))}
+                placeholder={productCopy.yieldQuantityPlaceholder}
+                className="field font-mono text-sm"
+                inputMode="decimal"
+              />
+              <input
+                value={productDraft.unitPrice}
+                onChange={(event) => setProductDraft((current) => ({ ...current, unitPrice: event.target.value }))}
+                placeholder={productCopy.unitPricePlaceholder}
+                className="field font-mono text-sm"
+                inputMode="decimal"
+              />
             </div>
-            <div className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-sm text-[var(--muted-strong)]">
-              {copy.productCatalogNote}
-              <Link href="/products" className="ml-2 font-medium text-[var(--ink)] underline underline-offset-4">
-                {copy.openCatalog}
-              </Link>
+
+            <div className="space-y-3 border-t border-dashed border-[var(--line)] pt-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                    {language === "es" ? "Fórmula" : "Formula"}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--muted-strong)]">
+                    {language === "es"
+                      ? "Un material por fila. El producto se guarda con esta mezcla."
+                      : "One material per row. The product saves with this mix."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-soft"
+                  onClick={() =>
+                    setProductDraft((current) => ({
+                      ...current,
+                      formula: [...current.formula, createFormulaRow()]
+                    }))
+                  }
+                >
+                  {copy.addMaterial}
+                </button>
+              </div>
+              <div className="space-y-3">
+                {productDraft.formula.map((row, index) => (
+                  <FormulaRowField
+                    key={row.id}
+                    row={row}
+                    index={index}
+                    language={language}
+                    canRemove={productDraft.formula.length > 1}
+                    onChange={(next) =>
+                      setProductDraft((current) => ({
+                        ...current,
+                        formula: current.formula.map((item) => (item.id === row.id ? next : item))
+                      }))
+                    }
+                    onRemove={() =>
+                      setProductDraft((current) => {
+                        const next = current.formula.filter((item) => item.id !== row.id);
+                        return {
+                          ...current,
+                          formula: next.length ? next : [createFormulaRow()]
+                        };
+                      })
+                    }
+                  />
+                ))}
+              </div>
             </div>
+
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <button className="btn btn-flame" type="submit" disabled={savingProduct}>
-                {productCopy.saveQuick}
+                {productCopy.save}
               </button>
               <button
                 className="btn btn-ghost"
@@ -285,8 +483,14 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
               void saveOrder();
             }}
           >
-            <SectionHeading eyebrow={copy.orderEyebrow} title={copy.orderTitle} description={copy.orderDescription} />
-            {!workspace.products.length ? <Pill tone="amber">{orderCopy.noProducts}</Pill> : null}
+            <SectionHeading
+              eyebrow={copy.orderEyebrow}
+              title={copy.orderTitle}
+              description={copy.orderDescription}
+            />
+            {!workspace.products.length ? (
+              <Pill tone="amber">{orderCopy.noProducts}</Pill>
+            ) : null}
             <div className="grid gap-3 md:grid-cols-2">
               <input
                 value={orderDraft.orderNumber}
@@ -331,18 +535,20 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
                 disabled={!workspace.products.length}
               >
                 <option value="">{language === "es" ? "Elige un producto" : "Choose a product"}</option>
-                {workspace.products.map((product) => (
+                {productOptions.map((product) => (
                   <option key={product.id} value={product.id}>
                     {product.name}
                   </option>
                 ))}
               </select>
             </div>
+
             <div className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-sm text-[var(--muted-strong)]">
               {language === "es"
                 ? "El cliente se crea o reutiliza por nombre cuando guardas el pedido."
                 : "The customer is created or reused by name when you save the order."}
             </div>
+
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <button className="btn btn-flame" type="submit" disabled={savingOrder || !workspace.products.length}>
                 {orderCopy.saveOrder}
@@ -357,6 +563,34 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
               </button>
             </div>
           </form>
+          <div className="mt-6 space-y-3 border-t border-dashed border-[var(--line)] pt-5">
+            <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+              {language === "es" ? "Productos disponibles" : "Available products"}
+            </p>
+            <div className="space-y-2">
+              {workspace.products.slice(0, 4).map((product) => (
+                <div
+                  key={product.id}
+                  className="flex items-center justify-between gap-3 rounded-[20px] border border-[var(--line)] bg-[rgba(255,255,255,0.66)] px-4 py-3"
+                >
+                  <div>
+                    <p className="font-display text-lg text-[var(--ink)]">{product.name}</p>
+                    <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
+                      {product.sku}
+                    </p>
+                  </div>
+                  <span className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                    {product.unit}
+                  </span>
+                </div>
+              ))}
+              {!workspace.products.length ? (
+                <p className="rounded-[20px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.66)] px-4 py-3 text-sm text-[var(--muted-strong)]">
+                  {productCopy.noProducts}
+                </p>
+              ) : null}
+            </div>
+          </div>
         </Card>
       </div>
 

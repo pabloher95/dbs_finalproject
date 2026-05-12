@@ -979,38 +979,6 @@ export async function saveProduct(ownerId: string, input: ProductInput) {
   });
 }
 
-type QuickProductInput = {
-  id?: string;
-  sku: string;
-  name: string;
-  category: string;
-  unit: string;
-};
-
-export async function saveQuickProduct(ownerId: string, input: QuickProductInput) {
-  return mutateWorkspace(ownerId, (snapshot) => {
-    const existing = input.id ? snapshot.products.find((product) => product.id === input.id) : findProduct(snapshot, input.sku);
-    if (existing) {
-      existing.sku = input.sku;
-      existing.name = input.name;
-      existing.category = input.category;
-      existing.unit = input.unit;
-      return;
-    }
-
-    snapshot.products.push({
-      id: input.id ?? `prd_${slugify(input.sku) || crypto.randomUUID()}`,
-      sku: input.sku,
-      name: input.name,
-      category: input.category,
-      unit: input.unit,
-      yieldQuantity: 1,
-      unitPrice: 0,
-      materials: []
-    });
-  });
-}
-
 export async function deleteProduct(ownerId: string, productId: string) {
   return mutateWorkspace(ownerId, (snapshot) => {
     const linkedOrders = snapshot.orders.filter((order) => order.items.some((item) => item.productId === productId));
