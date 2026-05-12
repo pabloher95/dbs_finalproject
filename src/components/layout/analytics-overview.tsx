@@ -29,7 +29,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
     <Card className="rounded-[28px] p-6 md:p-8">
       <SectionHeading
         eyebrow={copy.eyebrow}
-        title={copy.title}
+        title={copy.body}
       />
 
       <div className="mt-6 flex flex-wrap gap-2">

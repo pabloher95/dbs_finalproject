@@ -324,7 +324,6 @@ export function workflowPageCopy(language: Language) {
 export function analyticsCopy(language: Language) {
   return {
     eyebrow: language === "es" ? "Lecturas" : "Readings",
-    title: language === "es" ? "Señales de ingresos, margen y tendencia" : "Revenue, margin, and trend signals",
     description:
       language === "es"
         ? "Analítica descriptiva construida a partir del libro de pedidos actual, los precios de los productos y los costos de materiales. Sin previsiones todavía, solo la forma del negocio."
