@@ -78,7 +78,7 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
 
                 <p className="mt-4 text-[0.95rem] leading-6 text-[var(--muted-strong)]">{copy.operationsBody}</p>
 
-                <div className="mt-6 grid gap-px bg-[var(--ink)] md:grid-cols-4">
+                <div className="mt-6 grid gap-px bg-[var(--ink)] md:grid-cols-2">
                   {[
                     { label: copy.products, value: snapshot.products.length },
                     { label: copy.suppliers, value: snapshot.suppliers.length },
