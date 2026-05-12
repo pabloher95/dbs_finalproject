@@ -12,7 +12,7 @@
     "prestart": "node scripts/check-node-version.mjs",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test src/tests/*.test.js"
+    "test": "node --test --experimental-strip-types src/tests/*.test.js src/tests/*.test.mts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.1",

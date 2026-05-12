@@ -2,6 +2,7 @@ import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
 import { getDemoBusinessSnapshot } from "@/lib/data/demo";
+import { applyStockDelta } from "@/lib/domain/inventory.mts";
 import { UserFacingError } from "@/lib/user-facing-error";
 import { parseOrderImportRows, parseProductImportRows, type ImportPreview } from "@/lib/import/parser";
 import type { Business, BusinessSnapshot, Client, Material, Order, Product } from "@/lib/domain/types";
@@ -1035,8 +1036,7 @@ export async function adjustMaterialStock(ownerId: string, input: MaterialAdjust
       throw new UserFacingError("Material not found.");
     }
 
-    const currentQuantity = Number(material.onHandQuantity ?? 0);
-    material.onHandQuantity = Math.max(currentQuantity + input.delta, 0);
+    material.onHandQuantity = applyStockDelta(material.onHandQuantity, input.delta);
   });
 }
 
