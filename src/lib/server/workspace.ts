@@ -764,7 +764,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
   return { read, write };
 }
 
-async function getClerkBearerForSupabase(session: Awaited<ReturnType<typeof auth>>) {
+async function getClerkBearerForSupabase(session: Awaited<ReturnType<typeof auth>>): Promise<string | null> {
   const templates = Array.from(
     new Set(
       [process.env.CLERK_JWT_TEMPLATE?.trim(), "supabase"].filter(
@@ -782,11 +782,11 @@ async function getClerkBearerForSupabase(session: Awaited<ReturnType<typeof auth
       );
       if (token) return token;
     } catch {
-      /* Try the next configured template before falling back to the default session token. */
+      /* Try the next configured template before falling back to memory mode. */
     }
   }
 
-  return withTimeout(session.getToken(), CLERK_TOKEN_TIMEOUT_MS, "Clerk session token lookup");
+  return null;
 }
 
 async function resolveWorkspaceAccess(ownerId?: string): Promise<WorkspaceAccess> {
