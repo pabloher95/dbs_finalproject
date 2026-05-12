@@ -670,9 +670,10 @@ export function orderStudioCopy(language: Language) {
     title: language === "es" ? "Agrega el siguiente trabajo a la cola" : "Add the next job to the queue",
     description:
       language === "es"
-        ? "Escribe el cliente, la fecha de entrega y una o más líneas de producto. Si el cliente no existe, se crea al guardar."
-        : "Enter the customer, the due date, and one or more product lines. If the customer does not exist, it is created on save.",
+        ? "Escribe el cliente, el destino, la fecha de entrega y una o más líneas de producto. Si el cliente no existe, se crea al guardar."
+        : "Enter the customer, the destination, the due date, and one or more product lines. If the customer does not exist, it is created on save.",
     customerNamePlaceholder: language === "es" ? "Nombre del cliente" : "Customer name",
+    destinationPlaceholder: language === "es" ? "Destino" : "Destination",
     customerHint:
       language === "es"
         ? "Escribe un nombre de cliente y se añadirá al guardar si todavía no existe."
@@ -705,9 +706,11 @@ export function orderStudioCopy(language: Language) {
     removeLine: language === "es" ? "Quitar línea" : "Remove line",
     lineProduct: language === "es" ? "Producto" : "Product",
     lineQuantity: language === "es" ? "Cantidad" : "Quantity",
+    destination: language === "es" ? "destino" : "destination",
     manageEyebrow: language === "es" ? "Administrar pedidos" : "Manage orders",
     queueLabel: (count: number) => (language === "es" ? `${count} en la cola` : `${count} on the queue`),
-    searchPlaceholder: language === "es" ? "Buscar número, cliente, estado, fecha" : "Search number, customer, status, date",
+    searchPlaceholder:
+      language === "es" ? "Buscar número, cliente, destino, estado, fecha" : "Search number, customer, destination, status, date",
     edit: language === "es" ? "Editar" : "Edit",
     delete: language === "es" ? "Eliminar" : "Delete",
     noOrders:

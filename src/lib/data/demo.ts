@@ -94,6 +94,7 @@ const snapshot: BusinessSnapshot = {
       orderNumber: "ORD-2001",
       clientId: "cl_river",
       clientName: "Common Goods Market",
+      destination: "River Market Cafe",
       dueDate: "2026-04-29",
       status: "open",
       items: [
@@ -106,6 +107,7 @@ const snapshot: BusinessSnapshot = {
       orderNumber: "ORD-2002",
       clientId: "cl_studio",
       clientName: "North Studio Events",
+      destination: "North Studio Loading Dock",
       dueDate: "2026-04-30",
       status: "open",
       items: [{ productId: "prd_croissant", productName: "Signature Candle", quantity: 36 }]

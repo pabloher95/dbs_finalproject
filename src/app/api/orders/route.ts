@@ -35,6 +35,7 @@ export async function POST(request: Request) {
     const orderNumber = nonEmpty(body.orderNumber);
     const clientId = nonEmpty(body.clientId);
     const clientName = nonEmpty(body.clientName);
+    const destination = nonEmpty(body.destination);
     const dueDate = nonEmpty(body.dueDate);
     const status =
       body.status === "fulfilled" || body.status === "open"
@@ -89,6 +90,7 @@ export async function POST(request: Request) {
       orderNumber,
       clientId: clientId || undefined,
       clientName: clientName || undefined,
+      destination: destination || undefined,
       dueDate,
       status,
       items: normalizedItems

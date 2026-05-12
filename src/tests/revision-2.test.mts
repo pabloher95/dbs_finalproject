@@ -66,10 +66,10 @@ test("product imports skip duplicate formula rows and preserve row-level errors"
 test("order imports skip duplicate lines and reject invalid status values", () => {
   const preview = parseOrderImportRows(
     [
-      "order_number,client_name,due_date,status,product_sku,quantity",
-      "ORD-2001,Common Goods Market,2026-05-01,open,CANDLE-01,12",
-      "ORD-2001,Common Goods Market,2026-05-01,open,CANDLE-01,12",
-      "ORD-2002,Common Goods Market,2026-05-01,invalid,CANDLE-01,12"
+      "order_number,client_name,destination,due_date,status,product_sku,quantity",
+      "ORD-2001,Common Goods Market,River Market Cafe,2026-05-01,open,CANDLE-01,12",
+      "ORD-2001,Common Goods Market,River Market Cafe,2026-05-01,open,CANDLE-01,12",
+      "ORD-2002,Common Goods Market,River Market Cafe,2026-05-01,invalid,CANDLE-01,12"
     ].join("\n")
   ).preview;
 

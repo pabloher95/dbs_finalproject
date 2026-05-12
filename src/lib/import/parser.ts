@@ -32,6 +32,7 @@ export type ParsedOrderImportRow = {
   rowNumber: number;
   orderNumber: string;
   clientName: string;
+  destination: string;
   dueDate: string;
   status: "open" | "fulfilled";
   productSku: string;
@@ -245,7 +246,7 @@ export function parseOrderImportRows(csv: string): {
 } {
   const rows = parseCsv(csv);
   const header = rows[0]?.cells ?? [];
-  const expected = ["order_number", "client_name", "due_date", "status", "product_sku", "quantity"];
+  const expected = ["order_number", "client_name", "destination", "due_date", "status", "product_sku", "quantity"];
 
   if (normalizeHeader(header).join(",") !== expected.join(",")) {
     const preview: ImportPreview = {
@@ -283,8 +284,8 @@ export function parseOrderImportRows(csv: string): {
       reports.push({ rowNumber, status: "error", message, raw: row.raw });
       return;
     }
-    const [orderNumber, clientName, dueDate, status, productSku, quantity] = row.cells;
-    if (![orderNumber, clientName, dueDate, status, productSku, quantity].every(Boolean)) {
+    const [orderNumber, clientName, destination, dueDate, status, productSku, quantity] = row.cells;
+    if (![orderNumber, clientName, destination, dueDate, status, productSku, quantity].every(Boolean)) {
       const message = "Missing one or more required order fields.";
       errors.push({ rowNumber, message });
       reports.push({ rowNumber, status: "error", message, raw: row.raw });
@@ -313,6 +314,7 @@ export function parseOrderImportRows(csv: string): {
       rowNumber,
       orderNumber,
       clientName,
+      destination,
       dueDate,
       status: status as ParsedOrderImportRow["status"],
       productSku,

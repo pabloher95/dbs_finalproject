@@ -53,6 +53,7 @@ type ClientRow = {
 type OrderRow = {
   id: string;
   client_id: string;
+  destination: string | null;
   order_number: string;
   due_date: string;
   status: Order["status"];
@@ -112,6 +113,7 @@ type OrderInput = {
   orderNumber: string;
   clientId?: string;
   clientName?: string;
+  destination?: string;
   dueDate: string;
   status: Order["status"];
   items: Array<{ productId: string; quantity: number }>;
@@ -411,7 +413,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       ),
       readRows<ClientRow>(`/clients?select=id,name,email,channel,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
       readRows<OrderRow>(
-        `/orders?select=id,client_id,order_number,due_date,status,business_id&business_id=eq.${encodeURIComponent(business.id)}`
+        `/orders?select=id,client_id,destination,order_number,due_date,status,business_id&business_id=eq.${encodeURIComponent(business.id)}`
       )
     ]);
 
@@ -477,6 +479,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       orderNumber: row.order_number,
       clientId: row.client_id,
       clientName: clientsById.get(row.client_id)?.name ?? row.client_id,
+      destination: row.destination ?? "",
       dueDate: row.due_date,
       status: row.status,
       items: orderItems
@@ -699,6 +702,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
             id: order.id,
             business_id: business.id,
             client_id: order.clientId,
+            destination: order.destination,
             order_number: order.orderNumber,
             due_date: order.dueDate,
             status: order.status
@@ -1132,12 +1136,14 @@ export async function saveOrder(ownerId: string, input: OrderInput) {
     }
 
     const items = normalizeOrderItems(snapshot, input);
+    const destination = input.destination?.trim() ?? "";
     const existing = input.id ? snapshot.orders.find((order) => order.id === input.id) : snapshot.orders.find((order) => order.orderNumber === input.orderNumber);
 
     if (existing) {
       existing.orderNumber = input.orderNumber;
       existing.clientId = client.id;
       existing.clientName = client.name;
+      existing.destination = destination;
       existing.dueDate = input.dueDate;
       existing.status = input.status;
       existing.items = items;
@@ -1149,6 +1155,7 @@ export async function saveOrder(ownerId: string, input: OrderInput) {
       orderNumber: input.orderNumber,
       clientId: client.id,
       clientName: client.name,
+      destination,
       dueDate: input.dueDate,
       status: input.status,
       items
@@ -1160,6 +1167,7 @@ type IntakeOrderInput = {
   id?: string;
   orderNumber: string;
   clientName: string;
+  destination?: string;
   dueDate: string;
   status: Order["status"];
   productId?: string;
@@ -1185,6 +1193,7 @@ export async function saveIntakeOrder(ownerId: string, input: IntakeOrderInput) 
 
     const client = ensureClientForImport(snapshot, clientName);
     const items = buildOrderItems(snapshot, product.id, input.quantity);
+    const destination = input.destination?.trim() ?? "";
     const existing = input.id
       ? snapshot.orders.find((order) => order.id === input.id)
       : snapshot.orders.find((order) => order.orderNumber === input.orderNumber);
@@ -1193,6 +1202,7 @@ export async function saveIntakeOrder(ownerId: string, input: IntakeOrderInput) 
       existing.orderNumber = input.orderNumber;
       existing.clientId = client.id;
       existing.clientName = client.name;
+      existing.destination = destination;
       existing.dueDate = input.dueDate;
       existing.status = input.status;
       existing.items = items;
@@ -1204,6 +1214,7 @@ export async function saveIntakeOrder(ownerId: string, input: IntakeOrderInput) 
       orderNumber: input.orderNumber,
       clientId: client.id,
       clientName: client.name,
+      destination,
       dueDate: input.dueDate,
       status: input.status,
       items
@@ -1271,6 +1282,7 @@ export async function importWorkspaceData(ownerId: string, target: "products" | 
       const current = grouped.get(row.orderNumber) ?? {
         orderNumber: row.orderNumber,
         clientName: row.clientName,
+        destination: row.destination,
         dueDate: row.dueDate,
         status: row.status,
         items: []
@@ -1313,6 +1325,7 @@ export async function importWorkspaceData(ownerId: string, target: "products" | 
       if (existing) {
         existing.clientId = client.id;
         existing.clientName = client.name;
+        existing.destination = order.destination;
         existing.dueDate = order.dueDate;
         existing.status = order.status;
         existing.items = nextItems;
@@ -1324,6 +1337,7 @@ export async function importWorkspaceData(ownerId: string, target: "products" | 
         orderNumber: order.orderNumber,
         clientId: client.id,
         clientName: client.name,
+        destination: order.destination,
         dueDate: order.dueDate,
         status: order.status,
         items: nextItems
@@ -1359,6 +1373,7 @@ export async function importWorkspaceData(ownerId: string, target: "products" | 
 type ParsedOrderGroup = {
   orderNumber: string;
   clientName: string;
+  destination: string;
   dueDate: string;
   status: Order["status"];
   items: Array<{ productId: string; quantity: number }>;

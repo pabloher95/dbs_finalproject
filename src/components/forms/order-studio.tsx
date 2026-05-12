@@ -20,6 +20,7 @@ type OrderDraft = {
   id?: string;
   orderNumber: string;
   clientName: string;
+  destination: string;
   dueDate: string;
   status: Order["status"];
   items: OrderLineDraft[];
@@ -46,6 +47,7 @@ function createDraft(snapshot: BusinessSnapshot): OrderDraft {
   return {
     orderNumber: `ORD-${2000 + snapshot.orders.length + 1}`,
     clientName: "",
+    destination: "",
     dueDate: "2026-05-01",
     status: "open",
     items: [createLine(snapshot)]
@@ -90,7 +92,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     const key = search.trim().toLowerCase();
     if (!key) return orders;
     return orders.filter((order) =>
-      [order.orderNumber, order.clientName, order.status, order.dueDate].some((value) =>
+      [order.orderNumber, order.clientName, order.destination, order.status, order.dueDate].some((value) =>
         value.toLowerCase().includes(key)
       )
     );
@@ -131,6 +133,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         id: draft.id || undefined,
         orderNumber: draft.orderNumber,
         clientName: draft.clientName,
+        destination: draft.destination,
         dueDate: draft.dueDate,
         status: draft.status,
         items: normalizedItems
@@ -149,6 +152,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       ...current,
       id: "",
       clientName: current.clientName,
+      destination: current.destination,
       orderNumber: `ORD-${Number(current.orderNumber.slice(4)) + 1}`
     }));
     router.refresh();
@@ -163,6 +167,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         orderNumber: order.orderNumber,
         clientId: order.clientId,
         clientName: order.clientName,
+        destination: order.destination,
         dueDate: order.dueDate,
         status: nextStatus,
         items: order.items.map((item) => ({
@@ -203,6 +208,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         id: "",
         orderNumber: `ORD-${2000 + data.snapshot.orders.length + 1}`,
         clientName: "",
+        destination: "",
         dueDate: "2026-05-01",
         status: "open",
         items: [createLine(data.snapshot)]
@@ -225,6 +231,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         id: lastDeleted.id,
         orderNumber: lastDeleted.orderNumber,
         clientName: lastDeleted.clientName,
+        destination: lastDeleted.destination,
         dueDate: lastDeleted.dueDate,
         status: lastDeleted.status,
         items: lastDeleted.items.map((item) => ({
@@ -288,39 +295,49 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               </Pill>
             ) : null}
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <input
-              value={draft.orderNumber}
-              onChange={(event) => setDraft((current) => ({ ...current, orderNumber: event.target.value }))}
-              placeholder={language === "es" ? "Número de pedido" : "Order number"}
-              className="field font-mono text-sm"
-            />
-            <input
-              value={draft.clientName}
-              onChange={(event) => setDraft((current) => ({ ...current, clientName: event.target.value }))}
-              placeholder={copy.customerNamePlaceholder}
-              className="field"
-              list="customer-options"
-            />
+          <div className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-3">
+              <input
+                value={draft.orderNumber}
+                onChange={(event) => setDraft((current) => ({ ...current, orderNumber: event.target.value }))}
+                placeholder={language === "es" ? "Número de pedido" : "Order number"}
+                className="field font-mono text-sm"
+              />
+              <input
+                value={draft.clientName}
+                onChange={(event) => setDraft((current) => ({ ...current, clientName: event.target.value }))}
+                placeholder={copy.customerNamePlaceholder}
+                className="field"
+                list="customer-options"
+              />
+              <input
+                value={draft.destination}
+                onChange={(event) => setDraft((current) => ({ ...current, destination: event.target.value }))}
+                placeholder={copy.destinationPlaceholder}
+                className="field"
+              />
+            </div>
             <datalist id="customer-options">
               {snapshot.clients.map((client) => (
                 <option key={client.id} value={client.name} />
               ))}
             </datalist>
-            <input
-              value={draft.dueDate}
-              onChange={(event) => setDraft((current) => ({ ...current, dueDate: event.target.value }))}
-              type="date"
-              className="field"
-            />
-            <div className="rounded-[18px] border border-[var(--line)] bg-[rgba(255,255,255,0.65)] px-4 py-3">
-              <p className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
-                {copy.statusLabel}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Pill tone={statusTone(draft.status)}>
-                  {draft.status === "open" ? copy.openStatus : copy.fulfilledStatus}
-                </Pill>
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(18rem,auto)]">
+              <input
+                value={draft.dueDate}
+                onChange={(event) => setDraft((current) => ({ ...current, dueDate: event.target.value }))}
+                type="date"
+                className="field"
+              />
+              <div className="rounded-[18px] border border-[var(--line)] bg-[rgba(255,255,255,0.65)] px-4 py-3">
+                <p className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                  {copy.statusLabel}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Pill tone={statusTone(draft.status)}>
+                    {draft.status === "open" ? copy.openStatus : copy.fulfilledStatus}
+                  </Pill>
+                </div>
               </div>
             </div>
           </div>
@@ -448,7 +465,9 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                     {isBacklogOrder(order) ? <Pill tone="amber">{copy.backlog}</Pill> : null}
                   </div>
                   <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
-                    {order.clientName} · {copy.due} {order.dueDate}
+                    {order.clientName}
+                    {order.destination ? ` · ${copy.destination} ${order.destination}` : ""}
+                    · {copy.due} {order.dueDate}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -467,6 +486,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                         id: order.id,
                         orderNumber: order.orderNumber,
                         clientName: order.clientName,
+                        destination: order.destination,
                         dueDate: order.dueDate,
                         status: order.status,
                         items: order.items.length
