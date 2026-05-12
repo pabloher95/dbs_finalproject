@@ -327,7 +327,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                           )
                         }))
                       }
-                      className="field"
+                      className="field h-14"
                       disabled={!snapshot.products.length}
                     >
                       <option value="">{language === "es" ? "Elige un producto" : "Choose a product"}</option>
@@ -352,10 +352,10 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                       }
                       type="number"
                       min="1"
-                      className="field font-mono text-sm"
+                      className="field h-14 font-mono text-sm"
                     />
                   </label>
-                  <button type="button" className="btn btn-ghost md:justify-self-end md:px-4" onClick={() => removeLine(item.id)}>
+                  <button type="button" className="btn btn-ghost h-14 md:justify-self-end md:px-4" onClick={() => removeLine(item.id)}>
                     {copy.removeLine}
                   </button>
                 </div>
