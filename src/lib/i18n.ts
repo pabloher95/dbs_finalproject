@@ -48,10 +48,10 @@ export function landingCopy(language: Language) {
         : "SmallBiz IQ keeps the catalog, the open orders, and the material plan in a single measured surface. Create products, capture orders, and get a supplier-ready buy list.",
     heroLink: language === "es" ? "Cómo funciona" : "How it works",
     methodEyebrow: language === "es" ? "Cómo funciona" : "How it works",
-    methodTitle: language === "es" ? "Tres pasos." : "Three steps.",
+    methodTitle: language === "es" ? "Productos, pedidos y compras." : "Products, orders, and purchasing.",
     methodFootnotes: {
-      intake: language === "es" ? "Ingesta" : "Intake",
-      catalog: language === "es" ? "Catálogo" : "Catalog",
+      intake: language === "es" ? "Productos" : "Products",
+      catalog: language === "es" ? "Pedidos" : "Orders",
       purchasing: language === "es" ? "Compras" : "Purchasing"
     },
     marqueeWords:
@@ -150,21 +150,21 @@ export function landingCopy(language: Language) {
       orders: language === "es" ? "Pedidos" : "Orders",
       buyList: language === "es" ? "Lista de compra" : "Buy list"
     },
-    importTitle: language === "es" ? "Capturar." : "Enter.",
+    importTitle: language === "es" ? "Crear productos." : "Create products.",
     importBody:
       language === "es"
-        ? "Completa los formularios de productos y pedidos. Cada guardado actualiza el espacio al instante."
-        : "Fill out the product and order forms. Each save updates the workspace right away.",
-    defineTitle: language === "es" ? "Define productos." : "Define products.",
+        ? "Ingresa la unidad vendible y su fórmula para dejar listo el catálogo."
+        : "Enter the sellable unit and its formula to set up the catalog.",
+    defineTitle: language === "es" ? "Registrar pedidos." : "Record orders.",
     defineBody:
       language === "es"
-        ? "Escribe cada producto como una fórmula: materiales, rendimientos y unidades."
-        : "Write each product as a formula - materials, yields, and units.",
-    planTitle: language === "es" ? "Planificar compras." : "Plan purchasing.",
+        ? "Captura uno o varios productos por pedido con cantidades y fecha."
+        : "Capture one or more products per order with quantities and due date.",
+    planTitle: language === "es" ? "Comprar materiales." : "Buy materials.",
     planBody:
       language === "es"
-        ? "Los pedidos abiertos se agrupan en demanda y se expanden en una lista de materiales lista para proveedores."
-        : "Open orders aggregate into demand, which expands into a supplier-ready material list.",
+        ? "La demanda abierta se expande en una lista de materiales lista para comprar."
+        : "Open demand expands into a material list ready to buy.",
     studioEyebrow: language === "es" ? "Qué mide el estudio" : "What the studio measures",
     studioTitle: language === "es" ? "Cuatro lecturas del negocio." : "Four readings of the business.",
     studioBody:
@@ -208,7 +208,6 @@ export function landingCopy(language: Language) {
     footerStudio: language === "es" ? "Estudio" : "Studio",
     footerHowItWorks: language === "es" ? "Cómo funciona" : "How it works",
     footerWhatItMeasures: language === "es" ? "Qué mide" : "What it measures",
-    howDataMoves: language === "es" ? "Cómo se mueven los datos" : "How the data moves",
     enterStudio: language === "es" ? "Entrar al estudio" : "Enter studio"
   };
 }
