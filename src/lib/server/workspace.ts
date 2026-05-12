@@ -124,6 +124,13 @@ type WorkspaceBackend = {
   write(ownerId: string, snapshot: BusinessSnapshot): Promise<WorkspaceState>;
 };
 
+type WorkspaceAccess = {
+  ownerId: string;
+  backend: WorkspaceBackend;
+  persistence: "supabase" | "memory";
+  memoryReason?: "no-supabase-config" | "auth-lookup-failed" | "token-lookup-failed";
+};
+
 type ImportResult = WorkspaceState & { preview: ImportPreview };
 
 const memoryStore = new Map<string, BusinessSnapshot>();
@@ -141,6 +148,12 @@ function allowMemoryFallback() {
 function assertMemoryFallbackAllowed(context: string) {
   if (!allowMemoryFallback()) {
     throw new Error(`Memory workspace fallback disabled in production during ${context}.`);
+  }
+}
+
+function assertRuntimeMemoryModeAllowed(access: WorkspaceAccess, context: string) {
+  if (access.persistence === "supabase") {
+    assertMemoryFallbackAllowed(context);
   }
 }
 
@@ -776,7 +789,7 @@ async function getClerkBearerForSupabase(session: Awaited<ReturnType<typeof auth
   return withTimeout(session.getToken(), CLERK_TOKEN_TIMEOUT_MS, "Clerk session token lookup");
 }
 
-async function resolveWorkspaceAccess(ownerId?: string) {
+async function resolveWorkspaceAccess(ownerId?: string): Promise<WorkspaceAccess> {
   try {
     const session = await auth();
     const resolvedOwnerId = ownerId ?? session.userId ?? getOwnerId();
@@ -788,26 +801,36 @@ async function resolveWorkspaceAccess(ownerId?: string) {
         if (sessionToken) {
           return {
             ownerId: resolvedOwnerId,
-            backend: createSupabaseBackend(supabaseConfig.supabaseUrl, supabaseConfig.publishableKey, sessionToken)
+            backend: createSupabaseBackend(supabaseConfig.supabaseUrl, supabaseConfig.publishableKey, sessionToken),
+            persistence: "supabase"
           };
         }
       } catch (error) {
         assertMemoryFallbackAllowed("token lookup");
         console.warn("Workspace auth token lookup failed; falling back to memory.", error);
+        return {
+          ownerId: resolvedOwnerId,
+          backend: createMemoryBackend(),
+          persistence: "memory",
+          memoryReason: "token-lookup-failed"
+        };
       }
     }
 
-    assertMemoryFallbackAllowed("workspace access resolution");
     return {
       ownerId: resolvedOwnerId,
-      backend: createMemoryBackend()
+      backend: createMemoryBackend(),
+      persistence: "memory",
+      memoryReason: "no-supabase-config"
     };
   } catch (error) {
     assertMemoryFallbackAllowed("auth lookup");
     console.warn("Workspace auth lookup failed; falling back to memory.", error);
     return {
       ownerId: ownerId ?? getOwnerId(),
-      backend: createMemoryBackend()
+      backend: createMemoryBackend(),
+      persistence: "memory",
+      memoryReason: "auth-lookup-failed"
     };
   }
 }
@@ -818,7 +841,7 @@ async function readWorkspaceState(ownerId?: string) {
     const workspace = await access.backend.read(access.ownerId);
     return { ownerId: access.ownerId, workspace };
   } catch (error) {
-    assertMemoryFallbackAllowed("workspace read");
+    assertRuntimeMemoryModeAllowed(access, "workspace read");
     console.warn("Workspace read failed; falling back to memory.", error);
     const workspace = await createMemoryBackend().read(access.ownerId);
     return { ownerId: access.ownerId, workspace };
@@ -829,12 +852,13 @@ async function mutateWorkspace(
   ownerId: string | undefined,
   mutator: (snapshot: BusinessSnapshot) => void | Promise<void>
 ): Promise<WorkspaceState> {
-  const { backend, ownerId: resolvedOwnerId } = await resolveWorkspaceAccess(ownerId);
+  const access = await resolveWorkspaceAccess(ownerId);
+  const { backend, ownerId: resolvedOwnerId } = access;
   let current: WorkspaceState;
   try {
     current = await backend.read(resolvedOwnerId);
   } catch (error) {
-    assertMemoryFallbackAllowed("mutation read");
+    assertRuntimeMemoryModeAllowed(access, "mutation read");
     console.warn("Workspace read failed during mutation; falling back to memory.", error);
     current = await createMemoryBackend().read(resolvedOwnerId);
   }
@@ -844,7 +868,7 @@ async function mutateWorkspace(
   try {
     return await backend.write(resolvedOwnerId, next);
   } catch (error) {
-    assertMemoryFallbackAllowed("workspace write");
+    assertRuntimeMemoryModeAllowed(access, "workspace write");
     console.warn("Workspace write failed; falling back to memory.", error);
     return createMemoryBackend().write(resolvedOwnerId, next);
   }
