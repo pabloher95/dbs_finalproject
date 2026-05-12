@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useLanguage } from "@/components/providers/language-provider";
 import { CatalogOverview } from "@/components/layout/catalog-overview";
 import { Card, Eyebrow, Pill } from "@/components/ui/surfaces";
@@ -99,6 +100,9 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
                     <Pill tone="amber">
                       {unitCost.toFixed(2)} {copy.unitCost}
                     </Pill>
+                    <Link href={`/import?productId=${encodeURIComponent(product.id)}`} className="btn btn-soft">
+                      {copy.editSpecs}
+                    </Link>
                   </div>
                 </div>
               </article>

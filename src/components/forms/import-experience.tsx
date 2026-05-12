@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Card, SectionHeading, Toast } from "@/components/ui/surfaces";
-import type { BusinessSnapshot } from "@/lib/domain/types";
-import { importExperienceCopy, productStudioCopy } from "@/lib/i18n";
+import type { BusinessSnapshot, Product } from "@/lib/domain/types";
+import { importExperienceCopy } from "@/lib/i18n";
 
 type Tone = "info" | "success" | "warn" | "error";
 
@@ -43,6 +44,25 @@ function createProductDraft(): ProductDraft {
     unit: "each",
     unitPrice: "0",
     formula: [createFormulaRow()]
+  };
+}
+
+function draftFromProduct(product: Product): ProductDraft {
+  return {
+    id: product.id,
+    sku: product.sku,
+    name: product.name,
+    category: product.category,
+    unit: product.unit,
+    unitPrice: String(product.unitPrice ?? 0),
+    formula: product.materials.length
+      ? product.materials.map((material, index) => ({
+          id: `${product.id}-${index}`,
+          materialName: material.materialName,
+          unit: material.unit,
+          quantity: String(material.quantity)
+        }))
+      : [createFormulaRow()]
   };
 }
 
@@ -113,19 +133,30 @@ function FormulaRowField({
   );
 }
 
-export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+export function ImportExperience({
+  snapshot,
+  editingProductId
+}: Readonly<{ snapshot: BusinessSnapshot; editingProductId?: string }>) {
   const router = useRouter();
   const { language } = useLanguage();
   const copy = importExperienceCopy(language);
-  const productCopy = productStudioCopy(language);
   const [workspace, setWorkspace] = useState(snapshot);
-  const [productDraft, setProductDraft] = useState<ProductDraft>(createProductDraft);
+  const editingProduct = editingProductId ? workspace.products.find((product) => product.id === editingProductId) : undefined;
+  const [productDraft, setProductDraft] = useState<ProductDraft>(() =>
+    editingProduct ? draftFromProduct(editingProduct) : createProductDraft()
+  );
   const [toast, setToast] = useState<{ message: string; tone: Tone } | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
+
+  const isEditing = Boolean(editingProduct);
 
   const productCount = String(workspace.products.length);
   const supplierCount = String(workspace.suppliers.length);
   const materialCount = String(workspace.materials.length);
+
+  useEffect(() => {
+    setProductDraft(editingProduct ? draftFromProduct(editingProduct) : createProductDraft());
+  }, [editingProduct]);
 
   async function saveProduct() {
     const sku = productDraft.sku.trim();
@@ -142,15 +173,15 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
       .filter((row) => row.materialName && row.unit && Number.isFinite(row.quantity) && row.quantity > 0);
 
     if (!sku || !name || !category || !unit) {
-      setToast({ message: productCopy.enterRequired, tone: "warn" });
+      setToast({ message: copy.enterRequired, tone: "warn" });
       return;
     }
     if (!Number.isFinite(unitPrice) || unitPrice < 0) {
-      setToast({ message: productCopy.priceNegative, tone: "warn" });
+      setToast({ message: copy.priceNegative, tone: "warn" });
       return;
     }
     if (!formula.length) {
-      setToast({ message: productCopy.formulaRequired, tone: "warn" });
+      setToast({ message: copy.formulaRequired, tone: "warn" });
       return;
     }
 
@@ -174,13 +205,16 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
       });
       const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
       if (!response.ok || !data.snapshot) {
-        setToast({ message: data.error ?? productCopy.saveError, tone: "error" });
+        setToast({ message: data.error ?? copy.saveError, tone: "error" });
         return;
       }
 
       setWorkspace(data.snapshot);
-      setProductDraft(createProductDraft());
-      setToast({ message: copy.productSaved, tone: "success" });
+      const savedProduct = data.snapshot.products.find(
+        (product) => product.id === productDraft.id || product.sku === sku
+      );
+      setProductDraft(savedProduct ? draftFromProduct(savedProduct) : createProductDraft());
+      setToast({ message: isEditing ? copy.productUpdated : copy.productSaved, tone: "success" });
       router.refresh();
     } finally {
       setSavingProduct(false);
@@ -190,6 +224,19 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
   return (
     <section className="space-y-6">
       <Card className="p-6">
+        {editingProduct ? (
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3">
+            <div>
+              <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em] text-[var(--muted-strong)]">
+                {copy.editing}
+              </p>
+              <p className="mt-1 font-display text-lg text-[var(--ink)]">{editingProduct.name}</p>
+            </div>
+            <Link href="/products" className="btn btn-soft">
+              {copy.backToCatalog}
+            </Link>
+          </div>
+        ) : null}
         <SectionHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description} />
         <div className="mt-5 grid gap-2 md:grid-cols-3">
           <div className="rounded-2xl border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-[var(--muted-strong)]">
@@ -230,31 +277,31 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
             <input
               value={productDraft.sku}
               onChange={(event) => setProductDraft((current) => ({ ...current, sku: event.target.value }))}
-              placeholder={productCopy.skuPlaceholder}
+              placeholder={copy.skuPlaceholder}
               className="field font-mono text-sm"
             />
             <input
               value={productDraft.name}
               onChange={(event) => setProductDraft((current) => ({ ...current, name: event.target.value }))}
-              placeholder={productCopy.namePlaceholder}
+              placeholder={copy.namePlaceholder}
               className="field"
             />
             <input
               value={productDraft.category}
               onChange={(event) => setProductDraft((current) => ({ ...current, category: event.target.value }))}
-              placeholder={productCopy.categoryPlaceholder}
+              placeholder={copy.categoryPlaceholder}
               className="field"
             />
             <input
               value={productDraft.unit}
               onChange={(event) => setProductDraft((current) => ({ ...current, unit: event.target.value }))}
-              placeholder={productCopy.unitPlaceholder}
+              placeholder={copy.unitPlaceholder}
               className="field"
             />
             <input
               value={productDraft.unitPrice}
               onChange={(event) => setProductDraft((current) => ({ ...current, unitPrice: event.target.value }))}
-              placeholder={productCopy.unitPricePlaceholder}
+              placeholder={copy.unitPricePlaceholder}
               className="field font-mono text-sm"
               inputMode="decimal"
             />
@@ -315,15 +362,15 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
 
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <button className="btn btn-flame" type="submit" disabled={savingProduct}>
-              {productCopy.save}
+              {isEditing ? copy.updateProduct : copy.saveProduct}
             </button>
             <button
               className="btn btn-ghost"
               type="button"
-              onClick={() => setProductDraft(createProductDraft())}
+              onClick={() => setProductDraft(editingProduct ? draftFromProduct(editingProduct) : createProductDraft())}
               disabled={savingProduct}
             >
-              {productCopy.reset}
+              {copy.reset}
             </button>
           </div>
         </form>

@@ -535,8 +535,28 @@ export function importExperienceCopy(language: Language) {
       language === "es"
         ? "Captura SKU, precio y fórmula por unidad; después agrega los materiales una fila a la vez."
         : "Capture SKU, price, and a unit-level formula, then add materials one row at a time.",
+    editing: language === "es" ? "Editando producto" : "Editing product",
+    backToCatalog: language === "es" ? "Volver al catálogo" : "Back to catalog",
+    saveProduct: language === "es" ? "Guardar producto" : "Save product",
+    updateProduct: language === "es" ? "Actualizar producto" : "Update product",
+    reset: language === "es" ? "Restablecer" : "Reset",
     addMaterial: language === "es" ? "Agregar material" : "Add material",
     productSaved: language === "es" ? "Producto guardado." : "Product saved.",
+    productUpdated: language === "es" ? "Producto actualizado." : "Product updated.",
+    skuPlaceholder: "SKU",
+    namePlaceholder: language === "es" ? "Nombre del producto" : "Product name",
+    categoryPlaceholder: language === "es" ? "Categoría" : "Category",
+    unitPlaceholder: language === "es" ? "Unidad" : "Unit",
+    unitPricePlaceholder: language === "es" ? "Precio unitario" : "Unit price",
+    enterRequired:
+      language === "es" ? "Introduce tanto el SKU como el nombre del producto." : "Enter both SKU and product name.",
+    priceNegative: language === "es" ? "El precio unitario no puede ser negativo." : "Unit price cannot be negative.",
+    formulaRequired:
+      language === "es"
+        ? "Añade al menos una línea válida de fórmula en formato nombre:unidad:cantidad."
+        : "Add at least one valid formula line in name:unit:quantity format.",
+    saveError: language === "es" ? "No se pudo guardar el producto." : "Unable to save product.",
+    noEditTarget: language === "es" ? "Selecciona un producto desde el catálogo para editarlo." : "Select a product from the catalog to edit it."
   };
 }
 
@@ -559,7 +579,8 @@ export function productStudioCopy(language: Language) {
     yieldLabel: language === "es" ? "rendimiento" : "yield",
     materials: language === "es" ? "materiales" : "materials",
     unitPrice: language === "es" ? "precio" : "price",
-    unitCost: language === "es" ? "costo" : "cost"
+    unitCost: language === "es" ? "costo" : "cost",
+    editSpecs: language === "es" ? "Editar especificaciones" : "Edit specs"
   };
 }
 
