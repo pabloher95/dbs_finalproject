@@ -256,8 +256,8 @@ export function dashboardCopy(language: Language) {
     operationsTitle: language === "es" ? "Capacidad del negocio" : "Business capacity",
     operationsBody:
       language === "es"
-        ? "Tamaño del catálogo, red de proveedores y amplitud de los canales que realmente usas para vender."
-        : "Catalog size, supplier bench, and the spread of the channels you actually use to sell.",
+        ? "Tamaño del catálogo, red de proveedores, base de clientes y amplitud de los canales que realmente usas para vender."
+        : "Catalog size, supplier bench, customer base, and the spread of the channels you actually use to sell.",
     salesEyebrow: language === "es" ? "Señal de ventas" : "Sales pulse",
     salesTitle: language === "es" ? "Demanda y presión de stock" : "Demand and stock pressure",
     salesBody:
@@ -297,6 +297,7 @@ export function dashboardCopy(language: Language) {
     openOrders: language === "es" ? "Pedidos abiertos" : "Open orders",
     unitsDue: language === "es" ? "Unidades pendientes" : "Units due",
     suppliers: language === "es" ? "Proveedores" : "Suppliers",
+    customers: language === "es" ? "Clientes" : "Customers",
     channels: language === "es" ? "Canales" : "Channels",
     lowStock: language === "es" ? "Stock bajo" : "Low stock",
     beginIntake: language === "es" ? "Iniciar ingesta" : "Begin intake",

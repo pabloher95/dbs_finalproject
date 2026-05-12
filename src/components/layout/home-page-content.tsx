@@ -78,10 +78,11 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
 
                 <p className="mt-4 text-[0.95rem] leading-6 text-[var(--muted-strong)]">{copy.operationsBody}</p>
 
-                <div className="mt-6 grid gap-px bg-[var(--ink)] md:grid-cols-3">
+                <div className="mt-6 grid gap-px bg-[var(--ink)] md:grid-cols-4">
                   {[
                     { label: copy.products, value: snapshot.products.length },
                     { label: copy.suppliers, value: snapshot.suppliers.length },
+                    { label: copy.customers, value: snapshot.clients.length },
                     { label: copy.channels, value: channels }
                   ].map((stat) => (
                     <div key={stat.label} className="bg-[var(--paper-bright)] px-5 py-5">
