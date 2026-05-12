@@ -311,7 +311,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               {draft.items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="grid gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 md:grid-cols-[1.25fr_0.55fr_auto] md:items-end"
+                  className="grid gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 md:grid-cols-[minmax(0,1.45fr)_8.5rem_auto] md:items-end"
                 >
                   <div className="grid gap-1">
                     <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
@@ -355,7 +355,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                       className="field font-mono text-sm"
                     />
                   </label>
-                  <button type="button" className="btn btn-ghost md:justify-self-end" onClick={() => removeLine(item.id)}>
+                  <button type="button" className="btn btn-ghost md:justify-self-end md:px-4" onClick={() => removeLine(item.id)}>
                     {copy.removeLine}
                   </button>
                 </div>
