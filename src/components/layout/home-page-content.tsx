@@ -132,8 +132,8 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
               <Link href={"/import" as Route} className="btn btn-vermilion">
                 {copy.beginIntake} →
               </Link>
-              <Link href={"/orders" as Route} className="link-rule">
-                {copy.reviewOrders}
+              <Link href={"/orders" as Route} className="btn btn-vermilion">
+                {copy.reviewOrders} →
               </Link>
             </div>
           </div>
