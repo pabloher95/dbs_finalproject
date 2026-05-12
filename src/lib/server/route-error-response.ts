@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isUserFacingError } from "@/lib/user-facing-error";
+import { isUserFacingError } from "@/lib/user-facing-error.js";
 
 type RouteErrorOptions = {
   fallback: string;
@@ -12,7 +12,8 @@ type RouteErrorOptions = {
  */
 export function toErrorResponse(error: unknown, { fallback, logContext }: RouteErrorOptions): NextResponse {
   if (isUserFacingError(error)) {
-    return NextResponse.json({ error: error.message }, { status: error.status });
+    const userFacingError = error as { message: string; status: number };
+    return NextResponse.json({ error: userFacingError.message }, { status: userFacingError.status });
   }
 
   if (error instanceof SyntaxError) {

@@ -13,6 +13,7 @@ type ProductDraft = {
   category: string;
   unit: string;
   yieldQuantity: string;
+  unitPrice: string;
   formula: string;
 };
 
@@ -22,6 +23,7 @@ const emptyDraft: ProductDraft = {
   category: "general",
   unit: "each",
   yieldQuantity: "12",
+  unitPrice: "34",
   formula: "Base Material:g:1000\nFinishing Material:g:500"
 };
 
@@ -78,6 +80,10 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
       setToast({ message: "Yield quantity must be greater than zero.", tone: "warn" });
       return;
     }
+    if (Number(draft.unitPrice) < 0) {
+      setToast({ message: "Unit price cannot be negative.", tone: "warn" });
+      return;
+    }
     const parsedFormula = textToFormula(draft.formula);
     if (!parsedFormula.length) {
       setToast({
@@ -97,6 +103,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
         category: draft.category,
         unit: draft.unit,
         yieldQuantity: Number(draft.yieldQuantity),
+        unitPrice: Number(draft.unitPrice),
         formula: parsedFormula
       })
     });
@@ -143,6 +150,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
         category: lastDeleted.category,
         unit: lastDeleted.unit,
         yieldQuantity: lastDeleted.yieldQuantity,
+        unitPrice: lastDeleted.unitPrice ?? 0,
         formula: lastDeleted.materials.map((item) => ({
           materialName: item.materialName,
           unit: item.unit,
@@ -215,6 +223,13 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
                 placeholder="Yield quantity"
                 className="field font-mono text-sm"
               />
+              <input
+                value={draft.unitPrice}
+                onChange={(event) => setDraft((current) => ({ ...current, unitPrice: event.target.value }))}
+                placeholder="Unit price"
+                className="field font-mono text-sm"
+                inputMode="decimal"
+              />
             </div>
             <div className="border-t border-dashed border-[var(--line)] pt-4">
               <Eyebrow tone="flame">Formula</Eyebrow>
@@ -276,7 +291,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
                       <Pill>{product.category}</Pill>
                     </div>
                     <p className="mt-1 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-[var(--muted-strong)]">
-                      {product.sku} · yield {product.yieldQuantity} {product.unit}
+                      {product.sku} · yield {product.yieldQuantity} {product.unit} · ${Number(product.unitPrice ?? 0).toFixed(2)}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -291,6 +306,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
                           category: product.category,
                           unit: product.unit,
                           yieldQuantity: String(product.yieldQuantity),
+                          unitPrice: String(product.unitPrice ?? 0),
                           formula: formulaToText(product.materials)
                         })
                       }

@@ -32,6 +32,7 @@ export async function POST(request: Request) {
     const category = nonEmpty(body.category);
     const unit = nonEmpty(body.unit);
     const yieldQuantity = Number(body.yieldQuantity ?? 0);
+    const unitPrice = Number(body.unitPrice ?? 0);
     type FormulaInput = { materialName: string; unit: string; quantity: number };
     const formula: FormulaInput[] = Array.isArray(body.formula)
       ? body.formula.map((item: { materialName?: unknown; unit?: unknown; quantity?: unknown }) => ({
@@ -52,6 +53,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Yield quantity must be greater than zero." }, { status: 400 });
     }
 
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      return NextResponse.json({ error: "Unit price must be a valid non-negative number." }, { status: 400 });
+    }
+
     if (!formula.length) {
       return NextResponse.json({ error: "At least one formula line is required." }, { status: 400 });
     }
@@ -70,6 +75,7 @@ export async function POST(request: Request) {
       category,
       unit,
       yieldQuantity,
+      unitPrice,
       formula
     });
 

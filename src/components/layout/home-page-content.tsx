@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { AnalyticsOverview } from "@/components/layout/analytics-overview";
 import { Reveal } from "@/components/ui/surfaces";
 import type { BusinessSnapshot } from "@/lib/domain/types";
 import { buildPurchasingPlan } from "@/lib/domain/purchasing-plan";
@@ -177,6 +178,10 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
           </section>
         </Reveal>
       </div>
+
+      <Reveal delay={220}>
+        <AnalyticsOverview snapshot={snapshot} />
+      </Reveal>
     </div>
   );
 }

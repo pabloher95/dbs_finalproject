@@ -2,8 +2,8 @@ import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
 import { getDemoBusinessSnapshot } from "@/lib/data/demo";
-import { applyStockDelta } from "@/lib/domain/inventory.mts";
-import { UserFacingError } from "@/lib/user-facing-error";
+import { applyStockDelta } from "@/lib/domain/inventory";
+import { UserFacingError } from "@/lib/user-facing-error.js";
 import { parseOrderImportRows, parseProductImportRows, type ImportPreview } from "@/lib/import/parser";
 import type { Business, BusinessSnapshot, Client, Material, Order, Product } from "@/lib/domain/types";
 
@@ -27,6 +27,7 @@ type MaterialRow = {
   unit: string;
   preferred_supplier_id: string | null;
   on_hand_quantity: number;
+  unit_cost: number | null;
   business_id: string;
 };
 
@@ -37,6 +38,7 @@ type ProductRow = {
   category: string;
   unit: string;
   yield_quantity: number;
+  unit_price: number | null;
   business_id: string;
 };
 
@@ -83,12 +85,18 @@ type ProductInput = {
   category: string;
   unit: string;
   yieldQuantity: number;
+  unitPrice: number;
   formula: Array<{ materialName: string; unit: string; quantity: number }>;
 };
 
 type MaterialAdjustmentInput = {
   materialId: string;
   delta: number;
+};
+
+type MaterialCostInput = {
+  materialId: string;
+  unitCost: number;
 };
 
 type ContactInput = {
@@ -395,9 +403,11 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
     const [suppliers, materials, products, clients, orders] = await Promise.all([
       readRows<SupplierRow>(`/suppliers?select=id,name,email,category,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
       readRows<MaterialRow>(
-        `/materials?select=id,name,unit,preferred_supplier_id,on_hand_quantity,business_id&business_id=eq.${encodeURIComponent(business.id)}`
+        `/materials?select=id,name,unit,preferred_supplier_id,on_hand_quantity,unit_cost,business_id&business_id=eq.${encodeURIComponent(business.id)}`
       ),
-      readRows<ProductRow>(`/products?select=id,sku,name,category,unit,yield_quantity,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
+      readRows<ProductRow>(
+        `/products?select=id,sku,name,category,unit,yield_quantity,unit_price,business_id&business_id=eq.${encodeURIComponent(business.id)}`
+      ),
       readRows<ClientRow>(`/clients?select=id,name,email,channel,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
       readRows<OrderRow>(
         `/orders?select=id,client_id,order_number,due_date,status,business_id&business_id=eq.${encodeURIComponent(business.id)}`
@@ -425,6 +435,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
         name: row.name,
         unit: row.unit,
         onHandQuantity: Number(row.on_hand_quantity ?? 0),
+        unitCost: Number(row.unit_cost ?? 0),
         preferredSupplierId: row.preferred_supplier_id ?? undefined
       });
     }
@@ -436,6 +447,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       category: row.category,
       unit: row.unit,
       yieldQuantity: Number(row.yield_quantity),
+      unitPrice: Number(row.unit_price ?? 0),
       materials: productMaterials
         .filter((materialRow) => materialRow.product_id === row.id)
         .map((materialRow) => ({
@@ -607,6 +619,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
           name: material.name,
           unit: material.unit,
           on_hand_quantity: material.onHandQuantity,
+          unit_cost: material.unitCost ?? 0,
           preferred_supplier_id: material.preferredSupplierId ?? null
         })))
       });
@@ -627,7 +640,8 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
           name: product.name,
           category: product.category,
           unit: product.unit,
-          yield_quantity: product.yieldQuantity
+          yield_quantity: product.yieldQuantity,
+          unit_price: product.unitPrice ?? 0
         })))
       });
     }
@@ -840,6 +854,9 @@ function ensureMaterial(snapshot: BusinessSnapshot, materialName: string, unit: 
     if (typeof existing.onHandQuantity !== "number") {
       existing.onHandQuantity = 0;
     }
+    if (typeof existing.unitCost !== "number") {
+      existing.unitCost = 0;
+    }
     return existing;
   }
 
@@ -847,7 +864,8 @@ function ensureMaterial(snapshot: BusinessSnapshot, materialName: string, unit: 
     id: `mat_${slugify(materialName) || crypto.randomUUID()}`,
     name: materialName,
     unit,
-    onHandQuantity: 0
+    onHandQuantity: 0,
+    unitCost: 0
   };
 
   snapshot.materials.push(material);
@@ -879,6 +897,7 @@ function ensureProduct(snapshot: BusinessSnapshot, input: ProductInput) {
     existing.category = input.category;
     existing.unit = input.unit;
     existing.yieldQuantity = input.yieldQuantity;
+    existing.unitPrice = input.unitPrice;
     existing.materials = input.formula.map((material) => {
       const resolved = ensureMaterial(snapshot, material.materialName, material.unit);
       return {
@@ -898,6 +917,7 @@ function ensureProduct(snapshot: BusinessSnapshot, input: ProductInput) {
     category: input.category,
     unit: input.unit,
     yieldQuantity: input.yieldQuantity,
+    unitPrice: input.unitPrice,
     materials: input.formula.map((material) => {
       const resolved = ensureMaterial(snapshot, material.materialName, material.unit);
       return {
@@ -1040,6 +1060,17 @@ export async function adjustMaterialStock(ownerId: string, input: MaterialAdjust
   });
 }
 
+export async function updateMaterialCost(ownerId: string, input: MaterialCostInput) {
+  return mutateWorkspace(ownerId, (snapshot) => {
+    const material = snapshot.materials.find((item) => item.id === input.materialId);
+    if (!material) {
+      throw new UserFacingError("Material not found.");
+    }
+
+    material.unitCost = Math.max(Number(input.unitCost ?? 0), 0);
+  });
+}
+
 export async function saveOrder(ownerId: string, input: OrderInput) {
   return mutateWorkspace(ownerId, (snapshot) => {
     const client = snapshot.clients.find((item) => item.id === input.clientId);
@@ -1090,6 +1121,7 @@ export async function importWorkspaceData(ownerId: string, target: "products" | 
           category: row.category,
           unit: row.unit,
           yieldQuantity: row.yieldQuantity,
+          unitPrice: 0,
           formula: []
         };
         current.formula.push({

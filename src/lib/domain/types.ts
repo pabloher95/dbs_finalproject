@@ -16,6 +16,7 @@ export type Material = {
   name: string;
   unit: string;
   onHandQuantity: number;
+  unitCost?: number;
   preferredSupplierId?: string;
 };
 
@@ -33,6 +34,7 @@ export type Product = {
   category: string;
   unit: string;
   yieldQuantity: number;
+  unitPrice?: number;
   materials: ProductMaterial[];
 };
 

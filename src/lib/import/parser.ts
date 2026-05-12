@@ -1,4 +1,4 @@
-import { UserFacingError } from "../user-facing-error.ts";
+import { UserFacingError } from "../user-facing-error.js";
 
 export type ImportTarget = "products" | "orders";
 

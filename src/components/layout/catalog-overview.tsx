@@ -1,4 +1,5 @@
 import { Card, Eyebrow, Pill, SectionHeading } from "@/components/ui/surfaces";
+import { getProductUnitCost, getProductUnitRevenue } from "@/lib/domain/analytics";
 import { expandFormulaRequirements } from "@/lib/domain/purchasing-plan";
 import type { BusinessSnapshot } from "@/lib/domain/types";
 
@@ -27,7 +28,11 @@ export function CatalogOverview({ snapshot }: Readonly<{ snapshot: BusinessSnaps
                     SKU {product.sku} · batch yield {product.yieldQuantity} {product.unit}
                   </p>
                 </div>
-                <Pill tone="ink">{product.materials.length} materials</Pill>
+                <div className="flex flex-wrap gap-2">
+                  <Pill tone="ink">{product.materials.length} materials</Pill>
+                  <Pill tone="moss">{getProductUnitRevenue(product).toFixed(2)} unit price</Pill>
+                  <Pill tone="amber">{getProductUnitCost(product, snapshot.materials).toFixed(2)} unit cost</Pill>
+                </div>
               </div>
               <div className="mt-5 overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
                 <table className="console-table">

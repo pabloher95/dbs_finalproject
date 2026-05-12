@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { applyStockDelta } from "../lib/domain/inventory.mts";
+import { applyStockDelta } from "../lib/domain/inventory.ts";
 import { buildPurchasingPlan } from "../lib/domain/purchasing-plan.ts";
 import { parseOrderImportRows, parseProductImportRows } from "../lib/import/parser.ts";
 

@@ -20,6 +20,7 @@ export function MaterialStockStudio({
   const [inventory, setInventory] = useState(materials);
   const [selectedMaterialId, setSelectedMaterialId] = useState(materials[0]?.id ?? "");
   const [delta, setDelta] = useState("12");
+  const [unitCost, setUnitCost] = useState("0");
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: "info" | "success" | "warn" | "error" } | null>(null);
@@ -42,12 +43,17 @@ export function MaterialStockStudio({
   }, [inventory, search, suppliers]);
 
   const selectedMaterial = inventory.find((material) => material.id === selectedMaterialId) ?? visibleMaterials[0];
+  const selectedMaterialUnitCost = selectedMaterial?.unitCost ?? 0;
 
   useEffect(() => {
     if (!selectedMaterial && visibleMaterials[0]?.id) {
       setSelectedMaterialId(visibleMaterials[0].id);
     }
   }, [selectedMaterial, visibleMaterials]);
+
+  useEffect(() => {
+    setUnitCost(String(selectedMaterialUnitCost));
+  }, [selectedMaterialId, selectedMaterialUnitCost]);
 
   async function applyAdjustment(amount: number) {
     if (!selectedMaterialId) {
@@ -84,6 +90,42 @@ export function MaterialStockStudio({
     }
   }
 
+  async function saveCost() {
+    if (!selectedMaterialId) {
+      setToast({ message: "Choose a material first.", tone: "warn" });
+      return;
+    }
+    const parsed = Number(unitCost);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      setToast({ message: "Enter a valid unit cost.", tone: "warn" });
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await fetch("/api/materials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "cost",
+          materialId: selectedMaterialId,
+          unitCost: parsed
+        })
+      });
+      const data = (await response.json()) as { snapshot?: { materials: Material[] }; error?: string };
+      if (!response.ok || !data.snapshot) {
+        setToast({ message: data.error ?? "Unable to update material cost.", tone: "error" });
+        return;
+      }
+
+      setInventory(data.snapshot.materials);
+      setToast({ message: "Material cost updated.", tone: "success" });
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Card className="rounded-[28px] p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -102,7 +144,7 @@ export function MaterialStockStudio({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_11rem_8rem]">
+      <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_11rem_8rem_8rem]">
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -128,11 +170,23 @@ export function MaterialStockStudio({
           className="field font-mono text-sm"
           placeholder="+12 / -12"
         />
+        <input
+          value={unitCost}
+          onChange={(event) => setUnitCost(event.target.value)}
+          type="number"
+          min="0"
+          step="0.01"
+          className="field font-mono text-sm"
+          placeholder="Unit cost"
+        />
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" className="btn btn-flame" disabled={busy} onClick={() => void applyAdjustment(Number(delta))}>
           {busy ? "Saving…" : "Apply adjustment"}
+        </button>
+        <button type="button" className="btn btn-soft" disabled={busy} onClick={() => void saveCost()}>
+          Save cost
         </button>
         {([1, 5, 12, -12] as const).map((amount) => (
           <button
@@ -156,6 +210,7 @@ export function MaterialStockStudio({
             <tr>
               <th>Material</th>
               <th>On hand</th>
+              <th>Cost</th>
               <th>Supplier</th>
             </tr>
           </thead>
@@ -176,12 +231,15 @@ export function MaterialStockStudio({
                   <span className="font-display text-2xl text-[var(--ink)]">{material.onHandQuantity.toFixed(0)}</span>{" "}
                   <span className="text-xs text-[var(--muted-strong)]">{material.unit}</span>
                 </td>
+                <td className="font-mono text-[0.78rem] uppercase tracking-[0.18em] text-[var(--muted-strong)]">
+                  {(material.unitCost ?? 0).toFixed(2)} per {material.unit}
+                </td>
                 <td className="text-sm text-[var(--muted-strong)]">{supplierName(material, suppliers)}</td>
               </tr>
             ))}
             {!visibleMaterials.length ? (
               <tr>
-                <td colSpan={3} className="text-center text-sm text-[var(--muted-strong)]">
+                <td colSpan={4} className="text-center text-sm text-[var(--muted-strong)]">
                   No materials match that search.
                 </td>
               </tr>
@@ -193,7 +251,8 @@ export function MaterialStockStudio({
       {selectedMaterial ? (
         <p className="mt-4 text-sm text-[var(--muted-strong)]">
           Selected <span className="font-medium text-[var(--ink)]">{selectedMaterial.name}</span> at{" "}
-          {selectedMaterial.onHandQuantity.toFixed(0)} {selectedMaterial.unit} on hand.
+          {selectedMaterial.onHandQuantity.toFixed(0)} {selectedMaterial.unit} on hand, costing{" "}
+          {(selectedMaterial.unitCost ?? 0).toFixed(2)} per {selectedMaterial.unit}.
         </p>
       ) : null}
 

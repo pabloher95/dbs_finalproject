@@ -1,4 +1,4 @@
-import type { Material, Order, Product, Supplier } from "./types.ts";
+import type { Material, Order, Product, Supplier } from "./types";
 
 export function expandFormulaRequirements(product: Product, quantityOrdered: number) {
   const batchMultiplier = quantityOrdered / product.yieldQuantity;

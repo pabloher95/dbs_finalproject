@@ -12,11 +12,46 @@ const snapshot: BusinessSnapshot = {
     { id: "sup_pantry", name: "Atlas Packaging", email: "hello@atlaspackaging.test", category: "packaging" }
   ],
   materials: [
-    { id: "ing_flour", name: "Soy Wax", unit: "g", onHandQuantity: 900, preferredSupplierId: "sup_mill" },
-    { id: "ing_butter", name: "Fragrance Oil", unit: "g", onHandQuantity: 40, preferredSupplierId: "sup_dairy" },
-    { id: "ing_sugar", name: "Label Stock", unit: "sheet", onHandQuantity: 3, preferredSupplierId: "sup_pantry" },
-    { id: "ing_jam", name: "Gift Box Insert", unit: "each", onHandQuantity: 6, preferredSupplierId: "sup_pantry" },
-    { id: "ing_milk", name: "Cotton Wick", unit: "each", onHandQuantity: 10, preferredSupplierId: "sup_dairy" }
+    {
+      id: "ing_flour",
+      name: "Soy Wax",
+      unit: "g",
+      onHandQuantity: 900,
+      unitCost: 0.012,
+      preferredSupplierId: "sup_mill"
+    },
+    {
+      id: "ing_butter",
+      name: "Fragrance Oil",
+      unit: "g",
+      onHandQuantity: 40,
+      unitCost: 0.08,
+      preferredSupplierId: "sup_dairy"
+    },
+    {
+      id: "ing_sugar",
+      name: "Label Stock",
+      unit: "sheet",
+      onHandQuantity: 3,
+      unitCost: 0.35,
+      preferredSupplierId: "sup_pantry"
+    },
+    {
+      id: "ing_jam",
+      name: "Gift Box Insert",
+      unit: "each",
+      onHandQuantity: 6,
+      unitCost: 0.6,
+      preferredSupplierId: "sup_pantry"
+    },
+    {
+      id: "ing_milk",
+      name: "Cotton Wick",
+      unit: "each",
+      onHandQuantity: 10,
+      unitCost: 0.12,
+      preferredSupplierId: "sup_dairy"
+    }
   ],
   products: [
     {
@@ -26,6 +61,7 @@ const snapshot: BusinessSnapshot = {
       category: "home goods",
       unit: "each",
       yieldQuantity: 12,
+      unitPrice: 34,
       materials: [
         { materialId: "ing_flour", materialName: "Soy Wax", quantity: 1200, unit: "g" },
         { materialId: "ing_butter", materialName: "Fragrance Oil", quantity: 120, unit: "g" },
@@ -39,6 +75,7 @@ const snapshot: BusinessSnapshot = {
       category: "bundles",
       unit: "each",
       yieldQuantity: 8,
+      unitPrice: 48,
       materials: [
         { materialId: "ing_flour", materialName: "Soy Wax", quantity: 950, unit: "g" },
         { materialId: "ing_butter", materialName: "Fragrance Oil", quantity: 80, unit: "g" },
