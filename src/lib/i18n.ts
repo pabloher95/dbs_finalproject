@@ -542,60 +542,24 @@ export function importExperienceCopy(language: Language) {
 
 export function productStudioCopy(language: Language) {
   return {
-    eyebrow: language === "es" ? "Detalles del producto" : "Product details",
-    title: language === "es" ? "Agregar o actualizar un artículo" : "Add or update an item",
+    eyebrow: language === "es" ? "Catálogo de artículos" : "Item catalog",
+    title: language === "es" ? "Productos y matemática de recetas" : "Products and recipe math",
     description:
       language === "es"
-        ? "Captura nombre, SKU, unidad y rendimiento por lote para que el artículo pueda planearse y valorarse de forma consistente."
-        : "Capture name, SKU, unit, and batch yield so the item can be planned and priced consistently.",
-    tip:
-      language === "es"
-        ? "Consejo · agrega primero un cliente para que este producto pueda usarse en pedidos."
-        : "Tip · Add a customer next so this product can be used in orders.",
-    skuPlaceholder: "SKU",
-    namePlaceholder: language === "es" ? "Nombre del producto" : "Product name",
-    categoryPlaceholder: language === "es" ? "Categoría" : "Category",
-    unitPlaceholder: language === "es" ? "Unidad" : "Unit",
-    save: language === "es" ? "Guardar producto" : "Save product",
-    search: language === "es" ? "Buscar productos" : "Search products",
-    edit: language === "es" ? "Editar" : "Edit",
-    delete: language === "es" ? "Eliminar" : "Delete",
-    updateItem: language === "es" ? "Actualizar artículo" : "Update item",
-    saveItem: language === "es" ? "Guardar artículo" : "Save item",
-    reset: language === "es" ? "Restablecer" : "Reset",
-    undoLastDelete: language === "es" ? "Deshacer último borrado" : "Undo last delete",
+        ? "Busca un artículo, revisa su fórmula y compara el costo unitario con los materiales."
+        : "Search an item, review its formula, and compare unit cost against the materials.",
+    search: language === "es" ? "Buscar artículos" : "Search items",
+    products: language === "es" ? "artículos" : "items",
+    categories: language === "es" ? "categorías" : "categories",
+    formulaLines: language === "es" ? "líneas de fórmula" : "formula lines",
+    readOnly: language === "es" ? "Solo lectura" : "Read only",
     noProducts:
-      language === "es" ? "Todavía no hay productos. Agrega uno para empezar." : "No products yet. Add one to get started.",
-    noMatch: language === "es" ? "Ningún producto coincide con tu búsqueda." : "No products match your search.",
-    yieldQuantityPlaceholder: language === "es" ? "Cantidad de rendimiento" : "Yield quantity",
-    unitPricePlaceholder: language === "es" ? "Precio unitario" : "Unit price",
-    deleteConfirm: (name: string) =>
-      language === "es"
-        ? `¿Eliminar ${name}? Esto puede afectar pedidos relacionados.`
-        : `Delete ${name}? This can affect related orders.`,
-    saveError: language === "es" ? "No se pudo guardar el producto." : "Unable to save product.",
-    deleteError: language === "es" ? "No se pudo eliminar el producto." : "Unable to delete product.",
-    restoreError: language === "es" ? "No se pudo restaurar el producto." : "Unable to restore product.",
-    saved: language === "es" ? "Producto guardado." : "Product saved.",
-    deleted: language === "es" ? "Producto eliminado. Deshacer disponible." : "Product deleted. Undo available.",
-    restored: language === "es" ? "Producto restaurado." : "Product restored.",
-    noCustomersTip:
-      language === "es"
-        ? "Consejo · agrega un cliente después para poder usar este producto en pedidos."
-        : "Tip · Add a customer next so this product can be used in orders.",
-    enterRequired:
-      language === "es" ? "Introduce tanto el SKU como el nombre del producto." : "Enter both SKU and product name.",
-    yieldRequired:
-      language === "es" ? "El rendimiento debe ser mayor que cero." : "Yield quantity must be greater than zero.",
-    priceNegative: language === "es" ? "El precio unitario no puede ser negativo." : "Unit price cannot be negative.",
-    formulaRequired:
-      language === "es"
-        ? "Añade al menos una línea válida de fórmula en formato nombre:unidad:cantidad."
-        : "Add at least one valid formula line in name:unit:quantity format.",
-    currentOrderTip:
-      language === "es"
-        ? "Añade un cliente y un producto antes de registrar un pedido."
-        : "Add a customer and a product before submitting an order."
+      language === "es" ? "Todavía no hay productos. Crea uno en Ingesta para empezar." : "No products yet. Create one in Intake to get started.",
+    noMatch: language === "es" ? "Ningún artículo coincide con tu búsqueda." : "No items match your search.",
+    yieldLabel: language === "es" ? "rendimiento" : "yield",
+    materials: language === "es" ? "materiales" : "materials",
+    unitPrice: language === "es" ? "precio" : "price",
+    unitCost: language === "es" ? "costo" : "cost"
   };
 }
 

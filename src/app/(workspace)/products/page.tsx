@@ -9,41 +9,44 @@ export default async function ProductsPage() {
   return (
     <WorkflowPageShell
       eyebrow={language === "es" ? "Catálogo" : "Catalog"}
-      title={language === "es" ? "Crea productos alrededor de los que tu equipo pueda planificar" : "Build products your team can plan around"}
+      title={language === "es" ? "Explora el catálogo y la matemática de recetas" : "Explore the catalog and recipe math"}
       description={
         language === "es"
-          ? "Agrega el producto, define su rendimiento y captura la fórmula de materiales que impulsa la producción y las compras."
-          : "Add the product, define its yield, and capture the material formula that drives production and purchasing."
+          ? "Revisa los artículos, sus fórmulas y el costo unitario que alimenta compras y márgenes."
+          : "Review items, their formulas, and the unit cost that feeds purchasing and margins."
       }
       metrics={[
         { label: language === "es" ? "Productos" : "Products", value: String(snapshot.products.length) },
         { label: language === "es" ? "Categorías" : "Categories", value: String(new Set(snapshot.products.map((product) => product.category)).size) },
-        { label: language === "es" ? "Acción principal" : "Primary action", value: language === "es" ? "Agregar artículo" : "Add item" }
+        { label: language === "es" ? "Lectura" : "Reading", value: language === "es" ? "Fórmula" : "Formula" }
       ]}
       steps={[
         {
-          title: language === "es" ? "Registra los detalles del producto" : "Capture product details",
+          title: language === "es" ? "Encuentra el artículo" : "Find the item",
           description:
             language === "es"
-              ? "Introduce el nombre, el SKU, la categoría y el rendimiento para que el artículo quede listo para la planificación."
-              : "Enter the name, SKU, category, and yield so the item is ready for planning."
+              ? "Busca por nombre, SKU o categoría para abrir el artículo correcto."
+              : "Search by name, SKU, or category to open the right item."
         },
         {
-          title: language === "es" ? "Define la fórmula de materiales" : "Define the material formula",
+          title: language === "es" ? "Lee la receta" : "Read the recipe",
           description:
             language === "es"
-              ? "Lista cada material en una línea para que las compras puedan calcularse a partir de los pedidos abiertos."
-              : "List each material per line so purchasing can be calculated from open orders."
+              ? "Mira cómo cada material entra en la fórmula y cómo se reparte por unidad."
+              : "See how each material enters the formula and spreads per unit."
         },
         {
-          title: language === "es" ? "Revisa el catálogo" : "Review the catalog",
-          description: language === "es" ? "Edita o elimina artículos cuando la fórmula cambie." : "Edit or remove items when the formula changes."
+          title: language === "es" ? "Cruza con compras" : "Cross-check purchasing",
+          description:
+            language === "es"
+              ? "Compara la receta con el costo y el stock de los materiales."
+              : "Compare the recipe against material cost and stock."
         }
       ]}
       nextStep={
         language === "es"
-          ? "Después de actualizar los productos, revisa la página de compras para ver cómo la demanda se traduce en necesidades de material."
-          : "After updating products, review the purchasing page to see how demand translates into material needs."
+          ? "Usa Ingesta para crear nuevos productos y vuelve aquí para revisar su fórmula y costo."
+          : "Use Intake to create new products, then come back here to review their formula and cost."
       }
     >
       <ProductStudio snapshot={snapshot} />
