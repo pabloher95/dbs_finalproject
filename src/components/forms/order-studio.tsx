@@ -262,13 +262,23 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               placeholder={language === "es" ? "Número de pedido" : "Order number"}
               className="field font-mono text-sm"
             />
-            <input
-              value={draft.clientName}
-              onChange={(event) => setDraft((current) => ({ ...current, clientName: event.target.value }))}
-              placeholder={copy.customerNamePlaceholder}
-              className="field"
-              list="customer-options"
-            />
+            <div className="group relative">
+              <input
+                value={draft.clientName}
+                onChange={(event) => setDraft((current) => ({ ...current, clientName: event.target.value }))}
+                placeholder={copy.customerNamePlaceholder}
+                className="field"
+                list="customer-options"
+              />
+              <div
+                className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-full opacity-0 transition duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+                role="tooltip"
+              >
+                <div className="rounded-[18px] border border-[var(--line)] bg-[var(--paper-bright)] px-3 py-2 text-[0.78rem] leading-5 text-[var(--muted-strong)] shadow-[0_16px_40px_-24px_rgba(0,0,0,0.35)]">
+                  {copy.customerTooltip}
+                </div>
+              </div>
+            </div>
             <datalist id="customer-options">
               {snapshot.clients.map((client) => (
                 <option key={client.id} value={client.name} />

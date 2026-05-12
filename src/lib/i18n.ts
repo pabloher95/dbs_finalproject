@@ -653,6 +653,10 @@ export function orderStudioCopy(language: Language) {
         ? "Escribe el cliente, la fecha de entrega y una o más líneas de producto. Si el cliente no existe, se crea al guardar."
         : "Enter the customer, the due date, and one or more product lines. If the customer does not exist, it is created on save.",
     customerNamePlaceholder: language === "es" ? "Nombre del cliente" : "Customer name",
+    customerTooltip:
+      language === "es"
+        ? "Escribe un cliente nuevo o uno existente. Si no existe, se crea al guardar."
+        : "Type a new or existing customer. If it does not exist, it will be created on save.",
     customerHint:
       language === "es"
         ? "Escribe un nombre de cliente y se añadirá al guardar si todavía no existe."
