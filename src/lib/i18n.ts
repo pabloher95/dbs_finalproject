@@ -328,9 +328,7 @@ export function analyticsCopy(language: Language) {
   return {
     eyebrow: language === "es" ? "Lecturas" : "Readings",
     title:
-      language === "es"
-        ? "Base operativa y presión de ventas, de un vistazo."
-        : "Operating base and sales pressure, at a glance.",
+      language === "es" ? "Señales de ingresos, margen y tendencia" : "Revenue, margin, and trend signals",
     revenue: language === "es" ? "Ingresos" : "Revenue",
     grossMargin: language === "es" ? "Margen bruto" : "Gross margin",
     marginRate: language === "es" ? "Tasa de margen" : "Margin rate",
