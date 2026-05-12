@@ -42,7 +42,7 @@ function createLine(snapshot: BusinessSnapshot, productId = snapshot.products[0]
 function createDraft(snapshot: BusinessSnapshot): OrderDraft {
   return {
     orderNumber: `ORD-${2000 + snapshot.orders.length + 1}`,
-    clientName: snapshot.clients[0]?.name ?? "",
+    clientName: "",
     dueDate: "2026-05-01",
     status: "open",
     items: [createLine(snapshot)]
@@ -82,12 +82,6 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       }))
     }));
   }, [snapshot.products]);
-
-  useEffect(() => {
-    if (!draft.clientName && snapshot.clients[0]?.name) {
-      setDraft((current) => ({ ...current, clientName: snapshot.clients[0]?.name ?? "" }));
-    }
-  }, [draft.clientName, snapshot.clients]);
 
   const visibleOrders = useMemo(() => {
     const key = search.trim().toLowerCase();
@@ -175,7 +169,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       setDraft({
         id: "",
         orderNumber: `ORD-${2000 + data.snapshot.orders.length + 1}`,
-        clientName: order.clientName || (data.snapshot.clients[0]?.name ?? ""),
+        clientName: "",
         dueDate: "2026-05-01",
         status: "open",
         items: [createLine(data.snapshot)]
