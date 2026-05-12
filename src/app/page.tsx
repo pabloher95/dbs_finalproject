@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { ClerkProvider, UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
@@ -176,7 +177,45 @@ function Method({ copy }: { copy: ReturnType<typeof landingCopy> }) {
           </article>
         ))}
       </div>
+
+      <DataFlow copy={copy} />
     </section>
+  );
+}
+
+function DataFlow({ copy }: { copy: ReturnType<typeof landingCopy> }) {
+  const stages = copy.dataFlowStages;
+
+  return (
+    <figure className="mt-20 hidden md:block">
+      <p className="marginalia mb-6">{copy.howDataMoves}</p>
+      <div className="data-flow-track grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch border-y border-[var(--ink)]">
+        {stages.map((s, i) => (
+          <Fragment key={s.label}>
+            <div className="data-flow-node flex flex-col justify-center px-6 py-7">
+              <p className="data-flow-label font-display text-[clamp(1.6rem,2.2vw,2rem)] leading-none text-[var(--ink)]">
+                {s.label}
+              </p>
+              <p className="data-flow-note marginalia mt-3">{s.note}</p>
+            </div>
+            {i < stages.length - 1 && (
+              <div aria-hidden className="data-flow-arrow px-3 text-[var(--vermilion)]">
+                <svg width="40" height="14" viewBox="0 0 40 14" fill="none">
+                  <path
+                    d="M0 7H36M30 2L37 7L30 12"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                  />
+                </svg>
+              </div>
+            )}
+          </Fragment>
+        ))}
+      </div>
+      <figcaption className="sr-only">{copy.dataFlowCaption}</figcaption>
+    </figure>
   );
 }
 
