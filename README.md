@@ -44,6 +44,7 @@ Use `.env.local` for local development. Common values:
 - `NEXT_PUBLIC_SUPABASE_URL` or `SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - Clerk public keys required by the app
+- `SMALLBIZ_ALLOW_MEMORY_FALLBACK=true` only for local/dev fallback testing
 
 Do not commit secret keys or service-role credentials.
 
@@ -75,7 +76,7 @@ API routes:
 ## Architecture Notes
 
 - `src/lib/server/workspace.ts` is the main server-side workspace data layer.
-- It supports memory fallback and Supabase read/write helpers.
+- It supports Supabase read/write helpers and only allows memory fallback in non-production mode unless `SMALLBIZ_ALLOW_MEMORY_FALLBACK=true` is explicitly set.
 - The app uses Clerk-authenticated workspace routes and API mutations.
 - User-facing copy is localized through the i18n helpers in `src/lib/i18n.ts` and `src/lib/i18n-server.ts`.
 - Dashboard analytics live in `src/components/layout/analytics-overview.tsx`.

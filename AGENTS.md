@@ -36,6 +36,7 @@ Minimal handoff for future Codex sessions in this repo.
 - Workspace API routes validate Clerk auth server-side; Supabase REST calls use the Clerk-issued bearer token plus **only** `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as the `apikey` header (never the service-role / secret key).
 - Supabase RLS policies live in `supabase/migrations/20260505_clerk_rls_policies_v2.sql` and key off `auth.jwt()->>'sub'`.
 - Local Supabase persistence: set `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`) and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local`. The app does not read `SUPABASE_SERVICE_ROLE_KEY` or any secret Supabase key for this path—keep service-role keys out of the Next.js app.
+- Memory fallback is for local/dev use only; in production the workspace layer will not silently fall back to in-memory storage unless `SMALLBIZ_ALLOW_MEMORY_FALLBACK=true` is explicitly set.
 - `src/app/page.tsx` is the public home page.
 - `src/app/(workspace)/layout.tsx` wraps workspace routes in `WorkspaceShell`.
 - `src/app/api/products/route.ts`, `src/app/api/contacts/route.ts`, `src/app/api/orders/route.ts`, and `src/app/api/import/route.ts` handle workspace mutations.

@@ -130,6 +130,20 @@ const memoryStore = new Map<string, BusinessSnapshot>();
 const CLERK_TOKEN_TIMEOUT_MS = 2_000;
 const SUPABASE_REQUEST_TIMEOUT_MS = 4_000;
 
+function allowMemoryFallback() {
+  if (process.env.SMALLBIZ_ALLOW_MEMORY_FALLBACK === "true") {
+    return true;
+  }
+
+  return process.env.NODE_ENV !== "production";
+}
+
+function assertMemoryFallbackAllowed(context: string) {
+  if (!allowMemoryFallback()) {
+    throw new Error(`Memory workspace fallback disabled in production during ${context}.`);
+  }
+}
+
 function cloneSnapshot(snapshot: BusinessSnapshot): BusinessSnapshot {
   return structuredClone(snapshot);
 }
@@ -778,15 +792,18 @@ async function resolveWorkspaceAccess(ownerId?: string) {
           };
         }
       } catch (error) {
+        assertMemoryFallbackAllowed("token lookup");
         console.warn("Workspace auth token lookup failed; falling back to memory.", error);
       }
     }
 
+    assertMemoryFallbackAllowed("workspace access resolution");
     return {
       ownerId: resolvedOwnerId,
       backend: createMemoryBackend()
     };
   } catch (error) {
+    assertMemoryFallbackAllowed("auth lookup");
     console.warn("Workspace auth lookup failed; falling back to memory.", error);
     return {
       ownerId: ownerId ?? getOwnerId(),
@@ -801,6 +818,7 @@ async function readWorkspaceState(ownerId?: string) {
     const workspace = await access.backend.read(access.ownerId);
     return { ownerId: access.ownerId, workspace };
   } catch (error) {
+    assertMemoryFallbackAllowed("workspace read");
     console.warn("Workspace read failed; falling back to memory.", error);
     const workspace = await createMemoryBackend().read(access.ownerId);
     return { ownerId: access.ownerId, workspace };
@@ -816,6 +834,7 @@ async function mutateWorkspace(
   try {
     current = await backend.read(resolvedOwnerId);
   } catch (error) {
+    assertMemoryFallbackAllowed("mutation read");
     console.warn("Workspace read failed during mutation; falling back to memory.", error);
     current = await createMemoryBackend().read(resolvedOwnerId);
   }
@@ -825,6 +844,7 @@ async function mutateWorkspace(
   try {
     return await backend.write(resolvedOwnerId, next);
   } catch (error) {
+    assertMemoryFallbackAllowed("workspace write");
     console.warn("Workspace write failed; falling back to memory.", error);
     return createMemoryBackend().write(resolvedOwnerId, next);
   }
