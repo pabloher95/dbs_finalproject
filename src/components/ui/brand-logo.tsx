@@ -2,7 +2,7 @@ import Image from "next/image";
 
 const variantClass = {
   /** Workspace masthead — compact */
-  masthead: "h-10 w-[178px] md:h-12 md:w-[214px]",
+  masthead: "h-12 w-[214px] md:h-14 md:w-[248px]",
   /** Public landing top bar — slightly larger */
   landing: "h-14 w-[249px] md:h-16 md:w-[285px]",
   /** Footer wordmark replacement */
