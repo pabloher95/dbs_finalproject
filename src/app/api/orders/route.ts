@@ -72,7 +72,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "At least one order line is required." }, { status: 400 });
     }
 
-    if (normalizedItems.some((item) => !item.productId || !Number.isFinite(item.quantity) || item.quantity <= 0)) {
+    if (
+      normalizedItems.some(
+        (item: { productId: string; quantity: number }) =>
+          !item.productId || !Number.isFinite(item.quantity) || item.quantity <= 0
+      )
+    ) {
       return NextResponse.json(
         { error: "Each order line needs a product and a quantity greater than zero." },
         { status: 400 }

@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const unit = nonEmpty(body.draft.unit);
     const unitPrice = Number(body.draft.unitPrice ?? 0);
     const formula = Array.isArray(body.draft.formula) ? body.draft.formula : [];
-    const resolvedFormula = formula
+    const resolvedFormula: Array<{ materialName: string; unit: string; quantity: number }> = formula
       .map((row: { materialName?: unknown; unit?: unknown; quantity?: unknown }) => ({
         materialName: nonEmpty(row.materialName),
         unit: nonEmpty(row.unit),

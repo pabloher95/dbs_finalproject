@@ -6,13 +6,14 @@ import { getWorkspaceOverview } from "@/lib/server/workspace";
 export default async function ImportPage({
   searchParams
 }: Readonly<{
-  searchParams?: {
+  searchParams?: Promise<{
     productId?: string;
-  };
+  }>;
 }>) {
   const { snapshot } = await getWorkspaceOverview();
   const language = await getRequestLanguage();
-  const editingProductId = searchParams?.productId?.trim() || undefined;
+  const resolvedSearchParams = await searchParams;
+  const editingProductId = resolvedSearchParams?.productId?.trim() || undefined;
   const editing = Boolean(editingProductId);
   return (
     <WorkflowPageShell
