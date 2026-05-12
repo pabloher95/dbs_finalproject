@@ -432,57 +432,67 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
           {visibleOrders.map((order) => (
             <article
               key={order.id}
-              className={`flex flex-wrap items-center justify-between gap-3 rounded-[24px] border p-4 ${
+              className={`rounded-[24px] border p-4 ${
                 isBacklogOrder(order)
                   ? "border-[rgba(223,151,27,0.45)] bg-[rgba(223,151,27,0.08)]"
                   : "border-[var(--line)] bg-[rgba(255,255,255,0.72)]"
               }`}
             >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-display text-lg text-[var(--ink)]">{order.orderNumber}</p>
-                  <Pill tone={statusTone(order.status)}>
-                    {order.status === "open" ? copy.openStatus : copy.fulfilledStatus}
-                  </Pill>
-                  {isBacklogOrder(order) ? <Pill tone="amber">{copy.backlog}</Pill> : null}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-display text-lg text-[var(--ink)]">{order.orderNumber}</p>
+                    <Pill tone={statusTone(order.status)}>
+                      {order.status === "open" ? copy.openStatus : copy.fulfilledStatus}
+                    </Pill>
+                    {isBacklogOrder(order) ? <Pill tone="amber">{copy.backlog}</Pill> : null}
+                  </div>
+                  <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
+                    {order.clientName} · {copy.due} {order.dueDate}
+                  </p>
                 </div>
-                <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
-                  {order.clientName} · {copy.due} {order.dueDate}
-                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-soft"
+                    onClick={() => void updateOrderStatus(order, order.status === "open" ? "fulfilled" : "open")}
+                  >
+                    {order.status === "open" ? copy.markFulfilled : copy.reopenOrder}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() =>
+                      setDraft({
+                        id: order.id,
+                        orderNumber: order.orderNumber,
+                        clientName: order.clientName,
+                        dueDate: order.dueDate,
+                        status: order.status,
+                        items: order.items.length
+                          ? order.items.map((line) => ({
+                              id: crypto.randomUUID(),
+                              productId: line.productId,
+                              quantity: String(line.quantity)
+                            }))
+                          : [createLine(snapshot)]
+                      })
+                    }
+                  >
+                    {copy.edit}
+                  </button>
+                  <button type="button" className="btn btn-soft" onClick={() => void deleteOrder(order)}>
+                    {copy.delete}
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="btn btn-soft"
-                  onClick={() => void updateOrderStatus(order, order.status === "open" ? "fulfilled" : "open")}
-                >
-                  {order.status === "open" ? copy.markFulfilled : copy.reopenOrder}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() =>
-                    setDraft({
-                      id: order.id,
-                      orderNumber: order.orderNumber,
-                      clientName: order.clientName,
-                      dueDate: order.dueDate,
-                      status: order.status,
-                      items: order.items.length
-                        ? order.items.map((line) => ({
-                            id: crypto.randomUUID(),
-                            productId: line.productId,
-                            quantity: String(line.quantity)
-                          }))
-                        : [createLine(snapshot)]
-                    })
-                  }
-                >
-                  {copy.edit}
-                </button>
-                <button type="button" className="btn btn-soft" onClick={() => void deleteOrder(order)}>
-                  {copy.delete}
-                </button>
+              <div className="mt-4 divide-rule overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--panel-strong)]">
+                {order.items.map((item) => (
+                  <div key={item.productId} className="flex items-center justify-between px-3 py-2 text-sm">
+                    <span>{item.productName}</span>
+                    <span className="font-mono text-[var(--muted-strong)]">{item.quantity}</span>
+                  </div>
+                ))}
               </div>
             </article>
           ))}

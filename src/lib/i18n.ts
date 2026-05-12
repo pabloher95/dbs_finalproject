@@ -455,6 +455,15 @@ export function ordersBoardCopy(language: Language) {
         : "See what is due, who it belongs to, and how order volume is building across the product line.",
     rollup: language === "es" ? "Resumen" : "Rollup",
     demandByProduct: language === "es" ? "Demanda por producto" : "Demand by product",
+    snapshotTitle: language === "es" ? "Pedidos, a la vista" : "Orders at a glance",
+    snapshotDescription:
+      language === "es"
+        ? "Un vistazo rápido a lo activo, lo cumplido y lo que ya está atrasado."
+        : "A quick read on what is active, what is fulfilled, and what is already past due.",
+    activeOrders: language === "es" ? "Pedidos activos" : "Active orders",
+    fulfilledOrders: language === "es" ? "Pedidos cumplidos" : "Fulfilled orders",
+    backlogSummary: language === "es" ? "Pedidos en cola" : "Backlog orders",
+    activeUnits: language === "es" ? "Unidades activas" : "Active units",
     due: language === "es" ? "vence" : "due",
     open: language === "es" ? "abierto" : "open",
     fulfilled: language === "es" ? "cumplido" : "fulfilled",
