@@ -12,8 +12,8 @@ export default async function OrdersPage() {
       title={language === "es" ? "Registra la demanda y mantén el calendario en movimiento" : "Capture demand and keep the schedule moving"}
       description={
         language === "es"
-          ? "Registra lo que cada cliente necesita, cuándo vence y qué productos están impulsando la siguiente corrida de producción."
-          : "Record what each customer needs, when it is due, and which products are driving the next production run."
+          ? "Escribe el cliente directamente, registra lo que necesita y deja que la lista de clientes se vaya poblando con la operación."
+          : "Type the customer directly, record what they need, and let the customer list populate from live orders."
       }
       metrics={[
         { label: language === "es" ? "Pedidos abiertos" : "Open orders", value: String(snapshot.orders.filter((order) => order.status === "open").length) },
@@ -22,11 +22,11 @@ export default async function OrdersPage() {
       ]}
       steps={[
         {
-          title: language === "es" ? "Elige el cliente" : "Choose the customer",
+          title: language === "es" ? "Escribe el cliente" : "Type the customer",
           description:
             language === "es"
-              ? "Asigna el pedido a la cuenta correcta antes de elegir el producto."
-              : "Assign the order to the right account before choosing the product."
+              ? "Si todavía no existe, el cliente se crea al guardar el pedido."
+              : "If it does not exist yet, the customer is created when you save the order."
         },
         {
           title: language === "es" ? "Define la fecha de entrega" : "Set the due date",

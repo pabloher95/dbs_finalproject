@@ -19,7 +19,7 @@ type OrderLineDraft = {
 type OrderDraft = {
   id?: string;
   orderNumber: string;
-  clientId: string;
+  clientName: string;
   dueDate: string;
   status: Order["status"];
   items: OrderLineDraft[];
@@ -42,7 +42,7 @@ function createLine(snapshot: BusinessSnapshot, productId = snapshot.products[0]
 function createDraft(snapshot: BusinessSnapshot): OrderDraft {
   return {
     orderNumber: `ORD-${2000 + snapshot.orders.length + 1}`,
-    clientId: snapshot.clients[0]?.id ?? "",
+    clientName: snapshot.clients[0]?.name ?? "",
     dueDate: "2026-05-01",
     status: "open",
     items: [createLine(snapshot)]
@@ -83,6 +83,12 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     }));
   }, [snapshot.products]);
 
+  useEffect(() => {
+    if (!draft.clientName && snapshot.clients[0]?.name) {
+      setDraft((current) => ({ ...current, clientName: snapshot.clients[0]?.name ?? "" }));
+    }
+  }, [draft.clientName, snapshot.clients]);
+
   const visibleOrders = useMemo(() => {
     const key = search.trim().toLowerCase();
     if (!key) return orders;
@@ -93,15 +99,15 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     );
   }, [orders, search]);
 
-  const blocked = !snapshot.clients.length || !snapshot.products.length;
+  const blocked = !snapshot.products.length;
 
   async function saveOrder() {
-    if (!snapshot.clients.length) {
-      setToast({ message: copy.noCustomers, tone: "warn" });
-      return;
-    }
     if (!snapshot.products.length) {
       setToast({ message: copy.noProducts, tone: "warn" });
+      return;
+    }
+    if (!draft.clientName.trim()) {
+      setToast({ message: copy.customerRequired, tone: "warn" });
       return;
     }
     if (!draft.orderNumber.trim()) {
@@ -127,7 +133,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       body: JSON.stringify({
         id: draft.id || undefined,
         orderNumber: draft.orderNumber,
-        clientId: draft.clientId,
+        clientName: draft.clientName,
         dueDate: draft.dueDate,
         status: draft.status,
         items: normalizedItems
@@ -145,6 +151,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     setDraft((current) => ({
       ...current,
       id: "",
+      clientName: current.clientName,
       orderNumber: `ORD-${Number(current.orderNumber.slice(4)) + 1}`
     }));
     router.refresh();
@@ -168,7 +175,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       setDraft({
         id: "",
         orderNumber: `ORD-${2000 + data.snapshot.orders.length + 1}`,
-        clientId: data.snapshot.clients[0]?.id ?? "",
+        clientName: order.clientName || (data.snapshot.clients[0]?.name ?? ""),
         dueDate: "2026-05-01",
         status: "open",
         items: [createLine(data.snapshot)]
@@ -190,7 +197,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       body: JSON.stringify({
         id: lastDeleted.id,
         orderNumber: lastDeleted.orderNumber,
-        clientId: lastDeleted.clientId,
+        clientName: lastDeleted.clientName,
         dueDate: lastDeleted.dueDate,
         status: lastDeleted.status,
         items: lastDeleted.items.map((item) => ({
@@ -245,7 +252,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             </p>
             {!snapshot.clients.length ? (
               <Pill tone="amber" className="mt-3">
-                {copy.noCustomers}
+                {copy.customerHint}
               </Pill>
             ) : null}
             {!snapshot.products.length ? (
@@ -261,17 +268,18 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               placeholder={language === "es" ? "Número de pedido" : "Order number"}
               className="field font-mono text-sm"
             />
-            <select
-              value={draft.clientId}
-              onChange={(event) => setDraft((current) => ({ ...current, clientId: event.target.value }))}
+            <input
+              value={draft.clientName}
+              onChange={(event) => setDraft((current) => ({ ...current, clientName: event.target.value }))}
+              placeholder={copy.customerNamePlaceholder}
               className="field"
-            >
+              list="customer-options"
+            />
+            <datalist id="customer-options">
               {snapshot.clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name}
-                </option>
+                <option key={client.id} value={client.name} />
               ))}
-            </select>
+            </datalist>
             <input
               value={draft.dueDate}
               onChange={(event) => setDraft((current) => ({ ...current, dueDate: event.target.value }))}
@@ -417,7 +425,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                     setDraft({
                       id: order.id,
                       orderNumber: order.orderNumber,
-                      clientId: order.clientId,
+                      clientName: order.clientName,
                       dueDate: order.dueDate,
                       status: order.status,
                       items: order.items.length

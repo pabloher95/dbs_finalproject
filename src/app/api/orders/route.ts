@@ -34,6 +34,7 @@ export async function POST(request: Request) {
 
     const orderNumber = nonEmpty(body.orderNumber);
     const clientId = nonEmpty(body.clientId);
+    const clientName = nonEmpty(body.clientName);
     const dueDate = nonEmpty(body.dueDate);
     const status =
       body.status === "draft" || body.status === "fulfilled" || body.status === "open"
@@ -48,11 +49,8 @@ export async function POST(request: Request) {
     const fallbackProductId = nonEmpty(body.productId);
     const fallbackQuantity = Number(body.quantity ?? 0);
 
-    if (!orderNumber || !clientId || !dueDate) {
-      return NextResponse.json(
-        { error: "Order number, client, and due date are required." },
-        { status: 400 }
-      );
+    if (!orderNumber || (!clientId && !clientName) || !dueDate) {
+      return NextResponse.json({ error: "Order number, customer, and due date are required." }, { status: 400 });
     }
 
     if (!isValidDate(dueDate)) {
@@ -84,7 +82,8 @@ export async function POST(request: Request) {
     const result = await saveOrder(ownerId, {
       id: body.id ? nonEmpty(body.id) : undefined,
       orderNumber,
-      clientId,
+      clientId: clientId || undefined,
+      clientName: clientName || undefined,
       dueDate,
       status,
       items: normalizedItems

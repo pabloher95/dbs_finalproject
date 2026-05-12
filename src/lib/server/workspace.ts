@@ -110,7 +110,8 @@ type ContactInput = {
 type OrderInput = {
   id?: string;
   orderNumber: string;
-  clientId: string;
+  clientId?: string;
+  clientName?: string;
   dueDate: string;
   status: Order["status"];
   items: Array<{ productId: string; quantity: number }>;
@@ -889,6 +890,27 @@ function ensureClientForImport(snapshot: BusinessSnapshot, clientName: string) {
   return client;
 }
 
+function ensureClientForOrder(snapshot: BusinessSnapshot, clientName: string) {
+  const trimmed = clientName.trim();
+  if (!trimmed) {
+    throw new UserFacingError("Client name is required.");
+  }
+  const existing = findClient(snapshot, trimmed);
+  if (existing) {
+    return existing;
+  }
+
+  const client = {
+    id: `cl_${slugify(trimmed) || crypto.randomUUID()}`,
+    name: trimmed,
+    email: `orders+${slugify(trimmed) || "client"}@smallbiz.local`,
+    channel: "orders"
+  };
+
+  snapshot.clients.push(client);
+  return client;
+}
+
 function ensureProduct(snapshot: BusinessSnapshot, input: ProductInput) {
   const existing = input.id ? snapshot.products.find((product) => product.id === input.id) : findProduct(snapshot, input.sku);
   if (existing) {
@@ -1100,9 +1122,13 @@ export async function updateMaterialCost(ownerId: string, input: MaterialCostInp
 
 export async function saveOrder(ownerId: string, input: OrderInput) {
   return mutateWorkspace(ownerId, (snapshot) => {
-    const client = snapshot.clients.find((item) => item.id === input.clientId);
+    const resolvedClient = input.clientId
+      ? snapshot.clients.find((item) => item.id === input.clientId)
+      : undefined;
+    const clientName = input.clientName?.trim();
+    const client = resolvedClient ?? (clientName ? ensureClientForOrder(snapshot, clientName) : undefined);
     if (!client) {
-      throw new UserFacingError("Client not found for order.");
+      throw new UserFacingError("Client name is required.");
     }
 
     const items = normalizeOrderItems(snapshot, input);

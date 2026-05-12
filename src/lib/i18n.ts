@@ -650,10 +650,15 @@ export function orderStudioCopy(language: Language) {
     title: language === "es" ? "Agrega el siguiente trabajo a la cola" : "Add the next job to the queue",
     description:
       language === "es"
-        ? "Elige el cliente, la fecha de entrega y una o más líneas de producto. El plan se actualiza en cuanto guardas."
-        : "Pick the customer, the due date, and one or more product lines. The plan ahead reacts the moment you save.",
-    noCustomers:
-      language === "es" ? "Todavía no hay clientes. Agrega uno primero en Contactos." : "No customers yet. Add one in Contacts first.",
+        ? "Escribe el cliente, la fecha de entrega y una o más líneas de producto. Si el cliente no existe, se crea al guardar."
+        : "Enter the customer, the due date, and one or more product lines. If the customer does not exist, it is created on save.",
+    customerNamePlaceholder: language === "es" ? "Nombre del cliente" : "Customer name",
+    customerHint:
+      language === "es"
+        ? "Escribe un nombre de cliente y se añadirá al guardar si todavía no existe."
+        : "Type a customer name and it will be added on save if it does not already exist.",
+    customerRequired:
+      language === "es" ? "El nombre del cliente es obligatorio." : "Customer name is required.",
     noProducts:
       language === "es" ? "Todavía no hay productos. Agrega uno primero en Catálogo." : "No products yet. Add one in Catalog before saving orders.",
     orderNumberRequired: language === "es" ? "El número de pedido es obligatorio." : "Order number is required.",
@@ -664,8 +669,8 @@ export function orderStudioCopy(language: Language) {
     undoDelete: language === "es" ? "Deshacer último borrado" : "Undo last delete",
     blocked:
       language === "es"
-        ? "Agrega un cliente y al menos una línea de producto antes de enviar un pedido."
-        : "Add a customer and at least one product line before submitting an order.",
+        ? "Agrega al menos una línea de producto antes de enviar un pedido."
+        : "Add at least one product line before submitting an order.",
     addLine: language === "es" ? "Agregar línea" : "Add line",
     removeLine: language === "es" ? "Quitar línea" : "Remove line",
     lineProduct: language === "es" ? "Producto" : "Product",
