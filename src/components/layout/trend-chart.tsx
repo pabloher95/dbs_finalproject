@@ -13,6 +13,10 @@ function formatMoney(value: number) {
 }
 
 type TrendChartCopy = ReturnType<typeof analyticsCopy>;
+type ActiveBar = {
+  rowIndex: number;
+  series: "revenue" | "margin";
+};
 
 export function TrendChart({
   rows,
@@ -32,7 +36,7 @@ export function TrendChart({
     1,
     ...rows.flatMap((row) => [row.revenue, row.margin]).map((value) => Math.max(value, 0))
   );
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeBar, setActiveBar] = useState<ActiveBar | null>(null);
 
   return (
     <div className="trend-chart overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
@@ -76,28 +80,23 @@ export function TrendChart({
           const marginX = groupX + barWidth + 10;
           const revenueY = paddingTop + (plotHeight - revenueHeight);
           const marginY = paddingTop + (plotHeight - marginHeight);
-          const barTop = Math.min(revenueY, marginY);
-          const tooltipWidth = 168;
-          const tooltipHeight = 52;
-          const tooltipX = Math.min(
-            Math.max(groupX + groupWidth / 2 - tooltipWidth / 2, 8),
-            width - tooltipWidth - 8
-          );
-          const tooltipY = Math.max(8, barTop - tooltipHeight - 10);
+          const activeRow = activeBar?.rowIndex === index ? row : null;
+          const activeSeriesLabel =
+            activeRow && activeBar?.series === "revenue" ? copy.revenue : activeRow ? copy.grossMargin : null;
+          const activeValue = activeRow ? (activeBar?.series === "revenue" ? row.revenue : row.margin) : null;
+          const activeValueText = activeValue === null ? null : formatMoney(activeValue);
+          const tooltipHeight = 54;
+          const activeTooltipWidth = activeBar?.series === "revenue" ? 164 : 160;
+          const revenueTooltipX = Math.min(Math.max(revenueX + barWidth / 2 - 82, 8), width - 164 - 8);
+          const marginTooltipX = Math.min(Math.max(marginX + barWidth / 2 - 80, 8), width - 160 - 8);
+          const revenueTooltipY = Math.max(8, revenueY - tooltipHeight - 10);
+          const marginTooltipY = Math.max(8, marginY - tooltipHeight - 10);
 
           return (
             <g
               key={row.label}
               className="trend-series"
-              tabIndex={0}
-              onFocus={() => setActiveIndex(index)}
-              onBlur={() => setActiveIndex((current) => (current === index ? null : current))}
-              onMouseEnter={() => setActiveIndex(index)}
-              onMouseLeave={() => setActiveIndex((current) => (current === index ? null : current))}
             >
-              <title>
-                {row.label}: {formatMoney(row.revenue)} revenue, {formatMoney(row.margin)} margin, {row.orders} orders
-              </title>
               <rect
                 x={revenueX}
                 y={revenueY}
@@ -105,6 +104,11 @@ export function TrendChart({
                 height={revenueHeight}
                 rx="8"
                 className="trend-bar trend-bar--revenue"
+                tabIndex={0}
+                onFocus={() => setActiveBar({ rowIndex: index, series: "revenue" })}
+                onBlur={() => setActiveBar((current) => (current?.rowIndex === index && current.series === "revenue" ? null : current))}
+                onMouseEnter={() => setActiveBar({ rowIndex: index, series: "revenue" })}
+                onMouseLeave={() => setActiveBar((current) => (current?.rowIndex === index && current.series === "revenue" ? null : current))}
               />
               <rect
                 x={marginX}
@@ -113,17 +117,22 @@ export function TrendChart({
                 height={marginHeight}
                 rx="8"
                 className="trend-bar trend-bar--margin"
+                tabIndex={0}
+                onFocus={() => setActiveBar({ rowIndex: index, series: "margin" })}
+                onBlur={() => setActiveBar((current) => (current?.rowIndex === index && current.series === "margin" ? null : current))}
+                onMouseEnter={() => setActiveBar({ rowIndex: index, series: "margin" })}
+                onMouseLeave={() => setActiveBar((current) => (current?.rowIndex === index && current.series === "margin" ? null : current))}
               />
               <text x={groupX + groupWidth / 2} y={height - 14} textAnchor="middle" className="fill-[var(--muted-strong)] font-mono text-[10px]">
                 {row.label}
               </text>
 
-              {activeIndex === index ? (
+              {activeRow && activeBar?.series === "revenue" ? (
                 <g className="trend-tooltip" pointerEvents="none">
                   <rect
-                    x={tooltipX}
-                    y={tooltipY}
-                    width={tooltipWidth}
+                    x={revenueTooltipX}
+                    y={revenueTooltipY}
+                    width={activeTooltipWidth}
                     height={tooltipHeight}
                     rx="12"
                     fill="var(--paper-bright)"
@@ -131,19 +140,48 @@ export function TrendChart({
                     strokeWidth="1"
                   />
                   <path
-                    d={`M ${groupX + groupWidth / 2 - 6} ${tooltipY + tooltipHeight} L ${groupX + groupWidth / 2} ${tooltipY + tooltipHeight + 8} L ${groupX + groupWidth / 2 + 6} ${tooltipY + tooltipHeight} Z`}
+                    d={`M ${revenueX + barWidth / 2 - 6} ${revenueTooltipY + tooltipHeight} L ${revenueX + barWidth / 2} ${revenueTooltipY + tooltipHeight + 8} L ${revenueX + barWidth / 2 + 6} ${revenueTooltipY + tooltipHeight} Z`}
                     fill="var(--paper-bright)"
                     stroke="var(--ink)"
                     strokeWidth="1"
                   />
-                  <text x={tooltipX + 12} y={tooltipY + 18} className="fill-[var(--muted)] font-mono text-[10px] uppercase tracking-[0.22em]">
+                  <text x={revenueTooltipX + 12} y={revenueTooltipY + 18} className="fill-[var(--muted)] font-mono text-[10px] uppercase tracking-[0.22em]">
                     {row.label}
                   </text>
-                  <text x={tooltipX + 12} y={tooltipY + 36} className="fill-[var(--ink)] font-display text-[12px]">
-                    {formatMoney(row.revenue)} revenue
+                  <text x={revenueTooltipX + 12} y={revenueTooltipY + 36} className="fill-[var(--ink)] font-display text-[12px]">
+                    {activeValueText} {activeSeriesLabel}
                   </text>
-                  <text x={tooltipX + 12} y={tooltipY + 48} className="fill-[var(--muted-strong)] font-mono text-[9px] uppercase tracking-[0.18em]">
-                    {formatMoney(row.margin)} margin · {row.orders} {copy.orders.toLowerCase()}
+                  <text x={revenueTooltipX + 12} y={revenueTooltipY + 48} className="fill-[var(--muted-strong)] font-mono text-[9px] uppercase tracking-[0.18em]">
+                    {copy.orders}: {row.orders}
+                  </text>
+                </g>
+              ) : null}
+              {activeRow && activeBar?.series === "margin" ? (
+                <g className="trend-tooltip" pointerEvents="none">
+                  <rect
+                    x={marginTooltipX}
+                    y={marginTooltipY}
+                    width={activeTooltipWidth}
+                    height={tooltipHeight}
+                    rx="12"
+                    fill="var(--paper-bright)"
+                    stroke="var(--ink)"
+                    strokeWidth="1"
+                  />
+                  <path
+                    d={`M ${marginX + barWidth / 2 - 6} ${marginTooltipY + tooltipHeight} L ${marginX + barWidth / 2} ${marginTooltipY + tooltipHeight + 8} L ${marginX + barWidth / 2 + 6} ${marginTooltipY + tooltipHeight} Z`}
+                    fill="var(--paper-bright)"
+                    stroke="var(--ink)"
+                    strokeWidth="1"
+                  />
+                  <text x={marginTooltipX + 12} y={marginTooltipY + 18} className="fill-[var(--muted)] font-mono text-[10px] uppercase tracking-[0.22em]">
+                    {row.label}
+                  </text>
+                  <text x={marginTooltipX + 12} y={marginTooltipY + 36} className="fill-[var(--ink)] font-display text-[12px]">
+                    {formatMoney(row.margin)} {copy.grossMargin}
+                  </text>
+                  <text x={marginTooltipX + 12} y={marginTooltipY + 48} className="fill-[var(--muted-strong)] font-mono text-[9px] uppercase tracking-[0.18em]">
+                    {copy.orders}: {row.orders}
                   </text>
                 </g>
               ) : null}
