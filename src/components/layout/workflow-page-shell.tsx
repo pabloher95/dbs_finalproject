@@ -1,4 +1,4 @@
-import { Card, Display, Eyebrow, Reveal, StatPill } from "@/components/ui/surfaces";
+import { Card, Display, Eyebrow, Reveal } from "@/components/ui/surfaces";
 import { getRequestLanguage } from "@/lib/i18n-server";
 import { workflowPageCopy } from "@/lib/i18n";
 
@@ -43,9 +43,19 @@ export async function WorkflowPageShell({
               </Display>
               <p className="mt-4 max-w-2xl text-[1rem] leading-7 text-[var(--muted-strong)]">{description}</p>
             </div>
-            <div className="flex flex-wrap gap-2 xl:justify-end">
+            <div className="grid gap-3 sm:grid-cols-2 xl:justify-end xl:grid-cols-2">
               {metrics.map((metric) => (
-                <StatPill key={metric.label} label={metric.label} value={metric.value} />
+                <div
+                  key={metric.label}
+                  className="rounded-[22px] border border-[rgba(19,36,58,0.12)] bg-[rgba(255,255,255,0.7)] px-4 py-3 shadow-[0_12px_30px_-26px_rgba(19,36,58,0.28)]"
+                >
+                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--muted)]">
+                    {metric.label}
+                  </p>
+                  <p className="mt-2 font-display text-[clamp(1.8rem,2.8vw,2.4rem)] leading-none text-[var(--ink)]">
+                    {metric.value}
+                  </p>
+                </div>
               ))}
             </div>
           </div>
