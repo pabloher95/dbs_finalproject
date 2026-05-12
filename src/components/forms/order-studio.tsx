@@ -31,7 +31,7 @@ function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
 }
 
 function isBacklogOrder(order: Pick<Order, "dueDate" | "status">) {
-  return order.status === "open" && order.dueDate <= new Date().toISOString().slice(0, 10);
+  return order.status === "open" && order.dueDate < new Date().toISOString().slice(0, 10);
 }
 
 function createLine(snapshot: BusinessSnapshot, productId = snapshot.products[0]?.id ?? ""): OrderLineDraft {

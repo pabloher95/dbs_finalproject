@@ -468,8 +468,8 @@ export function ordersBoardCopy(language: Language) {
     backlogOrders: language === "es" ? "pedidos en cola" : "backlog orders",
     backlogHint:
       language === "es"
-        ? "Pedidos abiertos con fecha de entrega hoy o anterior."
-        : "Open orders due today or earlier.",
+        ? "Pedidos abiertos con fecha de entrega anterior a hoy."
+        : "Open orders due before today.",
     noOrders: language === "es" ? "Todavía no se han registrado pedidos." : "No orders captured yet.",
     noDemand: language === "es" ? "Todavía no hay demanda abierta." : "No open demand yet."
   };
@@ -690,8 +690,8 @@ export function orderStudioCopy(language: Language) {
     backlog: language === "es" ? "cola" : "backlog",
     backlogHint:
       language === "es"
-        ? "Pedidos abiertos con fecha de entrega hoy o anterior."
-        : "Open orders due today or earlier.",
+        ? "Pedidos abiertos con fecha de entrega anterior a hoy."
+        : "Open orders due before today.",
     addLine: language === "es" ? "Agregar línea" : "Add line",
     removeLine: language === "es" ? "Quitar línea" : "Remove line",
     lineProduct: language === "es" ? "Producto" : "Product",

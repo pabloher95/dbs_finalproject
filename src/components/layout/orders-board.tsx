@@ -12,7 +12,7 @@ function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
 }
 
 function isBacklogOrder(order: Order) {
-  return order.status === "open" && order.dueDate <= new Date().toISOString().slice(0, 10);
+  return order.status === "open" && order.dueDate < new Date().toISOString().slice(0, 10);
 }
 
 export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {

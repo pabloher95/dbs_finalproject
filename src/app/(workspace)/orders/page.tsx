@@ -6,7 +6,9 @@ import { getWorkspaceOverview } from "@/lib/server/workspace";
 export default async function OrdersPage() {
   const { snapshot } = await getWorkspaceOverview();
   const language = await getRequestLanguage();
-  const backlogCount = snapshot.orders.filter((order) => order.status === "open" && order.dueDate <= new Date().toISOString().slice(0, 10)).length;
+  const backlogCount = snapshot.orders.filter(
+    (order) => order.status === "open" && order.dueDate < new Date().toISOString().slice(0, 10)
+  ).length;
   return (
     <WorkflowPageShell
       eyebrow={language === "es" ? "Pedidos" : "Orders"}
@@ -17,8 +19,8 @@ export default async function OrdersPage() {
       }
       description={
         language === "es"
-          ? "Escribe el cliente directamente, registra lo que necesita, marca lo cumplido y deja que los pedidos vencidos se destaquen."
-          : "Type the customer directly, record what they need, mark work as fulfilled, and let overdue orders stand out."
+          ? "Escribe el cliente directamente, registra lo que necesita, marca lo cumplido y deja que solo los pedidos pasados se destaquen."
+          : "Type the customer directly, record what they need, mark work as fulfilled, and let only past-due orders stand out."
       }
       metrics={[
         { label: language === "es" ? "Pedidos abiertos" : "Open orders", value: String(snapshot.orders.filter((order) => order.status === "open").length) },
