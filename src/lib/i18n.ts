@@ -231,12 +231,12 @@ export function workspaceCopy(language: Language) {
       { value: "es" as const, label: common.spanish }
     ],
     nav: [
-      { label: language === "es" ? "Estudio" : "Studio", description: language === "es" ? "Vista de hoy del trabajo y del siguiente paso." : "Today's view of the work and the next move." },
-      { label: language === "es" ? "Ingesta" : "Intake", description: language === "es" ? "Productos y pedidos capturados directamente." : "Products and orders captured directly." },
-      { label: language === "es" ? "Catálogo" : "Catalog", description: language === "es" ? "Productos, rendimientos y fórmulas de materiales." : "Products, yields, and material formulas." },
-      { label: language === "es" ? "Contactos" : "Contacts", description: language === "es" ? "Clientes y fuentes de proveedores." : "Customers and supplier sources." },
-      { label: language === "es" ? "Pedidos" : "Orders", description: language === "es" ? "Demanda abierta y la cola de producción." : "Open demand and the production queue." },
-      { label: language === "es" ? "Compras" : "Purchasing", description: language === "es" ? "Plan de materiales a partir de la demanda abierta." : "Material plan from open demand." }
+      { label: language === "es" ? "Estudio" : "Studio", description: language === "es" ? "Señales operativas y de ventas." : "Current operating and sales signals." },
+      { label: language === "es" ? "Ingesta" : "Intake", description: language === "es" ? "Crear productos con fórmulas." : "Create products with formulas." },
+      { label: language === "es" ? "Catálogo" : "Catalog", description: language === "es" ? "Mantén productos y sus fórmulas." : "Maintain products and their formulas." },
+      { label: language === "es" ? "Contactos" : "Contacts", description: language === "es" ? "Clientes y proveedores." : "Customers and suppliers." },
+      { label: language === "es" ? "Pedidos" : "Orders", description: language === "es" ? "Pedidos abiertos y líneas de pedido." : "Open orders and line items." },
+      { label: language === "es" ? "Compras" : "Purchasing", description: language === "es" ? "Lista de compra a partir de la demanda abierta." : "Buy list from open demand." }
     ]
   };
 }

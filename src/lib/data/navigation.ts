@@ -10,31 +10,31 @@ export const appNav: NavItem[] = [
   {
     href: "/dashboard" as Route,
     label: "Studio",
-    description: "Today's view of the work and the next move."
+    description: "Current operating and sales signals."
   },
   {
     href: "/import" as Route,
     label: "Intake",
-    description: "Product and order forms for direct intake."
+    description: "Create products with formulas."
   },
   {
     href: "/products" as Route,
     label: "Catalog",
-    description: "Products, yields, and material formulas."
+    description: "Maintain products and their formulas."
   },
   {
     href: "/contacts" as Route,
     label: "Contacts",
-    description: "Customers and supplier sources."
+    description: "Customers and suppliers."
   },
   {
     href: "/orders" as Route,
     label: "Orders",
-    description: "Open demand and the production queue."
+    description: "Open orders and line items."
   },
   {
     href: "/purchasing" as Route,
     label: "Purchasing",
-    description: "Material plan from open demand."
+    description: "Buy list from open demand."
   }
 ];
