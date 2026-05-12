@@ -250,8 +250,8 @@ export function dashboardCopy(language: Language) {
     title: language === "es" ? "El trabajo, por escrito." : "The work, written down.",
     body:
       language === "es"
-        ? "Primero separa cómo opera el negocio de cómo se está vendiendo. Arriba verás la base operativa; al lado, la presión real de la demanda abierta y el stock que ya empieza a apretarse."
-        : "Separate how the business operates from how it is selling. The top panel shows the operating base; the panel beside it shows real demand pressure and where stock is already tightening.",
+        ? "Base operativa y presión de ventas, de un vistazo."
+        : "Operating base and sales pressure, at a glance.",
     operationsEyebrow: language === "es" ? "Base operativa" : "Operating base",
     operationsTitle: language === "es" ? "Capacidad del negocio" : "Business capacity",
     operationsBody:
