@@ -6,17 +6,23 @@ import { getWorkspaceOverview } from "@/lib/server/workspace";
 export default async function OrdersPage() {
   const { snapshot } = await getWorkspaceOverview();
   const language = await getRequestLanguage();
+  const backlogCount = snapshot.orders.filter((order) => order.status === "open" && order.dueDate <= new Date().toISOString().slice(0, 10)).length;
   return (
     <WorkflowPageShell
       eyebrow={language === "es" ? "Pedidos" : "Orders"}
-      title={language === "es" ? "Registra la demanda y mantén el calendario en movimiento" : "Capture demand and keep the schedule moving"}
+      title={
+        language === "es"
+          ? "Registra la demanda, cumple los pedidos y resalta la cola"
+          : "Capture demand, fulfill orders, and highlight the backlog"
+      }
       description={
         language === "es"
-          ? "Escribe el cliente directamente, registra lo que necesita y deja que la lista de clientes se vaya poblando con la operación."
-          : "Type the customer directly, record what they need, and let the customer list populate from live orders."
+          ? "Escribe el cliente directamente, registra lo que necesita, marca lo cumplido y deja que los pedidos vencidos se destaquen."
+          : "Type the customer directly, record what they need, mark work as fulfilled, and let overdue orders stand out."
       }
       metrics={[
         { label: language === "es" ? "Pedidos abiertos" : "Open orders", value: String(snapshot.orders.filter((order) => order.status === "open").length) },
+        { label: language === "es" ? "En cola" : "Backlog", value: String(backlogCount) },
         { label: language === "es" ? "Clientes" : "Customers", value: String(snapshot.clients.length) },
         { label: language === "es" ? "Productos" : "Products", value: String(snapshot.products.length) }
       ]}
@@ -29,18 +35,18 @@ export default async function OrdersPage() {
               : "If it does not exist yet, the customer is created when you save the order."
         },
         {
-          title: language === "es" ? "Define la fecha de entrega" : "Set the due date",
+          title: language === "es" ? "Agrega los productos y la fecha" : "Add products and the due date",
           description:
             language === "es"
-              ? "Marca cuándo debe terminarse el trabajo para que la planificación siga siendo realista."
-              : "Mark when the work needs to be finished so planning stays realistic."
+              ? "Cada línea cuenta para el pedido y se suma a la demanda que verá Compras."
+              : "Each line adds to the order and feeds the demand Purchasing will see."
         },
         {
-          title: language === "es" ? "Agrega el producto y la cantidad" : "Add the product and quantity",
+          title: language === "es" ? "Marca lo cumplido" : "Mark it fulfilled",
           description:
             language === "es"
-              ? "El pedido se convierte en demanda que alimenta el plan de compras."
-              : "The order becomes demand that feeds the purchasing plan."
+              ? "Usa el botón de cumplido cuando el pedido salga o se entregue."
+              : "Use the fulfilled button when the order ships or is delivered."
         }
       ]}
       nextStep={

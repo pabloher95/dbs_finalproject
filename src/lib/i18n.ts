@@ -456,9 +456,20 @@ export function ordersBoardCopy(language: Language) {
     rollup: language === "es" ? "Resumen" : "Rollup",
     demandByProduct: language === "es" ? "Demanda por producto" : "Demand by product",
     due: language === "es" ? "vence" : "due",
+    open: language === "es" ? "abierto" : "open",
+    fulfilled: language === "es" ? "cumplido" : "fulfilled",
     openOrder: language === "es" ? "pedido abierto" : "open order",
     openOrders: language === "es" ? "pedidos abiertos" : "open orders",
     units: language === "es" ? "unidades" : "units",
+    markFulfilled: language === "es" ? "Marcar como cumplido" : "Mark fulfilled",
+    reopenOrder: language === "es" ? "Reabrir" : "Reopen",
+    backlog: language === "es" ? "cola" : "backlog",
+    backlogOrder: language === "es" ? "pedido en cola" : "backlog order",
+    backlogOrders: language === "es" ? "pedidos en cola" : "backlog orders",
+    backlogHint:
+      language === "es"
+        ? "Pedidos abiertos con fecha de entrega hoy o anterior."
+        : "Open orders due today or earlier.",
     noOrders: language === "es" ? "Todavía no se han registrado pedidos." : "No orders captured yet.",
     noDemand: language === "es" ? "Todavía no hay demanda abierta." : "No open demand yet."
   };
@@ -671,6 +682,16 @@ export function orderStudioCopy(language: Language) {
       language === "es"
         ? "Agrega al menos una línea de producto antes de enviar un pedido."
         : "Add at least one product line before submitting an order.",
+    statusLabel: language === "es" ? "Estado" : "Status",
+    openStatus: language === "es" ? "abierto" : "open",
+    fulfilledStatus: language === "es" ? "cumplido" : "fulfilled",
+    markFulfilled: language === "es" ? "Marcar como cumplido" : "Mark fulfilled",
+    reopenOrder: language === "es" ? "Reabrir" : "Reopen",
+    backlog: language === "es" ? "cola" : "backlog",
+    backlogHint:
+      language === "es"
+        ? "Pedidos abiertos con fecha de entrega hoy o anterior."
+        : "Open orders due today or earlier.",
     addLine: language === "es" ? "Agregar línea" : "Add line",
     removeLine: language === "es" ? "Quitar línea" : "Remove line",
     lineProduct: language === "es" ? "Producto" : "Product",
@@ -694,7 +715,6 @@ export function orderStudioCopy(language: Language) {
     restored: language === "es" ? "Pedido restaurado." : "Order restored.",
     due: language === "es" ? "vence" : "due",
     open: language === "es" ? "abierto" : "open",
-    draft: language === "es" ? "borrador" : "draft",
     fulfilled: language === "es" ? "cumplido" : "fulfilled"
   };
 }

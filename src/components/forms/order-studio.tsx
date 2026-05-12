@@ -27,8 +27,11 @@ type OrderDraft = {
 
 function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
   if (status === "open") return "flame";
-  if (status === "draft") return "amber";
   return "moss";
+}
+
+function isBacklogOrder(order: Pick<Order, "dueDate" | "status">) {
+  return order.status === "open" && order.dueDate <= new Date().toISOString().slice(0, 10);
 }
 
 function createLine(snapshot: BusinessSnapshot, productId = snapshot.products[0]?.id ?? ""): OrderLineDraft {
@@ -148,6 +151,36 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       clientName: current.clientName,
       orderNumber: `ORD-${Number(current.orderNumber.slice(4)) + 1}`
     }));
+    router.refresh();
+  }
+
+  async function updateOrderStatus(order: Order, nextStatus: Order["status"]) {
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        clientId: order.clientId,
+        clientName: order.clientName,
+        dueDate: order.dueDate,
+        status: nextStatus,
+        items: order.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity
+        }))
+      })
+    });
+    const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
+    if (!response.ok || !data.snapshot) {
+      setToast({ message: data.error ?? copy.saveError, tone: "error" });
+      return;
+    }
+    setOrders(data.snapshot.orders);
+    if (draft.id === order.id) {
+      setDraft((current) => ({ ...current, status: nextStatus }));
+    }
+    setToast({ message: copy.saved, tone: "success" });
     router.refresh();
   }
 
@@ -280,15 +313,16 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               type="date"
               className="field"
             />
-            <select
-              value={draft.status}
-              onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as Order["status"] }))}
-              className="field"
-            >
-              <option value="draft">{copy.draft}</option>
-              <option value="open">{copy.open}</option>
-              <option value="fulfilled">{copy.fulfilled}</option>
-            </select>
+            <div className="rounded-[18px] border border-[var(--line)] bg-[rgba(255,255,255,0.65)] px-4 py-3">
+              <p className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                {copy.statusLabel}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Pill tone={statusTone(draft.status)}>
+                  {draft.status === "open" ? copy.openStatus : copy.fulfilledStatus}
+                </Pill>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-3 border-t border-dashed border-[var(--line)] pt-4">
@@ -398,20 +432,32 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
           {visibleOrders.map((order) => (
             <article
               key={order.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
+              className={`flex flex-wrap items-center justify-between gap-3 rounded-[24px] border p-4 ${
+                isBacklogOrder(order)
+                  ? "border-[rgba(223,151,27,0.45)] bg-[rgba(223,151,27,0.08)]"
+                  : "border-[var(--line)] bg-[rgba(255,255,255,0.72)]"
+              }`}
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-display text-lg text-[var(--ink)]">{order.orderNumber}</p>
                   <Pill tone={statusTone(order.status)}>
-                    {order.status === "draft" ? copy.draft : order.status === "open" ? copy.open : copy.fulfilled}
+                    {order.status === "open" ? copy.openStatus : copy.fulfilledStatus}
                   </Pill>
+                  {isBacklogOrder(order) ? <Pill tone="amber">{copy.backlog}</Pill> : null}
                 </div>
                 <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
                   {order.clientName} · {copy.due} {order.dueDate}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn btn-soft"
+                  onClick={() => void updateOrderStatus(order, order.status === "open" ? "fulfilled" : "open")}
+                >
+                  {order.status === "open" ? copy.markFulfilled : copy.reopenOrder}
+                </button>
                 <button
                   type="button"
                   className="btn btn-ghost"

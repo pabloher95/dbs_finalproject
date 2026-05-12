@@ -76,7 +76,7 @@ test("order imports skip duplicate lines and reject invalid status values", () =
   assert.equal(preview.createdRecords, 1);
   assert.deepEqual(preview.skippedRows, [3]);
   assert.equal(preview.errors.length, 1);
-  assert.equal(preview.errors[0]?.message, "Status must be draft, open, or fulfilled.");
+  assert.equal(preview.errors[0]?.message, "Status must be open or fulfilled.");
   assert.equal(preview.rowReports[1]?.status, "skipped");
   assert.equal(preview.rowReports[2]?.status, "error");
 });

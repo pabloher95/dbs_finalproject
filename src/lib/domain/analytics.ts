@@ -131,7 +131,7 @@ function summarizeOrderItems(order: Order, products: Product[], materials: Mater
 }
 
 export function buildBusinessInsights(snapshot: BusinessSnapshot): BusinessInsights {
-  const priceOrders = snapshot.orders.filter((order) => order.status !== "draft");
+  const priceOrders = snapshot.orders.filter((order) => order.status === "open" || order.status === "fulfilled");
   const productRows = new Map<string, ProductEconomics>();
   const clientRows = new Map<string, ClientEconomics>();
   const trendRows = new Map<string, RevenueTrendPoint>();

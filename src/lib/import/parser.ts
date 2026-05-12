@@ -33,7 +33,7 @@ export type ParsedOrderImportRow = {
   orderNumber: string;
   clientName: string;
   dueDate: string;
-  status: "draft" | "open" | "fulfilled";
+  status: "open" | "fulfilled";
   productSku: string;
   quantity: number;
 };
@@ -290,8 +290,8 @@ export function parseOrderImportRows(csv: string): {
       reports.push({ rowNumber, status: "error", message, raw: row.raw });
       return;
     }
-    if (!["draft", "open", "fulfilled"].includes(status)) {
-      const message = "Status must be draft, open, or fulfilled.";
+    if (!["open", "fulfilled"].includes(status)) {
+      const message = "Status must be open or fulfilled.";
       errors.push({ rowNumber, message });
       reports.push({ rowNumber, status: "error", message, raw: row.raw });
       return;

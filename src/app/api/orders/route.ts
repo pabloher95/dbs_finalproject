@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const clientName = nonEmpty(body.clientName);
     const dueDate = nonEmpty(body.dueDate);
     const status =
-      body.status === "draft" || body.status === "fulfilled" || body.status === "open"
+      body.status === "fulfilled" || body.status === "open"
         ? (body.status as Order["status"])
         : null;
     const items = Array.isArray(body.items)
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     if (!status) {
-      return NextResponse.json({ error: "Status must be draft, open, or fulfilled." }, { status: 400 });
+      return NextResponse.json({ error: "Status must be open or fulfilled." }, { status: 400 });
     }
 
     const normalizedItems =
