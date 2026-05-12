@@ -340,7 +340,6 @@ export function analyticsCopy(language: Language) {
     leadingProduct: language === "es" ? "Producto líder" : "Leading product",
     leadingClient: language === "es" ? "Cliente líder" : "Leading client",
     strongestMonth: language === "es" ? "Mes más fuerte" : "Strongest month",
-    noTrend: language === "es" ? "Aún no hay una tendencia de ingresos disponible." : "No revenue trend is available yet.",
     noProduct: language === "es" ? "Todavía no hay datos de productos" : "No product data yet",
     noClient: language === "es" ? "Todavía no hay datos de clientes" : "No client data yet",
     noMonth: language === "es" ? "Todavía no hay datos mensuales" : "No month data yet",

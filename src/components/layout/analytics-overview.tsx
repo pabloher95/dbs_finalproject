@@ -64,7 +64,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
               {!insights.trendRows.length ? (
                 <tr>
                   <td colSpan={4} className="text-center text-sm text-[var(--muted-strong)]">
-                    {copy.noTrend}
+                    {copy.addPrices}
                   </td>
                 </tr>
               ) : null}
