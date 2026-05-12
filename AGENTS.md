@@ -61,4 +61,5 @@ Minimal handoff for future Codex sessions in this repo.
 
 ## Repo Context
 - Existing project docs: `IMPLEMENTATION_PLAN.md` and `PROJECT_PROPOSAL.md`
+- Root `README.md` is the maintainer-facing project summary; update it whenever the app shape, commands, environment variables, routes, or persistence model change.
 - If the app shape changes, update this file so the next session has an accurate handoff.
