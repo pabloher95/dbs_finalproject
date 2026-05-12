@@ -1,34 +1,53 @@
 import { ContactStudio } from "@/components/forms/contact-studio";
 import { WorkflowPageShell } from "@/components/layout/workflow-page-shell";
+import { getRequestLanguage } from "@/lib/i18n-server";
 import { getWorkspaceOverview } from "@/lib/server/workspace";
 
 export default async function ContactsPage() {
   const { snapshot } = await getWorkspaceOverview();
+  const language = await getRequestLanguage();
   return (
     <WorkflowPageShell
-      eyebrow="Contacts"
-      title="Keep customers and suppliers close to the work"
-      description="Add the people and companies your team depends on so order intake and purchasing stay fast and consistent."
+      eyebrow={language === "es" ? "Contactos" : "Contacts"}
+      title={language === "es" ? "Mantén cerca a clientes y proveedores" : "Keep customers and suppliers close to the work"}
+      description={
+        language === "es"
+          ? "Agrega las personas y empresas de las que depende tu equipo para que la ingesta de pedidos y las compras sigan siendo rápidas y consistentes."
+          : "Add the people and companies your team depends on so order intake and purchasing stay fast and consistent."
+      }
       metrics={[
-        { label: "Customers", value: String(snapshot.clients.length) },
-        { label: "Suppliers", value: String(snapshot.suppliers.length) },
-        { label: "Primary action", value: "Save records" }
+        { label: language === "es" ? "Clientes" : "Customers", value: String(snapshot.clients.length) },
+        { label: language === "es" ? "Proveedores" : "Suppliers", value: String(snapshot.suppliers.length) },
+        { label: language === "es" ? "Acción principal" : "Primary action", value: language === "es" ? "Guardar registros" : "Save records" }
       ]}
       steps={[
         {
-          title: "Add a customer",
-          description: "Keep the customer record ready before taking orders."
+          title: language === "es" ? "Agrega un cliente" : "Add a customer",
+          description:
+            language === "es"
+              ? "Mantén el registro del cliente listo antes de tomar pedidos."
+              : "Keep the customer record ready before taking orders."
         },
         {
-          title: "Add a supplier",
-          description: "Store preferred sourcing details so purchasing has somewhere to go."
+          title: language === "es" ? "Agrega un proveedor" : "Add a supplier",
+          description:
+            language === "es"
+              ? "Guarda los detalles de abastecimiento preferidos para que Compras tenga un destino."
+              : "Store preferred sourcing details so purchasing has somewhere to go."
         },
         {
-          title: "Review contact list",
-          description: "Check the saved list when you need to assign a job or place an order."
+          title: language === "es" ? "Revisa la lista de contactos" : "Review contact list",
+          description:
+            language === "es"
+              ? "Consulta la lista guardada cuando necesites asignar un trabajo o hacer un pedido."
+              : "Check the saved list when you need to assign a job or place an order."
         }
       ]}
-      nextStep="After adding a customer, create an order so the schedule and purchasing plan stay aligned."
+      nextStep={
+        language === "es"
+          ? "Después de agregar un cliente, crea un pedido para que el calendario y el plan de compras sigan alineados."
+          : "After adding a customer, create an order so the schedule and purchasing plan stay aligned."
+      }
     >
       <ContactStudio clients={snapshot.clients} suppliers={snapshot.suppliers} />
     </WorkflowPageShell>

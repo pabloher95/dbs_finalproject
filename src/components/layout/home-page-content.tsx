@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { Route } from "next";
 import { AnalyticsOverview } from "@/components/layout/analytics-overview";
 import { Reveal } from "@/components/ui/surfaces";
+import { getRequestLanguage } from "@/lib/i18n-server";
+import { dashboardCopy } from "@/lib/i18n";
 import type { BusinessSnapshot } from "@/lib/domain/types";
 import { buildPurchasingPlan } from "@/lib/domain/purchasing-plan";
 
@@ -26,7 +28,9 @@ const shortcuts = [
   }
 ] as const;
 
-export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+export async function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+  const language = await getRequestLanguage();
+  const copy = dashboardCopy(language);
   const openOrders = snapshot.orders.filter((order) => order.status === "open");
   const planLines = buildPurchasingPlan(
     snapshot.orders,
@@ -40,10 +44,10 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
   );
   const sourcingGaps = planLines.filter((line) => !line.supplierName).length;
   const nextOrders = [...openOrders].slice(0, 3);
-  const today = new Date().toLocaleDateString(undefined, {
+  const today = new Intl.DateTimeFormat(language === "es" ? "es-ES" : "en-US", {
     month: "long",
     day: "numeric"
-  });
+  }).format(new Date());
 
   return (
     <div className="space-y-10 md:space-y-14">
@@ -51,14 +55,16 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
       <Reveal>
         <section className="plate p-6 md:p-10">
           <div className="flex items-baseline justify-between border-b border-[var(--ink)] pb-4">
-            <p className="marginalia">Today &nbsp;·&nbsp; {today}</p>
+            <p className="marginalia">
+              {copy.today} &nbsp;·&nbsp; {today}
+            </p>
             <p className="marginalia">
               {sourcingGaps > 0 ? (
                 <span className="text-[var(--vermilion)]">
-                  {sourcingGaps} sourcing gap{sourcingGaps === 1 ? "" : "s"}
+                  {sourcingGaps} {sourcingGaps === 1 ? copy.sourcingGap : copy.sourcingGaps}
                 </span>
               ) : (
-                <span className="text-[var(--data-moss)]">Sourcing complete</span>
+                <span className="text-[var(--data-moss)]">{copy.sourcingComplete}</span>
               )}
             </p>
           </div>
@@ -66,19 +72,18 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
           <div className="pt-8">
             <p className="eyebrow text-[var(--vermilion)]">{snapshot.business.name}</p>
             <h1 className="editorial mt-4 text-[clamp(2.6rem,6vw,5.4rem)]">
-              The work, <em>written down.</em>
+              {copy.title}
             </h1>
             <p className="mt-6 max-w-2xl text-[1.02rem] leading-7 text-[var(--ink-soft)]">
-              A clean intake lane, a readable catalog, and a measured path from open demand to a
-              supplier-ready buy list. Begin where it makes sense — the rest follows.
+              {copy.body}
             </p>
 
             <div className="mt-10 grid gap-px bg-[var(--ink)] md:grid-cols-4">
               {[
-                { label: "Products", value: snapshot.products.length },
-                { label: "Open orders", value: openOrders.length },
-                { label: "Units due", value: totalUnits },
-                { label: "Suppliers", value: snapshot.suppliers.length }
+                { label: copy.products, value: snapshot.products.length },
+                { label: copy.openOrders, value: openOrders.length },
+                { label: copy.unitsDue, value: totalUnits },
+                { label: copy.suppliers, value: snapshot.suppliers.length }
               ].map((stat) => (
                 <div key={stat.label} className="bg-[var(--paper-bright)] px-5 py-5">
                   <p className="marginalia">— {stat.label}</p>
@@ -91,10 +96,10 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href={"/import" as Route} className="btn btn-vermilion">
-                Begin intake →
+                {copy.beginIntake} →
               </Link>
               <Link href={"/orders" as Route} className="link-rule">
-                Review orders
+                {copy.reviewOrders}
               </Link>
             </div>
           </div>
@@ -107,13 +112,13 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
           <section>
             <header className="flex items-end justify-between border-b border-[var(--ink)] pb-3">
               <div>
-                <p className="eyebrow text-[var(--vermilion)]">Priority queue</p>
+                <p className="eyebrow text-[var(--vermilion)]">{copy.priorityQueue}</p>
                 <h2 className="font-display mt-2 text-3xl leading-none tracking-tight text-[var(--ink)] md:text-4xl">
-                  Today&rsquo;s active orders
+                  {copy.activeOrders}
                 </h2>
               </div>
               <p className="marginalia">
-                {openOrders.length} open · {totalUnits} units
+                {openOrders.length} {copy.open} · {totalUnits} {copy.units}
               </p>
             </header>
 
@@ -128,17 +133,17 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
                       {order.orderNumber}
                     </p>
                     <p className="mt-1 text-sm text-[var(--ink-soft)]">
-                      {order.clientName} &nbsp;·&nbsp; due {order.dueDate}
+                      {order.clientName} &nbsp;·&nbsp; {copy.due} {order.dueDate}
                     </p>
                   </div>
                   <span className="font-mono text-[0.7rem] uppercase tracking-[0.22em] text-[var(--muted)]">
-                    {order.items.reduce((sum, item) => sum + item.quantity, 0)} units
+                    {order.items.reduce((sum, item) => sum + item.quantity, 0)} {copy.units}
                   </span>
                 </div>
               ))}
               {!nextOrders.length ? (
                 <p className="bg-[var(--paper-bright)] p-6 text-sm text-[var(--ink-soft)]">
-                  No open orders yet. Add one to populate the queue.
+                  {copy.noOpenOrders}
                 </p>
               ) : null}
             </div>
@@ -148,9 +153,9 @@ export function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnaps
         <Reveal className="lg:col-span-5" delay={120}>
           <section>
             <header className="border-b border-[var(--ink)] pb-3">
-              <p className="eyebrow text-[var(--vermilion)]">Method</p>
+              <p className="eyebrow text-[var(--vermilion)]">{copy.method}</p>
               <h2 className="font-display mt-2 text-3xl leading-none tracking-tight text-[var(--ink)] md:text-4xl">
-                Three moves
+                {copy.threeMoves}
               </h2>
             </header>
             <div className="mt-2">

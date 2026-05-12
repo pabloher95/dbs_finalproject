@@ -1,5 +1,9 @@
+"use client";
+
 import { Card, Pill, SectionHeading } from "@/components/ui/surfaces";
 import { summarizeOrderDemand } from "@/lib/domain/orders";
+import { ordersBoardCopy } from "@/lib/i18n";
+import { useLanguage } from "@/components/providers/language-provider";
 import type { BusinessSnapshot, Order } from "@/lib/domain/types";
 
 function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
@@ -9,15 +13,17 @@ function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
 }
 
 export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+  const { language } = useLanguage();
+  const copy = ordersBoardCopy(language);
   const demand = summarizeOrderDemand(snapshot.orders, snapshot.products);
 
   return (
     <div className="space-y-4">
       <Card className="rounded-[28px] p-6">
         <SectionHeading
-          eyebrow="Orders"
-          title="Open production demand"
-          description="See what is due, who it belongs to, and how order volume is building across the product line."
+          eyebrow={copy.eyebrow}
+          title={copy.title}
+          description={copy.description}
         />
       </Card>
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
@@ -35,11 +41,11 @@ export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                       <Pill tone={statusTone(order.status)}>{order.status}</Pill>
                     </div>
                     <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
-                      {order.clientName} · due {order.dueDate}
+                      {order.clientName} · {copy.due} {order.dueDate}
                     </p>
                   </div>
                   <Pill tone="ink">
-                    {order.items.reduce((sum, item) => sum + item.quantity, 0)} units
+                    {order.items.reduce((sum, item) => sum + item.quantity, 0)} {copy.units}
                   </Pill>
                 </div>
                 <div className="mt-4 divide-rule overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--panel-strong)]">
@@ -54,16 +60,16 @@ export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             ))}
             {!snapshot.orders.length ? (
               <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.7)] p-4 text-sm text-[var(--muted-strong)]">
-                No orders captured yet.
+                {copy.noOrders}
               </p>
             ) : null}
           </div>
         </Card>
         <Card className="rounded-[28px] p-6">
           <SectionHeading
-            eyebrow="Rollup"
-            title="Demand by product"
-            description="Spot what needs to be made most and where the heaviest material demand will come from."
+            eyebrow={copy.rollup}
+            title={copy.demandByProduct}
+            description={copy.description}
           />
           <div className="mt-5 space-y-3">
             {demand.map((row) => (
@@ -74,7 +80,7 @@ export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                 <div className="min-w-0">
                   <p className="font-display text-xl text-[var(--ink)]">{row.productName}</p>
                   <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
-                    {row.openOrders} open order{row.openOrders === 1 ? "" : "s"}
+                    {row.openOrders} {row.openOrders === 1 ? copy.openOrder : copy.openOrders}
                   </p>
                 </div>
                 <span className="font-display text-3xl text-[var(--ink)]">{row.totalQuantity}</span>
@@ -82,7 +88,7 @@ export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             ))}
             {!demand.length ? (
               <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.7)] p-4 text-sm text-[var(--muted-strong)]">
-                No open demand yet.
+                {copy.noDemand}
               </p>
             ) : null}
           </div>

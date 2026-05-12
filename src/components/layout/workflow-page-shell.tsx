@@ -1,4 +1,6 @@
 import { Card, Display, Eyebrow, Reveal, StatPill } from "@/components/ui/surfaces";
+import { getRequestLanguage } from "@/lib/i18n-server";
+import { workflowPageCopy } from "@/lib/i18n";
 
 type WorkflowStep = {
   title: string;
@@ -10,7 +12,7 @@ type WorkflowMetric = {
   value: string;
 };
 
-export function WorkflowPageShell({
+export async function WorkflowPageShell({
   eyebrow,
   title,
   description,
@@ -27,6 +29,8 @@ export function WorkflowPageShell({
   nextStep: string;
   children: React.ReactNode;
 }>) {
+  const language = await getRequestLanguage();
+  const copy = workflowPageCopy(language);
   return (
     <div className="space-y-4 md:space-y-5">
       <Reveal>
@@ -46,16 +50,16 @@ export function WorkflowPageShell({
             </div>
           </div>
           <div className="mt-7 grid gap-3 lg:grid-cols-3">
-            {steps.map((step, index) => (
-              <Reveal key={step.title} delay={120 + index * 80}>
-                <div className="paper-card relative h-full rounded-[24px] p-4">
-                  <div className="flex items-start justify-between">
-                    <span className="font-mono text-[0.6rem] uppercase tracking-[0.32em] text-[var(--flame)]">
-                      Step {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="font-display text-2xl text-[var(--ink)]/35">{index + 1}</span>
-                  </div>
-                  <p className="mt-2 font-display text-lg text-[var(--text)]">{step.title}</p>
+              {steps.map((step, index) => (
+                <Reveal key={step.title} delay={120 + index * 80}>
+                  <div className="paper-card relative h-full rounded-[24px] p-4">
+                    <div className="flex items-start justify-between">
+                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.32em] text-[var(--flame)]">
+                        {copy.stepLabel} {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="font-display text-2xl text-[var(--ink)]/35">{index + 1}</span>
+                    </div>
+                    <p className="mt-2 font-display text-lg text-[var(--text)]">{step.title}</p>
                   <p className="mt-2 text-[0.85rem] leading-6 text-[var(--muted-strong)]">{step.description}</p>
                 </div>
               </Reveal>
@@ -70,7 +74,7 @@ export function WorkflowPageShell({
         <Card className="flex flex-wrap items-center justify-between gap-4 rounded-[26px] px-6 py-5">
           <div className="flex items-center gap-3">
             <span className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--cyan)]">
-              Next move
+              {copy.nextMove}
             </span>
             <span className="hidden h-px w-10 bg-[var(--line-strong)] md:inline-block" />
           </div>

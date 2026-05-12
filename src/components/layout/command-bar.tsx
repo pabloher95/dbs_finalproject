@@ -3,13 +3,18 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { appNav } from "@/lib/data/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
+import { commandBarCopy, workspaceCopy } from "@/lib/i18n";
 
-function activeLabel(pathname: string | null) {
-  if (!pathname) return "Home";
+function activeLabel(pathname: string | null, language: "en" | "es") {
+  const copy = workspaceCopy(language);
+  if (!pathname) return copy.nav[0]?.label ?? copy.home;
   const match = appNav.find((item) =>
     item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`)
   );
-  return match?.label ?? "Home";
+  if (!match) return copy.home;
+  const translated = copy.nav[appNav.indexOf(match)]?.label;
+  return translated ?? match.label;
 }
 
 function formatTime(date: Date) {
@@ -18,7 +23,9 @@ function formatTime(date: Date) {
 
 export function CommandBar({ businessName }: Readonly<{ businessName: string }>) {
   const pathname = usePathname();
+  const { language } = useLanguage();
   const [now, setNow] = useState<Date | null>(null);
+  const copy = commandBarCopy(language);
 
   useEffect(() => {
     setNow(new Date());
@@ -26,7 +33,7 @@ export function CommandBar({ businessName }: Readonly<{ businessName: string }>)
     return () => window.clearInterval(interval);
   }, []);
 
-  const label = activeLabel(pathname);
+  const label = activeLabel(pathname, language);
 
   return (
     <div className="command-bar">
@@ -42,7 +49,7 @@ export function CommandBar({ businessName }: Readonly<{ businessName: string }>)
       <div className="hidden items-center gap-4 md:flex">
         <span className="marginalia">{formatTime(now ?? new Date())}</span>
         <span className="h-3 w-px bg-[var(--line-strong)]" />
-        <span className="marginalia">{now ? "synced" : "syncing"}</span>
+        <span className="marginalia">{now ? copy.synced : copy.syncing}</span>
       </div>
     </div>
   );

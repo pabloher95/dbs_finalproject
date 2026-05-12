@@ -3,6 +3,9 @@ import { ClerkProvider, UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import type { Route } from "next";
+import { LanguageSwitcher } from "@/components/providers/language-switcher";
+import { getRequestLanguage } from "@/lib/i18n-server";
+import { landingCopy } from "@/lib/i18n";
 
 export const metadata = {
   title: "SmallBiz IQ — A practical operating studio for the hands-on business."
@@ -10,6 +13,8 @@ export const metadata = {
 
 export default async function LandingPage() {
   const { userId } = await auth();
+  const language = await getRequestLanguage();
+  const copy = landingCopy(language);
 
   return (
     <ClerkProvider
@@ -22,16 +27,16 @@ export default async function LandingPage() {
       signUpFallbackRedirectUrl="/dashboard"
     >
       <div className="relative z-[1] min-h-screen">
-        <TopBar isSignedIn={Boolean(userId)} />
+        <TopBar isSignedIn={Boolean(userId)} copy={copy} />
 
         <main className="px-6 md:px-10">
-          <Hero />
+          <Hero copy={copy} />
           <Marquee />
-          <Method />
-          <StudioPreview />
+          <Method copy={copy} />
+          <StudioPreview copy={copy} />
         </main>
 
-        <Footer />
+        <Footer copy={copy} />
       </div>
     </ClerkProvider>
   );
@@ -39,7 +44,13 @@ export default async function LandingPage() {
 
 /* —————————————————————————————————————————————————————— */
 
-function TopBar({ isSignedIn }: { isSignedIn: boolean }) {
+function TopBar({
+  isSignedIn,
+  copy
+}: {
+  isSignedIn: boolean;
+  copy: ReturnType<typeof landingCopy>;
+}) {
   return (
     <header className="px-6 pt-6 md:px-10 md:pt-8">
       <div className="mx-auto flex max-w-[1320px] items-center justify-between">
@@ -48,28 +59,29 @@ function TopBar({ isSignedIn }: { isSignedIn: boolean }) {
         </Link>
         <nav className="hidden items-center gap-8 text-[0.85rem] tracking-wide text-[var(--ink-soft)] md:flex">
           <a href="#method" className="transition-colors hover:text-[var(--vermilion)]">
-            How it works
+            {copy.navHowItWorks}
           </a>
           <a href="#studio" className="transition-colors hover:text-[var(--vermilion)]">
-            What it measures
+            {copy.navWhatItMeasures}
           </a>
         </nav>
         <div className="flex items-center gap-3">
+          <LanguageSwitcher />
           {!isSignedIn ? (
             <>
-            <Link href={"/sign-in" as Route} className="link-rule text-sm">
-              Sign in
-            </Link>
-            <Link href={"/sign-up" as Route} className="btn btn-vermilion">
-              Open studio →
-            </Link>
+              <Link href={"/sign-in" as Route} className="link-rule text-sm">
+                {copy.signIn}
+              </Link>
+              <Link href={"/sign-up" as Route} className="btn btn-vermilion">
+                {copy.openStudio} →
+              </Link>
             </>
           ) : (
             <>
-            <Link href={"/dashboard" as Route} className="btn btn-vermilion">
-              Open studio →
-            </Link>
-            <UserButton />
+              <Link href={"/dashboard" as Route} className="btn btn-vermilion">
+                {copy.openStudio} →
+              </Link>
+              <UserButton />
             </>
           )}
         </div>
@@ -80,24 +92,21 @@ function TopBar({ isSignedIn }: { isSignedIn: boolean }) {
 
 /* —————————————————————————————————————————————————————— */
 
-function Hero() {
+function Hero({ copy }: { copy: ReturnType<typeof landingCopy> }) {
   return (
     <section className="mx-auto max-w-[1320px] pt-16 pb-20 md:pt-28 md:pb-24">
-      <p className="eyebrow text-[var(--vermilion)]">Inventory · Orders · Purchasing</p>
+      <p className="eyebrow text-[var(--vermilion)]">{copy.heroEyebrow}</p>
       <h1 className="editorial mt-6 text-[clamp(3.4rem,9vw,8.4rem)]">
-        A practical operating studio
+        {copy.heroTitleLead}
         <br />
-        for the <em>hands-on</em> business.
+        {copy.heroTitleTail}
       </h1>
 
-      <p className="mt-12 max-w-2xl text-[1.05rem] leading-7 text-[var(--ink-soft)]">
-        SmallBiz IQ keeps the catalog, the open orders, and the material plan in a single
-        measured surface. Import a CSV, capture an order, get a supplier-ready buy list.
-      </p>
+      <p className="mt-12 max-w-2xl text-[1.05rem] leading-7 text-[var(--ink-soft)]">{copy.heroBody}</p>
 
       <div className="rule-thick mt-12" />
       <a href="#method" className="link-rule mt-5 inline-flex">
-        How it works
+        {copy.heroLink}
       </a>
     </section>
   );
@@ -161,71 +170,64 @@ function Marquee() {
 
 /* —————————————————————————————————————————————————————— */
 
-function Method() {
+function Method({ copy }: { copy: ReturnType<typeof landingCopy> }) {
   const moves = [
     {
       n: "01",
-      title: "Import.",
-      body: "Upload a CSV of products, contacts, or orders. Each row is validated before it lands.",
-      footnote: "Intake"
+      title: copy.importTitle,
+      body: copy.importBody,
+      footnote: copy.methodFootnotes.intake
     },
     {
       n: "02",
-      title: "Define products.",
-      body: "Write each product as a formula — materials, yields, and units.",
-      footnote: "Catalog"
+      title: copy.defineTitle,
+      body: copy.defineBody,
+      footnote: copy.methodFootnotes.catalog
     },
     {
       n: "03",
-      title: "Plan purchasing.",
-      body: "Open orders aggregate into demand, which expands into a supplier-ready material list.",
-      footnote: "Purchasing"
+      title: copy.planTitle,
+      body: copy.planBody,
+      footnote: copy.methodFootnotes.purchasing
     }
   ];
 
   return (
     <section id="method" className="mx-auto max-w-[1320px] pt-24 pb-16 md:pt-32 md:pb-20">
       <header className="mb-16">
-        <p className="eyebrow text-[var(--vermilion)]">How it works</p>
-        <h2 className="editorial mt-4 text-[clamp(2.4rem,5.5vw,4.8rem)]">
-          Three steps.
-        </h2>
+        <p className="eyebrow text-[var(--vermilion)]">{copy.methodEyebrow}</p>
+        <h2 className="editorial mt-4 text-[clamp(2.4rem,5.5vw,4.8rem)]">{copy.methodTitle}</h2>
       </header>
 
       <div className="border-t border-[var(--ink)] grid gap-px bg-[var(--line)] md:grid-cols-3">
         {moves.map((m) => (
-          <article
-            key={m.n}
-            className="method-tile bg-[var(--paper)] flex flex-col gap-5 p-6 md:p-8"
-          >
+          <article key={m.n} className="method-tile bg-[var(--paper)] flex flex-col gap-5 p-6 md:p-8">
             <div className="flex items-baseline justify-between">
               <span className="numeral">{m.n}</span>
               <p className="marginalia">{m.footnote}</p>
             </div>
-            <h3 className="editorial text-[clamp(1.9rem,3vw,2.6rem)] leading-[1.02]">
-              {m.title}
-            </h3>
+            <h3 className="editorial text-[clamp(1.9rem,3vw,2.6rem)] leading-[1.02]">{m.title}</h3>
             <p className="text-[1rem] leading-7 text-[var(--ink-soft)]">{m.body}</p>
           </article>
         ))}
       </div>
 
-      <DataFlow />
+      <DataFlow copy={copy} />
     </section>
   );
 }
 
-function DataFlow() {
+function DataFlow({ copy }: { copy: ReturnType<typeof landingCopy> }) {
   const stages = [
-    { label: "CSV", note: "intake" },
-    { label: "Catalog", note: "formulas" },
-    { label: "Orders", note: "demand" },
-    { label: "Buy list", note: "supplier-ready" }
+    { label: "CSV", note: copy.methodFootnotes.intake },
+    { label: "Catalog", note: copy.methodFootnotes.catalog },
+    { label: copy.dataFlow.orders, note: copy.dataFlow.orders },
+    { label: copy.dataFlow.buyList, note: copy.dataFlow.buyList }
   ];
 
   return (
     <figure className="mt-20 hidden md:block">
-      <p className="marginalia mb-6">— How the data moves</p>
+      <p className="marginalia mb-6">{copy.howDataMoves}</p>
       <div className="data-flow-track grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch border-y border-[var(--ink)]">
         {stages.map((s, i) => (
           <Fragment key={s.label}>
@@ -236,10 +238,7 @@ function DataFlow() {
               <p className="data-flow-note marginalia mt-3">{s.note}</p>
             </div>
             {i < stages.length - 1 && (
-              <div
-                aria-hidden
-                className="data-flow-arrow px-3 text-[var(--vermilion)]"
-              >
+              <div aria-hidden className="data-flow-arrow px-3 text-[var(--vermilion)]">
                 <svg width="40" height="14" viewBox="0 0 40 14" fill="none">
                   <path
                     d="M0 7H36M30 2L37 7L30 12"
@@ -261,50 +260,30 @@ function DataFlow() {
 
 /* —————————————————————————————————————————————————————— */
 
-function StudioPreview() {
+function StudioPreview({ copy }: { copy: ReturnType<typeof landingCopy> }) {
   const readings = [
-    {
-      label: "— Runway",
-      title: "Days of stock",
-      body: "How long your current materials cover the demand on your books."
-    },
-    {
-      label: "— Buy list",
-      title: "Supplier-ready",
-      body: "Open demand, expanded into a per-supplier purchase order with quantities."
-    },
-    {
-      label: "— Concentration",
-      title: "Where weight sits",
-      body: "Which products and suppliers your business actually depends on."
-    },
-    {
-      label: "— Pipeline",
-      title: "What ships next",
-      body: "Open orders sorted by due date, with material readiness flagged."
-    }
+    copy.readings.runway,
+    copy.readings.buyList,
+    copy.readings.concentration,
+    copy.readings.pipeline
   ];
 
   return (
     <section id="studio" className="mx-auto max-w-[1320px] py-24 md:py-32">
       <header className="mb-12">
-        <p className="eyebrow text-[var(--vermilion)]">What the studio measures</p>
+        <p className="eyebrow text-[var(--vermilion)]">{copy.studioEyebrow}</p>
         <h2 className="editorial mt-4 text-[clamp(2.4rem,5.5vw,4.8rem)]">
-          Four <em>readings</em> of the business.
+          {copy.studioTitle}
         </h2>
         <p className="mt-6 max-w-2xl text-[1.02rem] leading-7 text-[var(--ink-soft)]">
-          A handful of running figures, each wired to a real question—what to stock, what to buy,
-          where the business leans, what goes out the door next.
+          {copy.studioBody}
         </p>
       </header>
 
       <div className="plate p-6 md:p-10">
         <div className="grid gap-px bg-[var(--ink)] md:grid-cols-2 lg:grid-cols-4">
           {readings.map((r) => (
-            <div
-              key={r.label}
-              className="ledger-cell bg-[var(--paper-bright)] p-6 md:p-8"
-            >
+            <div key={r.label} className="ledger-cell bg-[var(--paper-bright)] p-6 md:p-8">
               <p className="marginalia">{r.label}</p>
               <p className="font-display mt-4 text-[clamp(1.6rem,2.4vw,2.2rem)] leading-[1.05] tracking-tight text-[var(--ink)]">
                 {r.title}
@@ -314,11 +293,11 @@ function StudioPreview() {
           ))}
         </div>
 
-      <div className="mt-10">
-        <a href="#studio" className="btn btn-vermilion">
-          Enter studio →
-        </a>
-      </div>
+        <div className="mt-10">
+          <a href="#studio" className="btn btn-vermilion">
+            {copy.enterStudio} →
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -326,7 +305,7 @@ function StudioPreview() {
 
 /* —————————————————————————————————————————————————————— */
 
-function Footer() {
+function Footer({ copy }: { copy: ReturnType<typeof landingCopy> }) {
   return (
     <footer className="border-t border-[var(--line)] px-6 py-10 md:px-10 md:py-12">
       <div className="mx-auto flex max-w-[1320px] flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -336,16 +315,13 @@ function Footer() {
         </div>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--ink-soft)]">
           <a href="#studio" className="hover:text-[var(--vermilion)]">
-            Studio
+            {copy.footerStudio}
           </a>
           <a href="#method" className="hover:text-[var(--vermilion)]">
-            Catalog
+            {copy.footerHowItWorks}
           </a>
           <a href="#method" className="hover:text-[var(--vermilion)]">
-            Orders
-          </a>
-          <a href="#method" className="hover:text-[var(--vermilion)]">
-            Purchasing
+            {copy.footerWhatItMeasures}
           </a>
         </div>
       </div>

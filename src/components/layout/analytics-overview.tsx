@@ -1,5 +1,7 @@
 import { Card, Pill, SectionHeading, StatPill } from "@/components/ui/surfaces";
-import { buildBusinessInsights } from "@/lib/domain/analytics";
+import { buildBusinessInsights, type RevenueTrendPoint } from "@/lib/domain/analytics";
+import { getRequestLanguage } from "@/lib/i18n-server";
+import { analyticsCopy } from "@/lib/i18n";
 import type { BusinessSnapshot } from "@/lib/domain/types";
 
 function formatMoney(value: number) {
@@ -14,7 +16,9 @@ function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`;
 }
 
-export function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+  const language = await getRequestLanguage();
+  const copy = analyticsCopy(language);
   const insights = buildBusinessInsights(snapshot);
   const topProduct = insights.productRows[0];
   const topClient = insights.clientRows[0];
@@ -23,27 +27,28 @@ export function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: BusinessSna
   return (
     <Card className="rounded-[28px] p-6 md:p-8">
       <SectionHeading
-        eyebrow="Readings"
-        title="Revenue, margin, and trend signals"
-        description="Descriptive analytics built from the current order book, product pricing, and material costs. No forecasts yet, just the shape of the business."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
       />
 
       <div className="mt-6 flex flex-wrap gap-2">
-        <StatPill label="Revenue" value={formatMoney(insights.totalRevenue)} />
-        <StatPill label="Gross margin" value={formatMoney(insights.grossMargin)} />
-        <StatPill label="Margin rate" value={formatPercent(insights.grossMarginRate)} />
-        <StatPill label="Avg. order" value={formatMoney(insights.averageOrderRevenue)} />
+        <StatPill label={copy.revenue} value={formatMoney(insights.totalRevenue)} />
+        <StatPill label={copy.grossMargin} value={formatMoney(insights.grossMargin)} />
+        <StatPill label={copy.marginRate} value={formatPercent(insights.grossMarginRate)} />
+        <StatPill label={copy.avgOrder} value={formatMoney(insights.averageOrderRevenue)} />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
+        <div className="space-y-4">
+          <TrendChart rows={insights.trendRows} copy={copy} />
           <table className="console-table">
             <thead>
               <tr>
-                <th>Month</th>
-                <th>Revenue</th>
-                <th>Margin</th>
-                <th>Orders</th>
+                <th>{copy.month}</th>
+                <th>{copy.revenue}</th>
+                <th>{copy.grossMargin}</th>
+                <th>{copy.orders}</th>
               </tr>
             </thead>
             <tbody>
@@ -58,7 +63,7 @@ export function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: BusinessSna
               {!insights.trendRows.length ? (
                 <tr>
                   <td colSpan={4} className="text-center text-sm text-[var(--muted-strong)]">
-                    No revenue trend is available yet.
+                    {copy.noTrend}
                   </td>
                 </tr>
               ) : null}
@@ -69,60 +74,149 @@ export function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: BusinessSna
         <div className="space-y-3">
           <div className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
             <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-              Leading product
+              {copy.leadingProduct}
             </p>
             <p className="mt-2 font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
-              {topProduct?.productName ?? "No product data yet"}
+              {topProduct?.productName ?? copy.noProduct}
             </p>
             <p className="mt-2 text-sm text-[var(--muted-strong)]">
-              {topProduct ? `${formatMoney(topProduct.revenue)} revenue · ${formatMoney(topProduct.margin)} margin` : "Set product prices and material costs to unlock revenue analysis."}
+              {topProduct ? `${formatMoney(topProduct.revenue)} revenue · ${formatMoney(topProduct.margin)} margin` : copy.setPricing}
             </p>
           </div>
 
           <div className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
             <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-              Leading client
+              {copy.leadingClient}
             </p>
             <p className="mt-2 font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
-              {topClient?.clientName ?? "No client data yet"}
+              {topClient?.clientName ?? copy.noClient}
             </p>
             <p className="mt-2 text-sm text-[var(--muted-strong)]">
-              {topClient ? `${formatMoney(topClient.revenue)} revenue across ${topClient.orders} order${topClient.orders === 1 ? "" : "s"}.` : "Open orders will appear here once pricing is in place."}
+              {topClient ? `${formatMoney(topClient.revenue)} revenue across ${topClient.orders} order${topClient.orders === 1 ? "" : "s"}.` : copy.openOrdersFallback}
             </p>
           </div>
 
           <div className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
             <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-              Strongest month
+              {copy.strongestMonth}
             </p>
             <p className="mt-2 font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
-              {topMonth?.label ?? "No month data yet"}
+              {topMonth?.label ?? copy.noMonth}
             </p>
             <p className="mt-2 text-sm text-[var(--muted-strong)]">
-              {topMonth ? `${formatMoney(topMonth.revenue)} in revenue and ${formatPercent(topMonth.margin / Math.max(topMonth.revenue, 1))} margin rate.` : "Month-over-month readings appear once orders are priced."}
+              {topMonth ? `${formatMoney(topMonth.revenue)} in revenue and ${formatPercent(topMonth.margin / Math.max(topMonth.revenue, 1))} margin rate.` : copy.monthReadings}
             </p>
           </div>
 
           <div className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
             <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-              Working note
+              {copy.workingNote}
             </p>
             <p className="mt-2 text-sm leading-6 text-[var(--muted-strong)]">
               {insights.totalRevenue > 0
-                ? "The business is already showing a priced order mix. Use the product and customer leaders as your first descriptive checks before adding any forecast layer."
-                : "Add product prices and material costs to surface revenue, margin, and trend readings in the dashboard."}
+                ? copy.checks
+                : copy.addPrices}
             </p>
           </div>
-        </div>
+      </div>
       </div>
 
       {topProduct || topClient ? (
         <div className="mt-6 flex flex-wrap gap-2">
-          {topProduct ? <Pill tone="ink">Top product: {topProduct.productName}</Pill> : null}
-          {topClient ? <Pill tone="moss">Top client: {topClient.clientName}</Pill> : null}
-          {topMonth ? <Pill tone="amber">Top month: {topMonth.label}</Pill> : null}
+          {topProduct ? <Pill tone="ink">{copy.leadingProduct}: {topProduct.productName}</Pill> : null}
+          {topClient ? <Pill tone="moss">{copy.leadingClient}: {topClient.clientName}</Pill> : null}
+          {topMonth ? <Pill tone="amber">{copy.strongestMonth}: {topMonth.label}</Pill> : null}
         </div>
       ) : null}
     </Card>
+  );
+}
+
+function TrendChart({
+  rows,
+  copy
+}: Readonly<{ rows: RevenueTrendPoint[]; copy: ReturnType<typeof analyticsCopy> }>) {
+  const width = 720;
+  const height = 280;
+  const paddingX = 48;
+  const paddingTop = 28;
+  const paddingBottom = 42;
+  const plotHeight = height - paddingTop - paddingBottom;
+  const barGap = 12;
+  const barsPerGroup = 2;
+  const groupWidth = rows.length ? (width - paddingX * 2 - barGap * (rows.length - 1)) / rows.length : 0;
+  const barWidth = Math.max((groupWidth - 18) / barsPerGroup, 10);
+  const maxValue = Math.max(
+    1,
+    ...rows.flatMap((row) => [row.revenue, row.margin]).map((value) => Math.max(value, 0))
+  );
+
+  return (
+    <div className="overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">{copy.trendChart}</p>
+          <p className="mt-2 font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
+            {copy.chartTitle}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-[var(--muted-strong)]">
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--vermilion)]" />
+            {copy.revenue}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--data-moss)]" />
+            {copy.grossMargin}
+          </span>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="mt-4 h-auto w-full" role="img" aria-label="Monthly revenue and margin chart">
+        <defs>
+          <linearGradient id="revenue-fill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="rgba(214,88,62,0.9)" />
+            <stop offset="100%" stopColor="rgba(214,88,62,0.25)" />
+          </linearGradient>
+          <linearGradient id="margin-fill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="rgba(46,83,57,0.88)" />
+            <stop offset="100%" stopColor="rgba(46,83,57,0.24)" />
+          </linearGradient>
+        </defs>
+        {[0, 0.5, 1].map((fraction) => {
+          const y = paddingTop + plotHeight * fraction;
+          return (
+            <g key={fraction}>
+              <line x1={paddingX} x2={width - paddingX} y1={y} y2={y} stroke="rgba(19,36,58,0.08)" strokeWidth="1" />
+              <text x={10} y={y + 4} className="fill-[var(--muted)] font-mono text-[10px]">
+                {formatMoney(maxValue * (1 - fraction))}
+              </text>
+            </g>
+          );
+        })}
+
+        {rows.map((row, index) => {
+          const groupX = paddingX + index * (groupWidth + barGap);
+          const revenueHeight = (row.revenue / maxValue) * plotHeight;
+          const marginHeight = (row.margin / maxValue) * plotHeight;
+          const revenueX = groupX;
+          const marginX = groupX + barWidth + 10;
+          const revenueY = paddingTop + (plotHeight - revenueHeight);
+          const marginY = paddingTop + (plotHeight - marginHeight);
+
+          return (
+            <g key={row.label}>
+              <rect x={revenueX} y={revenueY} width={barWidth} height={revenueHeight} rx="10" fill="url(#revenue-fill)" />
+              <rect x={marginX} y={marginY} width={barWidth} height={marginHeight} rx="10" fill="url(#margin-fill)" />
+              <text x={groupX + groupWidth / 2} y={height - 14} textAnchor="middle" className="fill-[var(--muted-strong)] font-mono text-[10px]">
+                {row.label}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      {!rows.length ? (
+        <p className="mt-2 text-sm text-[var(--muted-strong)]">{copy.addPrices}</p>
+      ) : null}
+    </div>
   );
 }

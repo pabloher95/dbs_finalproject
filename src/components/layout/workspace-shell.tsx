@@ -3,7 +3,10 @@ import Link from "next/link";
 import type { Route } from "next";
 import { CommandBar } from "@/components/layout/command-bar";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { LanguageSwitcher } from "@/components/providers/language-switcher";
 import { appNav } from "@/lib/data/navigation";
+import { getRequestLanguage } from "@/lib/i18n-server";
+import { workspaceCopy } from "@/lib/i18n";
 import { getWorkspaceOverview } from "@/lib/server/workspace";
 
 export async function WorkspaceShell({
@@ -12,12 +15,14 @@ export async function WorkspaceShell({
   children: React.ReactNode;
 }>) {
   const { snapshot } = await getWorkspaceOverview();
+  const language = await getRequestLanguage();
+  const copy = workspaceCopy(language);
   const businessName = snapshot.business.name;
   const openOrdersList = snapshot.orders
     .filter((order) => order.status === "open")
     .slice(0, 4);
   const openOrders = openOrdersList.length;
-  const today = new Intl.DateTimeFormat("en-US", {
+  const today = new Intl.DateTimeFormat(language === "es" ? "es-ES" : "en-US", {
     month: "short",
     day: "numeric"
   }).format(new Date());
@@ -32,7 +37,7 @@ export async function WorkspaceShell({
               smallbiz<em className="not-italic font-normal text-[var(--vermilion)]">·</em>iq
             </Link>
             <p className="marginalia hidden md:block">
-              The Studio
+              {copy.studioLabel}
               <br />
               <span className="text-[var(--ink)]">{businessName}</span>
             </p>
@@ -40,9 +45,11 @@ export async function WorkspaceShell({
           <div className="flex flex-wrap items-center gap-3 md:gap-5">
             <p className="marginalia">{today}</p>
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
+            <LanguageSwitcher />
+            <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <div className="group relative">
               <Link href={"/orders" as Route} className="link-rule text-sm">
-                {openOrders} order{openOrders === 1 ? "" : "s"} open
+                {openOrders} {openOrders === 1 ? copy.openOrder : copy.openOrders}
               </Link>
               <div
                 className="pointer-events-none absolute left-1/2 top-full z-20 mt-3 w-[18rem] -translate-x-1/2 translate-y-1 opacity-0 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.45)] transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100"
@@ -50,7 +57,7 @@ export async function WorkspaceShell({
               >
                 <div className="rounded-[20px] border border-[var(--ink)] bg-[var(--paper-bright)] px-4 py-3 text-left">
                   <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-                    Open demand
+                    {copy.openDemand}
                   </p>
                   <div className="mt-2 space-y-2">
                     {openOrdersList.length ? (
@@ -65,19 +72,19 @@ export async function WorkspaceShell({
                             </p>
                           </div>
                           <p className="shrink-0 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-[var(--muted-strong)]">
-                            Due {order.dueDate}
+                            {copy.due} {order.dueDate}
                           </p>
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm leading-6 text-[var(--muted-strong)]">No open orders yet.</p>
+                      <p className="text-sm leading-6 text-[var(--muted-strong)]">{copy.noOpenOrders}</p>
                     )}
                   </div>
                 </div>
               </div>
             </div>
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
-            <p className="marginalia">synced</p>
+            <p className="marginalia">{copy.synced}</p>
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <UserButton />
           </div>
@@ -87,7 +94,13 @@ export async function WorkspaceShell({
           <aside className="xl:sticky xl:top-6 xl:h-fit">
             <div className="flex flex-col gap-4">
               <div className="ink-rail ink-rail--nav">
-                <SidebarNav items={appNav} />
+                <SidebarNav
+                  items={appNav.map((item, index) => ({
+                    ...item,
+                    label: copy.nav[index]?.label ?? item.label,
+                    description: copy.nav[index]?.description ?? item.description
+                  }))}
+                />
               </div>
             </div>
           </aside>

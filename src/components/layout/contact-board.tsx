@@ -1,4 +1,8 @@
+"use client";
+
 import { Card, Pill, SectionHeading } from "@/components/ui/surfaces";
+import { contactBoardCopy } from "@/lib/i18n";
+import { useLanguage } from "@/components/providers/language-provider";
 import type { Client, Supplier } from "@/lib/domain/types";
 
 export function ContactBoard({
@@ -8,13 +12,15 @@ export function ContactBoard({
   clients: Client[];
   suppliers: Supplier[];
 }>) {
+  const { language } = useLanguage();
+  const copy = contactBoardCopy(language);
   return (
     <div className="grid gap-4 xl:grid-cols-2">
       <Card className="rounded-[28px] p-6">
         <SectionHeading
-          eyebrow="Customers"
-          title="Order destinations"
-          description="Track who orders from you, how they buy, and where upcoming production is headed."
+          eyebrow={copy.customers}
+          title={copy.orderDestinations}
+          description={copy.customerDescription}
         />
         <div className="mt-5 space-y-3">
           {clients.map((client) => (
@@ -31,16 +37,16 @@ export function ContactBoard({
           ))}
           {!clients.length ? (
             <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-              No customers yet.
+              {copy.noCustomers}
             </p>
           ) : null}
         </div>
       </Card>
       <Card className="rounded-[28px] p-6">
         <SectionHeading
-          eyebrow="Suppliers"
-          title="Material sourcing links"
-          description="Assign preferred vendors so the purchasing plan can point to the right source on day one."
+          eyebrow={copy.suppliers}
+          title={copy.sourcingLinks}
+          description={copy.supplierDescription}
         />
         <div className="mt-5 space-y-3">
           {suppliers.map((supplier) => (
@@ -59,7 +65,7 @@ export function ContactBoard({
           ))}
           {!suppliers.length ? (
             <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-              No suppliers yet.
+              {copy.noSuppliers}
             </p>
           ) : null}
         </div>

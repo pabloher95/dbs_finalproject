@@ -1,6 +1,8 @@
 import { Card, Eyebrow, Pill } from "@/components/ui/surfaces";
 import { MaterialStockStudio } from "@/components/forms/material-stock-studio";
 import { buildPurchasingPlan } from "@/lib/domain/purchasing-plan";
+import { getRequestLanguage } from "@/lib/i18n-server";
+import { purchasingBoardCopy } from "@/lib/i18n";
 import type { BusinessSnapshot } from "@/lib/domain/types";
 
 function priorityFor(line: { netToBuyQuantity: number; supplierName?: string }) {
@@ -10,7 +12,8 @@ function priorityFor(line: { netToBuyQuantity: number; supplierName?: string }) 
   return { tone: "moss" as const, label: "Ready" };
 }
 
-export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
+  const copy = purchasingBoardCopy(await getRequestLanguage());
   const purchasingPlan = buildPurchasingPlan(
     snapshot.orders,
     snapshot.products,
@@ -29,30 +32,30 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
       <Card className="rounded-[28px] p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <Eyebrow tone="flame">Today&apos;s run</Eyebrow>
+            <Eyebrow tone="flame">{copy.todayRun}</Eyebrow>
             <p className="mt-2 font-display text-3xl leading-tight text-[var(--ink)]">
-              {totalLines} material line{totalLines === 1 ? "" : "s"} ready to source
+              {totalLines} {copy.readyToSource}
             </p>
             <p className="mt-2 text-[0.92rem] leading-6 text-[var(--muted-strong)]">
-              Roll-up of every open order, expanded by formula, grouped by material and supplier.
+              {copy.description}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Pill tone="ink">{`${Math.round(totalUnits)} required units`}</Pill>
+            <Pill tone="ink">{`${Math.round(totalUnits)} ${copy.requiredUnits}`}</Pill>
             <Pill tone={linkedLines === totalLines && totalLines > 0 ? "moss" : "amber"}>
-              {linkedLines}/{totalLines || 0} sourced
+              {linkedLines}/{totalLines || 0} {copy.sourced}
             </Pill>
-            <Pill tone={stockedMaterials > 0 ? "moss" : "amber"}>{stockedMaterials} stocked materials</Pill>
+            <Pill tone={stockedMaterials > 0 ? "moss" : "amber"}>{stockedMaterials} {copy.stockedMaterials}</Pill>
           </div>
         </div>
         {!snapshot.orders.some((order) => order.status === "open") ? (
           <p className="mt-5 rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-            No open orders yet. Add an order in Orders to generate required material quantities.
+            {copy.noOpenOrders}
           </p>
         ) : null}
         {!snapshot.products.length ? (
           <p className="mt-3 rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-            Catalog is empty. Add products with formulas before generating a purchasing run.
+            {copy.emptyCatalog}
           </p>
         ) : null}
         <div className="mt-5">
@@ -60,19 +63,19 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
         </div>
         {uncoveredLines > 0 ? (
           <p className="mt-4 rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-            {uncoveredLines} material line{uncoveredLines === 1 ? "" : "s"} still need buying after stock is counted.
+            {uncoveredLines} {copy.uncovered}
           </p>
         ) : null}
         <div className="mt-6 overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
           <table className="console-table">
             <thead>
               <tr>
-                <th>Material</th>
-                <th>On hand</th>
-                <th>Required</th>
-                <th>Net to buy</th>
-                <th>Supplier</th>
-                <th>State</th>
+                <th>{copy.material}</th>
+                <th>{copy.onHand}</th>
+                <th>{copy.required}</th>
+                <th>{copy.netToBuy}</th>
+                <th>{copy.supplier}</th>
+                <th>{copy.state}</th>
               </tr>
             </thead>
             <tbody>
@@ -108,7 +111,7 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
                           <span className="font-medium text-[var(--ink)]">{item.supplierName}</span>
                         )
                       ) : (
-                        <span className="text-[var(--muted)]">Unassigned</span>
+                        <span className="text-[var(--muted)]">{copy.unassigned}</span>
                       )}
                     </td>
                     <td>
@@ -120,7 +123,7 @@ export function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnaps
               {!purchasingPlan.length ? (
                 <tr>
                   <td colSpan={6} className="text-center text-sm text-[var(--muted-strong)]">
-                    Purchasing plan is empty. Import or create products and open orders to populate this view.
+                    {copy.emptyPlan}
                   </td>
                 </tr>
               ) : null}
