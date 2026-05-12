@@ -125,33 +125,6 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
                     </div>
                   ))}
                 </div>
-
-                <div className="mt-6 rounded-[20px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-4">
-                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[rgba(255,255,255,0.62)]">
-                    {copy.priorityQueue}
-                  </p>
-                  <div className="mt-4 space-y-3">
-                    {nextOrders.length ? (
-                      nextOrders.map((order) => (
-                        <div key={order.id} className="flex items-center justify-between gap-4">
-                          <div className="min-w-0">
-                            <p className="font-display text-xl leading-none text-[var(--paper-bright)]">
-                              {order.orderNumber}
-                            </p>
-                            <p className="mt-1 text-sm leading-6 text-[rgba(255,255,255,0.72)]">
-                              {order.clientName}
-                            </p>
-                          </div>
-                          <p className="shrink-0 font-mono text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.58)]">
-                            {order.items.reduce((sum, item) => sum + item.quantity, 0)} {copy.units}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm leading-6 text-[rgba(255,255,255,0.72)]">{copy.noOpenOrders}</p>
-                    )}
-                  </div>
-                </div>
               </Card>
             </div>
 
