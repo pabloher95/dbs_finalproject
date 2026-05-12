@@ -8,16 +8,16 @@ export default async function ImportPage() {
   const language = await getRequestLanguage();
   return (
     <WorkflowPageShell
-      eyebrow={language === "es" ? "Entrada directa" : "Direct intake"}
-      title={language === "es" ? "Crea productos en línea" : "Create products online"}
+      eyebrow={language === "es" ? "Productos" : "Products"}
+      title={language === "es" ? "Crea productos con fórmula" : "Create products with formulas"}
       description={
         language === "es"
           ? "Completa el formulario de productos para que el espacio de trabajo se actualice al instante, sin subir archivos. La fórmula del producto se guarda por unidad."
           : "Fill out the product form so the workspace updates instantly, without uploading files. Product formulas are saved at the unit level."
       }
       metrics={[
-        { label: language === "es" ? "Elementos del catálogo" : "Catalog items", value: String(snapshot.products.length) },
-        { label: language === "es" ? "Pedidos abiertos" : "Open orders", value: String(snapshot.orders.length) },
+        { label: language === "es" ? "Productos" : "Products", value: String(snapshot.products.length) },
+        { label: language === "es" ? "Materiales" : "Materials", value: String(snapshot.materials.length) },
         { label: language === "es" ? "Proveedores" : "Suppliers", value: String(snapshot.suppliers.length) }
       ]}
       steps={[
@@ -32,14 +32,14 @@ export default async function ImportPage() {
           title: language === "es" ? "Pasa a compras" : "Move to purchasing",
           description:
             language === "es"
-              ? "La demanda abierta alimenta la cola de compras sin otro paso."
-              : "Open demand feeds purchasing without another handoff."
+              ? "La fórmula alimenta compras sin otro paso."
+              : "The formula feeds purchasing without another handoff."
         }
       ]}
       nextStep={
         language === "es"
-          ? "Empieza por un producto por unidad; después usa Pedidos para registrar la demanda."
-          : "Start with a unit-level product, then use Orders to record demand."
+          ? "Empieza por un producto por unidad; luego ajusta materiales en el catálogo si hace falta."
+          : "Start with a unit-level product, then adjust materials in the catalog if needed."
       }
     >
       <ImportPageContent snapshot={snapshot} />

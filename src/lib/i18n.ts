@@ -523,8 +523,8 @@ export function contactBoardCopy(language: Language) {
 
 export function importExperienceCopy(language: Language) {
   return {
-    eyebrow: language === "es" ? "Ingesta directa" : "Direct intake",
-    title: language === "es" ? "Crea productos sin archivo" : "Create products without a file",
+    eyebrow: language === "es" ? "Productos" : "Products",
+    title: language === "es" ? "Crea productos con fórmula" : "Create products with formulas",
     description:
       language === "es"
         ? "Completa el formulario del producto, guarda cada registro y deja que el espacio de trabajo se actualice al instante."
