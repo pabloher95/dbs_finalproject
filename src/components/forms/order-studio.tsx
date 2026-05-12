@@ -10,10 +10,47 @@ import { orderStudioCopy } from "@/lib/i18n";
 
 type Tone = "info" | "success" | "warn" | "error";
 
+type OrderLineDraft = {
+  id: string;
+  productId: string;
+  quantity: string;
+};
+
+type OrderDraft = {
+  id?: string;
+  orderNumber: string;
+  clientId: string;
+  dueDate: string;
+  status: Order["status"];
+  items: OrderLineDraft[];
+};
+
 function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
   if (status === "open") return "flame";
   if (status === "draft") return "amber";
   return "moss";
+}
+
+function createLine(snapshot: BusinessSnapshot, productId = snapshot.products[0]?.id ?? ""): OrderLineDraft {
+  return {
+    id: crypto.randomUUID(),
+    productId,
+    quantity: "24"
+  };
+}
+
+function createDraft(snapshot: BusinessSnapshot): OrderDraft {
+  return {
+    orderNumber: `ORD-${2000 + snapshot.orders.length + 1}`,
+    clientId: snapshot.clients[0]?.id ?? "",
+    dueDate: "2026-05-01",
+    status: "open",
+    items: [createLine(snapshot)]
+  };
+}
+
+function toNumber(value: string) {
+  return Number(value.trim());
 }
 
 export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
@@ -21,15 +58,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
   const { language } = useLanguage();
   const copy = orderStudioCopy(language);
   const [orders, setOrders] = useState(snapshot.orders);
-  const [draft, setDraft] = useState({
-    id: "",
-    orderNumber: `ORD-${2000 + snapshot.orders.length + 1}`,
-    clientId: snapshot.clients[0]?.id ?? "",
-    dueDate: "2026-05-01",
-    status: "open" as Order["status"],
-    productId: snapshot.products[0]?.id ?? "",
-    quantity: "24"
-  });
+  const [draft, setDraft] = useState<OrderDraft>(() => createDraft(snapshot));
   const [toast, setToast] = useState<{ message: string; tone: Tone } | null>(null);
   const [search, setSearch] = useState("");
   const [lastDeleted, setLastDeleted] = useState<Order | null>(null);
@@ -39,6 +68,20 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
   useEffect(() => {
     setOrders(snapshot.orders);
   }, [snapshot.orders]);
+
+  useEffect(() => {
+    if (!snapshot.products.length) {
+      setDraft((current) => ({ ...current, items: current.items.map((item) => ({ ...item, productId: "" })) }));
+      return;
+    }
+    setDraft((current) => ({
+      ...current,
+      items: current.items.map((item) => ({
+        ...item,
+        productId: item.productId || snapshot.products[0]?.id || ""
+      }))
+    }));
+  }, [snapshot.products]);
 
   const visibleOrders = useMemo(() => {
     const key = search.trim().toLowerCase();
@@ -65,8 +108,16 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       setToast({ message: copy.orderNumberRequired, tone: "warn" });
       return;
     }
-    if (Number(draft.quantity) <= 0) {
-      setToast({ message: copy.quantityRequired, tone: "warn" });
+    if (!draft.items.length) {
+      setToast({ message: copy.noOrderLines, tone: "warn" });
+      return;
+    }
+    const normalizedItems = draft.items.map((item) => ({
+      productId: item.productId.trim(),
+      quantity: toNumber(item.quantity)
+    }));
+    if (normalizedItems.some((item) => !item.productId || !Number.isFinite(item.quantity) || item.quantity <= 0)) {
+      setToast({ message: copy.noOrderLines, tone: "warn" });
       return;
     }
 
@@ -79,8 +130,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         clientId: draft.clientId,
         dueDate: draft.dueDate,
         status: draft.status,
-        productId: draft.productId,
-        quantity: Number(draft.quantity)
+        items: normalizedItems
       })
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
@@ -121,8 +171,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         clientId: data.snapshot.clients[0]?.id ?? "",
         dueDate: "2026-05-01",
         status: "open",
-        productId: data.snapshot.products[0]?.id ?? "",
-        quantity: "24"
+        items: [createLine(data.snapshot)]
       });
     }
     setToast({ message: copy.deleted, tone: "info" });
@@ -131,8 +180,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
 
   async function undoDelete() {
     if (!lastDeleted) return;
-    const firstItem = lastDeleted.items[0];
-    if (!firstItem) {
+    if (!lastDeleted.items.length) {
       setToast({ message: copy.noItemRestore, tone: "warn" });
       return;
     }
@@ -145,8 +193,10 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         clientId: lastDeleted.clientId,
         dueDate: lastDeleted.dueDate,
         status: lastDeleted.status,
-        productId: firstItem.productId,
-        quantity: firstItem.quantity
+        items: lastDeleted.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity
+        }))
       })
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
@@ -160,17 +210,34 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     router.refresh();
   }
 
+  function addLine() {
+    setDraft((current) => ({
+      ...current,
+      items: [...current.items, createLine(snapshot, snapshot.products[0]?.id ?? "")]
+    }));
+  }
+
+  function removeLine(lineId: string) {
+    setDraft((current) => {
+      const next = current.items.filter((item) => item.id !== lineId);
+      return {
+        ...current,
+        items: next.length ? next : [createLine(snapshot, snapshot.products[0]?.id ?? "")]
+      };
+    });
+  }
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
         <form
-          className="grid gap-4 lg:grid-cols-6"
+          className="space-y-5"
           onSubmit={(event) => {
             event.preventDefault();
             void saveOrder();
           }}
         >
-          <div className="lg:col-span-6">
+          <div>
             <Eyebrow tone="flame">{copy.eyebrow}</Eyebrow>
             <p className="mt-2 font-display text-3xl leading-tight text-[var(--ink)]">{copy.title}</p>
             <p className="mt-2 text-[0.92rem] leading-6 text-[var(--muted-strong)]">
@@ -187,56 +254,113 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               </Pill>
             ) : null}
           </div>
-          <input
-            value={draft.orderNumber}
-            onChange={(event) => setDraft((current) => ({ ...current, orderNumber: event.target.value }))}
-            placeholder={language === "es" ? "Número de pedido" : "Order number"}
-            className="field font-mono text-sm"
-          />
+          <div className="grid gap-3 md:grid-cols-2">
+            <input
+              value={draft.orderNumber}
+              onChange={(event) => setDraft((current) => ({ ...current, orderNumber: event.target.value }))}
+              placeholder={language === "es" ? "Número de pedido" : "Order number"}
+              className="field font-mono text-sm"
+            />
             <select
-            value={draft.clientId}
-            onChange={(event) => setDraft((current) => ({ ...current, clientId: event.target.value }))}
-            className="field"
-          >
-            {snapshot.clients.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.name}
-              </option>
-            ))}
-          </select>
-          <input
-            value={draft.dueDate}
-            onChange={(event) => setDraft((current) => ({ ...current, dueDate: event.target.value }))}
-            type="date"
-            className="field"
-          />
-          <select
-            value={draft.productId}
-            onChange={(event) => setDraft((current) => ({ ...current, productId: event.target.value }))}
-            className="field"
-          >
-            {snapshot.products.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.name}
-              </option>
-            ))}
-          </select>
-          <input
-            value={draft.quantity}
-            onChange={(event) => setDraft((current) => ({ ...current, quantity: event.target.value }))}
-            type="number"
-            min="1"
-            className="field font-mono text-sm"
-          />
-          <select
-            value={draft.status}
-            onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as Order["status"] }))}
-            className="field"
-          >
-            <option value="draft">{copy.draft}</option>
-            <option value="open">{copy.open}</option>
-            <option value="fulfilled">{copy.fulfilled}</option>
-          </select>
+              value={draft.clientId}
+              onChange={(event) => setDraft((current) => ({ ...current, clientId: event.target.value }))}
+              className="field"
+            >
+              {snapshot.clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name}
+                </option>
+              ))}
+            </select>
+            <input
+              value={draft.dueDate}
+              onChange={(event) => setDraft((current) => ({ ...current, dueDate: event.target.value }))}
+              type="date"
+              className="field"
+            />
+            <select
+              value={draft.status}
+              onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as Order["status"] }))}
+              className="field"
+            >
+              <option value="draft">{copy.draft}</option>
+              <option value="open">{copy.open}</option>
+              <option value="fulfilled">{copy.fulfilled}</option>
+            </select>
+          </div>
+
+          <div className="space-y-3 border-t border-dashed border-[var(--line)] pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                  {language === "es" ? "Líneas de pedido" : "Order lines"}
+                </p>
+                <p className="mt-1 text-sm text-[var(--muted-strong)]">
+                  {language === "es"
+                    ? "Agrega más de un producto al mismo pedido."
+                    : "Add more than one product to the same order."}
+                </p>
+              </div>
+              <button type="button" className="btn btn-soft" onClick={addLine}>
+                {copy.addLine}
+              </button>
+            </div>
+            <div className="space-y-3">
+              {draft.items.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="grid gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 md:grid-cols-[1.25fr_0.55fr_auto] md:items-end"
+                >
+                  <div className="grid gap-1">
+                    <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                      {copy.lineProduct} {index + 1}
+                    </span>
+                    <select
+                      value={item.productId}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          items: current.items.map((line) =>
+                            line.id === item.id ? { ...line, productId: event.target.value } : line
+                          )
+                        }))
+                      }
+                      className="field"
+                      disabled={!snapshot.products.length}
+                    >
+                      <option value="">{language === "es" ? "Elige un producto" : "Choose a product"}</option>
+                      {snapshot.products.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <label className="grid gap-1">
+                    <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
+                      {copy.lineQuantity}
+                    </span>
+                    <input
+                      value={item.quantity}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          items: current.items.map((line) => (line.id === item.id ? { ...line, quantity: event.target.value } : line))
+                        }))
+                      }
+                      type="number"
+                      min="1"
+                      className="field font-mono text-sm"
+                    />
+                  </label>
+                  <button type="button" className="btn btn-ghost md:justify-self-end" onClick={() => removeLine(item.id)}>
+                    {copy.removeLine}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="lg:col-span-6 flex flex-wrap items-center gap-2 pt-2">
             <button className="btn btn-flame" type="submit" disabled={blocked}>
               {draft.id ? copy.updateOrder : copy.saveOrder}
@@ -296,8 +420,13 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                       clientId: order.clientId,
                       dueDate: order.dueDate,
                       status: order.status,
-                      productId: order.items[0]?.productId ?? snapshot.products[0]?.id ?? "",
-                      quantity: String(order.items[0]?.quantity ?? 1)
+                      items: order.items.length
+                        ? order.items.map((line) => ({
+                            id: crypto.randomUUID(),
+                            productId: line.productId,
+                            quantity: String(line.quantity)
+                          }))
+                        : [createLine(snapshot)]
                     })
                   }
                 >

@@ -34,17 +34,23 @@ export async function POST(request: Request) {
 
     const orderNumber = nonEmpty(body.orderNumber);
     const clientId = nonEmpty(body.clientId);
-    const productId = nonEmpty(body.productId);
     const dueDate = nonEmpty(body.dueDate);
     const status =
       body.status === "draft" || body.status === "fulfilled" || body.status === "open"
         ? (body.status as Order["status"])
         : null;
-    const quantity = Number(body.quantity ?? 0);
+    const items = Array.isArray(body.items)
+      ? body.items.map((item: { productId?: unknown; quantity?: unknown }) => ({
+          productId: nonEmpty(item.productId),
+          quantity: Number(item.quantity ?? 0)
+        }))
+      : [];
+    const fallbackProductId = nonEmpty(body.productId);
+    const fallbackQuantity = Number(body.quantity ?? 0);
 
-    if (!orderNumber || !clientId || !productId || !dueDate) {
+    if (!orderNumber || !clientId || !dueDate) {
       return NextResponse.json(
-        { error: "Order number, client, product, and due date are required." },
+        { error: "Order number, client, and due date are required." },
         { status: 400 }
       );
     }
@@ -57,18 +63,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Status must be draft, open, or fulfilled." }, { status: 400 });
     }
 
-    if (!Number.isFinite(quantity) || quantity <= 0) {
-      return NextResponse.json({ error: "Quantity must be greater than zero." }, { status: 400 });
+    const normalizedItems =
+      items.length > 0
+        ? items
+        : fallbackProductId
+          ? [{ productId: fallbackProductId, quantity: fallbackQuantity }]
+          : [];
+
+    if (!normalizedItems.length) {
+      return NextResponse.json({ error: "At least one order line is required." }, { status: 400 });
+    }
+
+    if (normalizedItems.some((item) => !item.productId || !Number.isFinite(item.quantity) || item.quantity <= 0)) {
+      return NextResponse.json(
+        { error: "Each order line needs a product and a quantity greater than zero." },
+        { status: 400 }
+      );
     }
 
     const result = await saveOrder(ownerId, {
       id: body.id ? nonEmpty(body.id) : undefined,
       orderNumber,
       clientId,
-      productId,
       dueDate,
       status,
-      quantity
+      items: normalizedItems
     });
 
     return NextResponse.json(result);

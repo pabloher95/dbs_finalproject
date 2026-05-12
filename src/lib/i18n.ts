@@ -675,18 +675,26 @@ export function orderStudioCopy(language: Language) {
     title: language === "es" ? "Agrega el siguiente trabajo a la cola" : "Add the next job to the queue",
     description:
       language === "es"
-        ? "Elige el cliente, el producto y la fecha de entrega. El plan se actualiza en cuanto guardas."
-        : "Pick the customer, the product, and a due date. The plan ahead reacts the moment you save.",
+        ? "Elige el cliente, la fecha de entrega y una o más líneas de producto. El plan se actualiza en cuanto guardas."
+        : "Pick the customer, the due date, and one or more product lines. The plan ahead reacts the moment you save.",
     noCustomers:
       language === "es" ? "Todavía no hay clientes. Agrega uno primero en Contactos." : "No customers yet. Add one in Contacts first.",
     noProducts:
       language === "es" ? "Todavía no hay productos. Agrega uno primero en Catálogo." : "No products yet. Add one in Catalog before saving orders.",
     orderNumberRequired: language === "es" ? "El número de pedido es obligatorio." : "Order number is required.",
+    noOrderLines: language === "es" ? "Agrega al menos una línea de pedido." : "Add at least one order line.",
     quantityRequired: language === "es" ? "La cantidad debe ser mayor que cero." : "Quantity must be greater than zero.",
     saveOrder: language === "es" ? "Guardar pedido" : "Save order",
     updateOrder: language === "es" ? "Actualizar pedido" : "Update order",
     undoDelete: language === "es" ? "Deshacer último borrado" : "Undo last delete",
-    blocked: language === "es" ? "Agrega un cliente y un producto antes de enviar un pedido." : "Add a customer and a product before submitting an order.",
+    blocked:
+      language === "es"
+        ? "Agrega un cliente y al menos una línea de producto antes de enviar un pedido."
+        : "Add a customer and at least one product line before submitting an order.",
+    addLine: language === "es" ? "Agregar línea" : "Add line",
+    removeLine: language === "es" ? "Quitar línea" : "Remove line",
+    lineProduct: language === "es" ? "Producto" : "Product",
+    lineQuantity: language === "es" ? "Cantidad" : "Quantity",
     manageEyebrow: language === "es" ? "Administrar pedidos" : "Manage orders",
     queueLabel: (count: number) => (language === "es" ? `${count} en la cola` : `${count} on the queue`),
     searchPlaceholder: language === "es" ? "Buscar número, cliente, estado, fecha" : "Search number, customer, status, date",

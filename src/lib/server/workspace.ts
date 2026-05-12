@@ -111,10 +111,9 @@ type OrderInput = {
   id?: string;
   orderNumber: string;
   clientId: string;
-  productId: string;
   dueDate: string;
   status: Order["status"];
-  quantity: number;
+  items: Array<{ productId: string; quantity: number }>;
 };
 
 type WorkspaceBackend = {
@@ -949,6 +948,33 @@ function buildOrderItems(snapshot: BusinessSnapshot, productId: string, quantity
   ];
 }
 
+function normalizeOrderItems(snapshot: BusinessSnapshot, input: OrderInput) {
+  if (!input.items.length) {
+    throw new UserFacingError("At least one order line is required.");
+  }
+
+  const merged = new Map<string, number>();
+  for (const item of input.items) {
+    const product = snapshot.products.find((record) => record.id === item.productId);
+    if (!product) {
+      throw new UserFacingError("Product not found for order item.");
+    }
+    if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
+      throw new UserFacingError("Order item quantity must be greater than zero.");
+    }
+    merged.set(product.id, (merged.get(product.id) ?? 0) + item.quantity);
+  }
+
+  return Array.from(merged.entries()).map(([productId, quantity]) => {
+    const product = snapshot.products.find((record) => record.id === productId);
+    return {
+      productId,
+      productName: product?.name ?? productId,
+      quantity
+    };
+  });
+}
+
 export async function readWorkspace(ownerId?: string) {
   const { workspace } = await readWorkspaceState(ownerId);
   return workspace;
@@ -1079,7 +1105,7 @@ export async function saveOrder(ownerId: string, input: OrderInput) {
       throw new UserFacingError("Client not found for order.");
     }
 
-    const items = buildOrderItems(snapshot, input.productId, input.quantity);
+    const items = normalizeOrderItems(snapshot, input);
     const existing = input.id ? snapshot.orders.find((order) => order.id === input.id) : snapshot.orders.find((order) => order.orderNumber === input.orderNumber);
 
     if (existing) {
