@@ -524,29 +524,19 @@ export function contactBoardCopy(language: Language) {
 export function importExperienceCopy(language: Language) {
   return {
     eyebrow: language === "es" ? "Ingesta directa" : "Direct intake",
-    title: language === "es" ? "Crea productos y pedidos sin archivo" : "Create products and orders without a file",
+    title: language === "es" ? "Crea productos sin archivo" : "Create products without a file",
     description:
       language === "es"
-        ? "Completa los formularios, guarda cada registro y deja que el espacio de trabajo se actualice al instante."
-        : "Fill out the forms, save each record, and let the workspace update instantly.",
+        ? "Completa el formulario del producto, guarda cada registro y deja que el espacio de trabajo se actualice al instante."
+        : "Fill out the product form, save each record, and let the workspace update instantly.",
     productEyebrow: language === "es" ? "Producto" : "Product",
     productTitle: language === "es" ? "Agregar producto con fórmula" : "Add a product with a formula",
     productDescription:
       language === "es"
         ? "Captura SKU, precio y fórmula por unidad; después agrega los materiales una fila a la vez."
         : "Capture SKU, price, and a unit-level formula, then add materials one row at a time.",
-    orderEyebrow: language === "es" ? "Pedido" : "Order",
-    orderTitle: language === "es" ? "Registrar el siguiente trabajo" : "Record the next job",
-    orderDescription:
-      language === "es"
-        ? "Escribe el cliente, el producto y la fecha de entrega para poner la demanda en cola."
-        : "Enter the customer, product, and due date to put demand in the queue.",
     addMaterial: language === "es" ? "Agregar material" : "Add material",
     productSaved: language === "es" ? "Producto guardado." : "Product saved.",
-    orderSaved: language === "es" ? "Pedido guardado." : "Order saved.",
-    clientRequired: language === "es" ? "El nombre del cliente es obligatorio." : "Customer name is required.",
-    productRequired: language === "es" ? "Elige un producto." : "Choose a product.",
-    dueDateRequired: language === "es" ? "La fecha de entrega es obligatoria." : "Due date is required."
   };
 }
 

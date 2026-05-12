@@ -9,11 +9,11 @@ export default async function ImportPage() {
   return (
     <WorkflowPageShell
       eyebrow={language === "es" ? "Entrada directa" : "Direct intake"}
-      title={language === "es" ? "Crea productos y pedidos en línea" : "Create products and orders online"}
+      title={language === "es" ? "Crea productos en línea" : "Create products online"}
       description={
         language === "es"
-          ? "Completa los formularios de productos y pedidos para que el espacio de trabajo se actualice al instante, sin subir archivos. La fórmula del producto se guarda por unidad."
-          : "Fill out the product and order forms so the workspace updates instantly, without uploading files. Product formulas are saved at the unit level."
+          ? "Completa el formulario de productos para que el espacio de trabajo se actualice al instante, sin subir archivos. La fórmula del producto se guarda por unidad."
+          : "Fill out the product form so the workspace updates instantly, without uploading files. Product formulas are saved at the unit level."
       }
       metrics={[
         { label: language === "es" ? "Elementos del catálogo" : "Catalog items", value: String(snapshot.products.length) },
@@ -29,13 +29,6 @@ export default async function ImportPage() {
               : "Capture the SKU and the product's unit-level formula."
         },
         {
-          title: language === "es" ? "Registra un pedido" : "Record an order",
-          description:
-            language === "es"
-              ? "Escribe el cliente, el producto y la fecha de entrega."
-              : "Enter the customer, product, and due date."
-        },
-        {
           title: language === "es" ? "Pasa a compras" : "Move to purchasing",
           description:
             language === "es"
@@ -45,8 +38,8 @@ export default async function ImportPage() {
       ]}
       nextStep={
         language === "es"
-          ? "Empieza por un producto por unidad; después registra el pedido que lo pone en marcha."
-          : "Start with a unit-level product, then record the order that puts it to work."
+          ? "Empieza por un producto por unidad; después usa Pedidos para registrar la demanda."
+          : "Start with a unit-level product, then use Orders to record demand."
       }
     >
       <ImportPageContent snapshot={snapshot} />
