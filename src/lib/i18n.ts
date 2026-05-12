@@ -250,8 +250,20 @@ export function dashboardCopy(language: Language) {
     title: language === "es" ? "El trabajo, por escrito." : "The work, written down.",
     body:
       language === "es"
-        ? "Un canal de ingesta claro, un catálogo legible y un camino medido desde la demanda abierta hasta una lista de compra lista para proveedores. Empieza donde tenga sentido; lo demás sigue."
-        : "A clean intake lane, a readable catalog, and a measured path from open demand to a supplier-ready buy list. Begin where it makes sense - the rest follows.",
+        ? "Primero separa cómo opera el negocio de cómo se está vendiendo. Arriba verás la base operativa; al lado, la presión real de la demanda abierta y el stock que ya empieza a apretarse."
+        : "Separate how the business operates from how it is selling. The top panel shows the operating base; the panel beside it shows real demand pressure and where stock is already tightening.",
+    operationsEyebrow: language === "es" ? "Base operativa" : "Operating base",
+    operationsTitle: language === "es" ? "Capacidad del negocio" : "Business capacity",
+    operationsBody:
+      language === "es"
+        ? "Tamaño del catálogo, red de proveedores y amplitud de los canales que realmente usas para vender."
+        : "Catalog size, supplier bench, and the spread of the channels you actually use to sell.",
+    salesEyebrow: language === "es" ? "Señal de ventas" : "Sales pulse",
+    salesTitle: language === "es" ? "Demanda y presión de stock" : "Demand and stock pressure",
+    salesBody:
+      language === "es"
+        ? "Pedidos abiertos, unidades pendientes y materiales que ya requieren reposición o una fuente asignada."
+        : "Open orders, units due, and materials that now need replenishment or a named source.",
     shortcuts: [
       {
         href: "/import" as const,
@@ -285,6 +297,8 @@ export function dashboardCopy(language: Language) {
     openOrders: language === "es" ? "Pedidos abiertos" : "Open orders",
     unitsDue: language === "es" ? "Unidades pendientes" : "Units due",
     suppliers: language === "es" ? "Proveedores" : "Suppliers",
+    channels: language === "es" ? "Canales" : "Channels",
+    lowStock: language === "es" ? "Stock bajo" : "Low stock",
     beginIntake: language === "es" ? "Iniciar ingesta" : "Begin intake",
     reviewOrders: language === "es" ? "Revisar pedidos" : "Review orders",
     priorityQueue: language === "es" ? "Cola prioritaria" : "Priority queue",

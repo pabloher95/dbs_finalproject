@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { Card, Pill } from "@/components/ui/surfaces";
 import { AnalyticsOverview } from "@/components/layout/analytics-overview";
 import { Reveal } from "@/components/ui/surfaces";
 import { getRequestLanguage } from "@/lib/i18n-server";
@@ -17,10 +18,16 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
     snapshot.materials,
     snapshot.suppliers
   );
+  const channels = new Set(
+    snapshot.clients
+      .map((client) => client.channel.trim())
+      .filter((channel) => channel.length > 0)
+  ).size;
   const totalUnits = openOrders.reduce(
     (sum, order) => sum + order.items.reduce((inner, item) => inner + item.quantity, 0),
     0
   );
+  const lowStockMaterials = planLines.filter((line) => line.netToBuyQuantity > 0).length;
   const sourcingGaps = planLines.filter((line) => !line.supplierName).length;
   const nextOrders = [...openOrders].slice(0, 3);
   const today = new Intl.DateTimeFormat(language === "es" ? "es-ES" : "en-US", {
@@ -57,20 +64,94 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
               {copy.body}
             </p>
 
-            <div className="mt-10 grid gap-px bg-[var(--ink)] md:grid-cols-4">
-              {[
-                { label: copy.products, value: snapshot.products.length },
-                { label: copy.openOrders, value: openOrders.length },
-                { label: copy.unitsDue, value: totalUnits },
-                { label: copy.suppliers, value: snapshot.suppliers.length }
-              ].map((stat) => (
-                <div key={stat.label} className="bg-[var(--paper-bright)] px-5 py-5">
-                  <p className="marginalia">— {stat.label}</p>
-                  <p className="font-display mt-2 text-4xl leading-none tracking-tight text-[var(--ink)] md:text-5xl">
-                    {String(stat.value).padStart(2, "0")}
-                  </p>
+            <div className="mt-10 grid gap-6 lg:grid-cols-2">
+              <Card className="p-6 md:p-8">
+                <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] pb-4">
+                  <div>
+                    <p className="eyebrow text-[var(--vermilion)]">{copy.operationsEyebrow}</p>
+                    <h2 className="mt-2 font-display text-3xl leading-none tracking-tight text-[var(--ink)] md:text-4xl">
+                      {copy.operationsTitle}
+                    </h2>
+                  </div>
+                  <Pill tone="ink">{copy.products}</Pill>
                 </div>
-              ))}
+
+                <p className="mt-4 text-[0.95rem] leading-6 text-[var(--muted-strong)]">{copy.operationsBody}</p>
+
+                <div className="mt-6 grid gap-px bg-[var(--ink)] md:grid-cols-3">
+                  {[
+                    { label: copy.products, value: snapshot.products.length },
+                    { label: copy.suppliers, value: snapshot.suppliers.length },
+                    { label: copy.channels, value: channels }
+                  ].map((stat) => (
+                    <div key={stat.label} className="bg-[var(--paper-bright)] px-5 py-5">
+                      <p className="marginalia">— {stat.label}</p>
+                      <p className="font-display mt-2 text-4xl leading-none tracking-tight text-[var(--ink)] md:text-[2.9rem]">
+                        {String(stat.value).padStart(2, "0")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card variant="ink" className="p-6 md:p-8">
+                <div className="flex items-start justify-between gap-4 border-b border-[rgba(255,255,255,0.12)] pb-4">
+                  <div>
+                    <p className="eyebrow text-[var(--paper-bright)]/80">{copy.salesEyebrow}</p>
+                    <h2 className="mt-2 font-display text-3xl leading-none tracking-tight text-[var(--paper-bright)] md:text-4xl">
+                      {copy.salesTitle}
+                    </h2>
+                  </div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-1 font-mono text-[0.61rem] uppercase tracking-[0.22em] text-[var(--paper-bright)]">
+                    {copy.openOrders}
+                  </span>
+                </div>
+
+                <p className="mt-4 text-[0.95rem] leading-6 text-[var(--paper-soft)]/85">{copy.salesBody}</p>
+
+                <div className="mt-6 grid gap-px bg-[rgba(255,255,255,0.14)] md:grid-cols-2">
+                  {[
+                    { label: copy.openOrders, value: openOrders.length },
+                    { label: copy.unitsDue, value: totalUnits },
+                    { label: copy.lowStock, value: lowStockMaterials },
+                    { label: copy.sourcingGaps, value: sourcingGaps }
+                  ].map((stat) => (
+                    <div key={stat.label} className="bg-[rgba(255,255,255,0.04)] px-5 py-5">
+                      <p className="marginalia text-[rgba(255,255,255,0.68)]">— {stat.label}</p>
+                      <p className="font-display mt-2 text-4xl leading-none tracking-tight text-[var(--paper-bright)] md:text-[2.9rem]">
+                        {String(stat.value).padStart(2, "0")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 rounded-[20px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-4">
+                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[rgba(255,255,255,0.62)]">
+                    {copy.priorityQueue}
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    {nextOrders.length ? (
+                      nextOrders.map((order) => (
+                        <div key={order.id} className="flex items-center justify-between gap-4">
+                          <div className="min-w-0">
+                            <p className="font-display text-xl leading-none text-[var(--paper-bright)]">
+                              {order.orderNumber}
+                            </p>
+                            <p className="mt-1 text-sm leading-6 text-[rgba(255,255,255,0.72)]">
+                              {order.clientName}
+                            </p>
+                          </div>
+                          <p className="shrink-0 font-mono text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.58)]">
+                            {order.items.reduce((sum, item) => sum + item.quantity, 0)} {copy.units}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm leading-6 text-[rgba(255,255,255,0.72)]">{copy.noOpenOrders}</p>
+                    )}
+                  </div>
+                </div>
+              </Card>
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
