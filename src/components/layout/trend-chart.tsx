@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { RevenueTrendPoint } from "@/lib/domain/analytics";
 import { analyticsCopy } from "@/lib/i18n";
 
@@ -34,16 +34,6 @@ export function TrendChart({
   );
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const activeRow = activeIndex === null ? null : rows[activeIndex] ?? null;
-  const activeSummary = useMemo(() => {
-    if (!activeRow) return null;
-    return [
-      { label: copy.revenue, value: formatMoney(activeRow.revenue) },
-      { label: copy.grossMargin, value: formatMoney(activeRow.margin) },
-      { label: copy.orders, value: String(activeRow.orders) }
-    ];
-  }, [activeRow, copy]);
-
   return (
     <div className="trend-chart overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
       <div className="flex items-center justify-between gap-3">
@@ -63,35 +53,6 @@ export function TrendChart({
             {copy.grossMargin}
           </span>
         </div>
-      </div>
-
-      <div className="mt-4 rounded-[20px] border border-[var(--line)] bg-[var(--paper-bright)] p-4 transition-colors">
-        {activeSummary ? (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-                {activeRow?.label}
-              </p>
-              <p className="mt-1 font-display text-xl leading-none tracking-tight text-[var(--ink)]">
-                {activeRow ? `${activeRow.label} · ${activeRow.orders} ${copy.orders.toLowerCase()}` : null}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {activeSummary.map((item) => (
-                <span
-                  key={item.label}
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--paper)] px-3 py-1 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[var(--muted-strong)]"
-                >
-                  {item.label} <strong className="font-display text-sm tracking-normal text-[var(--ink)]">{item.value}</strong>
-                </span>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-            {copy.hoverHint}
-          </p>
-        )}
       </div>
 
       <svg viewBox={`0 0 ${width} ${height}`} className="mt-4 h-auto w-full" role="img" aria-label="Monthly revenue and margin chart">
@@ -115,6 +76,14 @@ export function TrendChart({
           const marginX = groupX + barWidth + 10;
           const revenueY = paddingTop + (plotHeight - revenueHeight);
           const marginY = paddingTop + (plotHeight - marginHeight);
+          const barTop = Math.min(revenueY, marginY);
+          const tooltipWidth = 168;
+          const tooltipHeight = 52;
+          const tooltipX = Math.min(
+            Math.max(groupX + groupWidth / 2 - tooltipWidth / 2, 8),
+            width - tooltipWidth - 8
+          );
+          const tooltipY = Math.max(8, barTop - tooltipHeight - 10);
 
           return (
             <g
@@ -148,6 +117,36 @@ export function TrendChart({
               <text x={groupX + groupWidth / 2} y={height - 14} textAnchor="middle" className="fill-[var(--muted-strong)] font-mono text-[10px]">
                 {row.label}
               </text>
+
+              {activeIndex === index ? (
+                <g className="trend-tooltip" pointerEvents="none">
+                  <rect
+                    x={tooltipX}
+                    y={tooltipY}
+                    width={tooltipWidth}
+                    height={tooltipHeight}
+                    rx="12"
+                    fill="var(--paper-bright)"
+                    stroke="var(--ink)"
+                    strokeWidth="1"
+                  />
+                  <path
+                    d={`M ${groupX + groupWidth / 2 - 6} ${tooltipY + tooltipHeight} L ${groupX + groupWidth / 2} ${tooltipY + tooltipHeight + 8} L ${groupX + groupWidth / 2 + 6} ${tooltipY + tooltipHeight} Z`}
+                    fill="var(--paper-bright)"
+                    stroke="var(--ink)"
+                    strokeWidth="1"
+                  />
+                  <text x={tooltipX + 12} y={tooltipY + 18} className="fill-[var(--muted)] font-mono text-[10px] uppercase tracking-[0.22em]">
+                    {row.label}
+                  </text>
+                  <text x={tooltipX + 12} y={tooltipY + 36} className="fill-[var(--ink)] font-display text-[12px]">
+                    {formatMoney(row.revenue)} revenue
+                  </text>
+                  <text x={tooltipX + 12} y={tooltipY + 48} className="fill-[var(--muted-strong)] font-mono text-[9px] uppercase tracking-[0.18em]">
+                    {formatMoney(row.margin)} margin · {row.orders} {copy.orders.toLowerCase()}
+                  </text>
+                </g>
+              ) : null}
             </g>
           );
         })}

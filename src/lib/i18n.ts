@@ -335,7 +335,6 @@ export function analyticsCopy(language: Language) {
     avgOrder: language === "es" ? "Pedido prom." : "Avg. order",
     trendChart: language === "es" ? "Gráfico de tendencia" : "Trend chart",
     chartTitle: language === "es" ? "Ingresos y margen por mes" : "Revenue and margin by month",
-    hoverHint: language === "es" ? "Pasa el cursor sobre una barra para ver el detalle." : "Hover a bar to inspect the detail.",
     month: language === "es" ? "Mes" : "Month",
     orders: language === "es" ? "Pedidos" : "Orders",
     leadingProduct: language === "es" ? "Producto líder" : "Leading product",
