@@ -192,19 +192,19 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
       <Card className="p-6">
         <SectionHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description} />
         <div className="mt-5 grid gap-2 md:grid-cols-3">
-          <div className="rounded-2xl border border-[rgba(47,69,32,0.3)] bg-[rgba(90,122,60,0.10)] px-4 py-3 text-[var(--moss-deep)]">
+          <div className="rounded-2xl border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-[var(--muted-strong)]">
             <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em]">
               {language === "es" ? "Productos" : "Products"}
             </p>
             <p className="mt-1 font-display text-3xl text-[var(--ink)]">{productCount}</p>
           </div>
-          <div className="rounded-2xl border border-[rgba(106,71,8,0.3)] bg-[rgba(224,165,47,0.12)] px-4 py-3 text-[#5a3a06]">
+          <div className="rounded-2xl border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-[var(--muted-strong)]">
             <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em]">
               {language === "es" ? "Materiales" : "Materials"}
             </p>
             <p className="mt-1 font-display text-3xl text-[var(--ink)]">{materialCount}</p>
           </div>
-          <div className="rounded-2xl border border-[rgba(183,51,18,0.45)] bg-[rgba(255,79,31,0.10)] px-4 py-3 text-[var(--flame-deep)]">
+          <div className="rounded-2xl border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-[var(--muted-strong)]">
             <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em]">
               {language === "es" ? "Proveedores" : "Suppliers"}
             </p>
