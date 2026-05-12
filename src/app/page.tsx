@@ -3,6 +3,7 @@ import { ClerkProvider, UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import type { Route } from "next";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { LanguageSwitcher } from "@/components/providers/language-switcher";
 import { getRequestLanguage } from "@/lib/i18n-server";
 import { landingCopy } from "@/lib/i18n";
@@ -31,7 +32,7 @@ export default async function LandingPage() {
 
         <main className="px-6 md:px-10">
           <Hero copy={copy} />
-          <Marquee />
+          <Marquee copy={copy} />
           <Method copy={copy} />
           <StudioPreview copy={copy} />
         </main>
@@ -54,8 +55,8 @@ function TopBar({
   return (
     <header className="px-6 pt-6 md:px-10 md:pt-8">
       <div className="mx-auto flex max-w-[1320px] items-center justify-between">
-        <Link href="/" className="brand-mark brand-mark-lg shrink-0">
-          smallbiz<em className="not-italic font-normal text-[var(--vermilion)]">·</em>iq
+        <Link href="/" className="shrink-0">
+          <BrandLogo variant="landing" priority />
         </Link>
         <nav className="hidden items-center gap-8 text-[0.85rem] tracking-wide text-[var(--ink-soft)] md:flex">
           <a href="#method" className="transition-colors hover:text-[var(--vermilion)]">
@@ -116,45 +117,8 @@ function Hero({ copy }: { copy: ReturnType<typeof landingCopy> }) {
 
 /* —————————————————————————————————————————————————————— */
 
-function Marquee() {
-  const words = [
-    "Bakeries",
-    "Bookshops",
-    "Breweries",
-    "Builders",
-    "Caterers",
-    "Ceramics",
-    "Coffee",
-    "Co-ops",
-    "Contractors",
-    "Distributors",
-    "Farm stands",
-    "Family businesses",
-    "Food trucks",
-    "Hardware",
-    "Import firms",
-    "Indie brands",
-    "Landscapers",
-    "Light assembly",
-    "Machine shops",
-    "Medical supply",
-    "Neighborhood shops",
-    "Online brands",
-    "Packaging",
-    "Pet supply",
-    "Pharmacies",
-    "Print shops",
-    "Repair shops",
-    "Retailers",
-    "Side projects",
-    "Subscription boxes",
-    "Textiles",
-    "Trades",
-    "Wholesale",
-    "Woodshops",
-    "Auto parts"
-  ];
-  const repeated = [...words, ...words];
+function Marquee({ copy }: { copy: ReturnType<typeof landingCopy> }) {
+  const repeated = [...copy.marqueeWords, ...copy.marqueeWords];
 
   return (
     <section className="border-y border-[var(--ink)] py-5 overflow-hidden">
@@ -220,12 +184,7 @@ function Method({ copy }: { copy: ReturnType<typeof landingCopy> }) {
 }
 
 function DataFlow({ copy }: { copy: ReturnType<typeof landingCopy> }) {
-  const stages = [
-    { label: "CSV", note: copy.methodFootnotes.intake },
-    { label: "Catalog", note: copy.methodFootnotes.catalog },
-    { label: copy.dataFlow.orders, note: copy.dataFlow.orders },
-    { label: copy.dataFlow.buyList, note: copy.dataFlow.buyList }
-  ];
+  const stages = copy.dataFlowStages;
 
   return (
     <figure className="mt-20 hidden md:block">
@@ -255,7 +214,7 @@ function DataFlow({ copy }: { copy: ReturnType<typeof landingCopy> }) {
           </Fragment>
         ))}
       </div>
-      <figcaption className="sr-only">CSV → Catalog → Orders → Buy list</figcaption>
+      <figcaption className="sr-only">{copy.dataFlowCaption}</figcaption>
     </figure>
   );
 }
@@ -311,8 +270,8 @@ function Footer({ copy }: { copy: ReturnType<typeof landingCopy> }) {
   return (
     <footer className="border-t border-[var(--line)] px-6 py-10 md:px-10 md:py-12">
       <div className="mx-auto flex max-w-[1320px] flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-baseline gap-4">
-          <span className="brand-mark">smallbiz·iq</span>
+        <div className="flex items-center gap-4">
+          <BrandLogo variant="footer" />
           <p className="marginalia">© {new Date().getFullYear()}</p>
         </div>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--ink-soft)]">

@@ -1,9 +1,11 @@
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import type { Route } from "next";
+import { BusinessRenameButton } from "@/components/layout/business-rename-button";
 import { CommandBar } from "@/components/layout/command-bar";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { LanguageSwitcher } from "@/components/providers/language-switcher";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { appNav } from "@/lib/data/navigation";
 import { getRequestLanguage } from "@/lib/i18n-server";
 import { workspaceCopy } from "@/lib/i18n";
@@ -33,8 +35,8 @@ export async function WorkspaceShell({
         {/* Editorial masthead — quiet, ruled, magazine-style */}
         <header className="flex flex-col gap-4 border-b border-[var(--ink)] pb-5 md:flex-row md:items-center md:justify-between">
           <div className="flex items-end gap-4 md:gap-6">
-            <Link href={"/" as Route} className="brand-mark">
-              smallbiz<em className="not-italic font-normal text-[var(--vermilion)]">·</em>iq
+            <Link href={"/" as Route} className="shrink-0">
+              <BrandLogo variant="masthead" priority />
             </Link>
             <p className="marginalia hidden md:block">
               {copy.studioLabel}
@@ -46,6 +48,8 @@ export async function WorkspaceShell({
             <p className="marginalia">{today}</p>
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <LanguageSwitcher />
+            <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
+            <BusinessRenameButton businessName={businessName} />
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <div className="group relative">
               <Link href={"/orders" as Route} className="link-rule text-sm">
@@ -83,7 +87,6 @@ export async function WorkspaceShell({
                 </div>
               </div>
             </div>
-            <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <p className="marginalia">{copy.synced}</p>
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <UserButton />

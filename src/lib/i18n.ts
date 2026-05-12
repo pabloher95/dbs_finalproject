@@ -54,6 +54,98 @@ export function landingCopy(language: Language) {
       catalog: language === "es" ? "Catálogo" : "Catalog",
       purchasing: language === "es" ? "Compras" : "Purchasing"
     },
+    marqueeWords:
+      language === "es"
+        ? [
+            "Panaderías",
+            "Librerías",
+            "Cervecerías",
+            "Constructoras",
+            "Catering",
+            "Cerámica",
+            "Café",
+            "Cooperativas",
+            "Contratistas",
+            "Distribuidores",
+            "Puestos de granja",
+            "Negocios familiares",
+            "Food trucks",
+            "Ferretería",
+            "Importadoras",
+            "Marcas independientes",
+            "Jardinería",
+            "Ensamble ligero",
+            "Talleres mecánicos",
+            "Insumos médicos",
+            "Tiendas de barrio",
+            "Marcas online",
+            "Empaque",
+            "Insumos para mascotas",
+            "Farmacias",
+            "Imprentas",
+            "Talleres de reparación",
+            "Minoristas",
+            "Proyectos paralelos",
+            "Cajas por suscripción",
+            "Textiles",
+            "Oficios",
+            "Mayoristas",
+            "Talleres de madera",
+            "Refacciones automotrices"
+          ]
+        : [
+            "Bakeries",
+            "Bookshops",
+            "Breweries",
+            "Builders",
+            "Caterers",
+            "Ceramics",
+            "Coffee",
+            "Co-ops",
+            "Contractors",
+            "Distributors",
+            "Farm stands",
+            "Family businesses",
+            "Food trucks",
+            "Hardware",
+            "Import firms",
+            "Indie brands",
+            "Landscapers",
+            "Light assembly",
+            "Machine shops",
+            "Medical supply",
+            "Neighborhood shops",
+            "Online brands",
+            "Packaging",
+            "Pet supply",
+            "Pharmacies",
+            "Print shops",
+            "Repair shops",
+            "Retailers",
+            "Side projects",
+            "Subscription boxes",
+            "Textiles",
+            "Trades",
+            "Wholesale",
+            "Woodshops",
+            "Auto parts"
+          ],
+    dataFlowStages:
+      language === "es"
+        ? [
+            { label: "CSV", note: "Ingesta" },
+            { label: "Catálogo", note: "Catálogo" },
+            { label: "Pedidos", note: "Pedidos" },
+            { label: "Lista de compra", note: "Lista de compra" }
+          ]
+        : [
+            { label: "CSV", note: "Intake" },
+            { label: "Catalog", note: "Catalog" },
+            { label: "Orders", note: "Orders" },
+            { label: "Buy list", note: "Buy list" }
+          ],
+    dataFlowCaption:
+      language === "es" ? "CSV → Catálogo → Pedidos → Lista de compra" : "CSV → Catalog → Orders → Buy list",
     dataFlow: {
       orders: language === "es" ? "Pedidos" : "Orders",
       buyList: language === "es" ? "Lista de compra" : "Buy list"
@@ -160,6 +252,35 @@ export function dashboardCopy(language: Language) {
       language === "es"
         ? "Un canal de ingesta claro, un catálogo legible y un camino medido desde la demanda abierta hasta una lista de compra lista para proveedores. Empieza donde tenga sentido; lo demás sigue."
         : "A clean intake lane, a readable catalog, and a measured path from open demand to a supplier-ready buy list. Begin where it makes sense - the rest follows.",
+    shortcuts: [
+      {
+        href: "/import" as const,
+        n: "01",
+        title: language === "es" ? "Importar" : "Import",
+        description:
+          language === "es"
+            ? "Sube productos, contactos o pedidos como CSV."
+            : "Upload products, contacts, or orders as CSV."
+      },
+      {
+        href: "/products" as const,
+        n: "02",
+        title: language === "es" ? "Definir productos" : "Define products",
+        description:
+          language === "es"
+            ? "Escribe cada producto como una fórmula de materiales, rendimientos y unidades."
+            : "Write each product as a formula of materials, yields, and units."
+      },
+      {
+        href: "/purchasing" as const,
+        n: "03",
+        title: language === "es" ? "Planificar compras" : "Plan purchasing",
+        description:
+          language === "es"
+            ? "Expande la demanda abierta en una lista de materiales lista para proveedores."
+            : "Expand open demand into a supplier-ready material list."
+      }
+    ],
     products: language === "es" ? "Productos" : "Products",
     openOrders: language === "es" ? "Pedidos abiertos" : "Open orders",
     unitsDue: language === "es" ? "Unidades pendientes" : "Units due",
@@ -252,7 +373,9 @@ export function businessNameCopy(language: Language) {
         ? "No se pudo guardar el nombre de la empresa."
         : "Unable to save the company name.",
     saving: language === "es" ? "Guardando..." : "Saving...",
-    saveName: language === "es" ? "Guardar nombre" : "Save name"
+    saveName: language === "es" ? "Guardar nombre" : "Save name",
+    cancel: language === "es" ? "Cancelar" : "Cancel",
+    renameCompany: language === "es" ? "Renombrar empresa" : "Rename company"
   };
 }
 
@@ -386,5 +509,251 @@ export function contactBoardCopy(language: Language) {
         : "Assign preferred vendors so the purchasing plan can point to the right source on day one.",
     noCustomers: language === "es" ? "Todavía no hay clientes." : "No customers yet.",
     noSuppliers: language === "es" ? "Todavía no hay proveedores." : "No suppliers yet."
+  };
+}
+
+export function importExperienceCopy(language: Language) {
+  return {
+    templatesEyebrow: language === "es" ? "Plantillas versionadas" : "Versioned templates",
+    templatesTitle: language === "es" ? "Valida antes de confirmar" : "Validate before you commit",
+    templatesDescription:
+      language === "es"
+        ? "Elige una plantilla, pega un CSV o sube filas y revisa exactamente qué quedará en el espacio de trabajo. Las líneas duplicadas se informan antes de guardar nada."
+        : "Pick a template, drop a CSV or paste rows, and see exactly what will land in the workspace. Duplicate lines are reported before anything is saved.",
+    productsTemplate: language === "es" ? "Productos v1" : "Products v1",
+    ordersTemplate: language === "es" ? "Pedidos v1" : "Orders v1",
+    dropCsv: language === "es" ? "Suelta un CSV o haz clic para subirlo" : "Drop a CSV or click to upload",
+    draftsKept:
+      language === "es" ? "Los borradores se guardan en esta sesión del navegador" : "Drafts are kept for this browser session",
+    downloadTemplate: language === "es" ? "Descargar plantilla" : "Download template",
+    previewEyebrow: language === "es" ? "Vista previa" : "Preview",
+    previewTitle: language === "es" ? "Informe de validación por fila" : "Row-level validation report",
+    previewDescription:
+      language === "es"
+        ? "Revisa qué está listo para cargar, qué se omitió y qué requiere corrección antes de confirmar."
+        : "See what is ready to load, what was skipped, and what needs correction before committing.",
+    created: language === "es" ? "Creado" : "Created",
+    skipped: language === "es" ? "Omitido" : "Skipped",
+    errors: language === "es" ? "Errores" : "Errors",
+    row: language === "es" ? "Fila" : "Row",
+    state: language === "es" ? "Estado" : "State",
+    detail: language === "es" ? "Detalle" : "Detail",
+    ready: language === "es" ? "Listo" : "Ready",
+    error: language === "es" ? "Error" : "Error",
+    pasteHint:
+      language === "es"
+        ? "Pega o arrastra un CSV arriba para previsualizar la validación por fila."
+        : "Paste or drop a CSV above to preview row-level validation.",
+    recoveryEyebrow: language === "es" ? "Recuperación" : "Recovery",
+    recoveryDescription:
+      language === "es"
+        ? "Carga solo las filas con errores de nuevo al editor y corrígelas en su lugar."
+        : "Pull only the rows with errors back into the editor and fix them in place.",
+    recoveryIdle:
+      language === "es" ? "No hay errores por fila que bloqueen la recuperación." : "No row-level errors are currently blocking recovery.",
+    loadErrorRows: language === "es" ? "Cargar filas con error" : "Load error rows",
+    rowsPreviewed: language === "es" ? "filas previsualizadas" : "rows previewed",
+    importing: language === "es" ? "Importando…" : "Importing…",
+    importToWorkspace: language === "es" ? "Importar al espacio de trabajo" : "Import to workspace",
+    validateHint:
+      language === "es"
+        ? "Elige una plantilla, suelta un CSV o pega filas, y verás exactamente qué entrará al espacio de trabajo. Las líneas duplicadas se informan antes de guardar."
+        : "Pick a template, drop a CSV or paste rows, and see exactly what will land in the workspace. Duplicate lines are reported before anything is saved."
+  };
+}
+
+export function productStudioCopy(language: Language) {
+  return {
+    eyebrow: language === "es" ? "Detalles del producto" : "Product details",
+    title: language === "es" ? "Agregar o actualizar un artículo" : "Add or update an item",
+    description:
+      language === "es"
+        ? "Captura nombre, SKU, unidad y rendimiento por lote para que el artículo pueda planearse y valorarse de forma consistente."
+        : "Capture name, SKU, unit, and batch yield so the item can be planned and priced consistently.",
+    tip:
+      language === "es"
+        ? "Consejo · agrega primero un cliente para que este producto pueda usarse en pedidos."
+        : "Tip · Add a customer next so this product can be used in orders.",
+    skuPlaceholder: "SKU",
+    namePlaceholder: language === "es" ? "Nombre del producto" : "Product name",
+    categoryPlaceholder: language === "es" ? "Categoría" : "Category",
+    unitPlaceholder: language === "es" ? "Unidad" : "Unit",
+    save: language === "es" ? "Guardar producto" : "Save product",
+    search: language === "es" ? "Buscar productos" : "Search products",
+    edit: language === "es" ? "Editar" : "Edit",
+    delete: language === "es" ? "Eliminar" : "Delete",
+    updateItem: language === "es" ? "Actualizar artículo" : "Update item",
+    saveItem: language === "es" ? "Guardar artículo" : "Save item",
+    reset: language === "es" ? "Restablecer" : "Reset",
+    undoLastDelete: language === "es" ? "Deshacer último borrado" : "Undo last delete",
+    noProducts:
+      language === "es" ? "Todavía no hay productos. Agrega uno para empezar." : "No products yet. Add one to get started.",
+    noMatch: language === "es" ? "Ningún producto coincide con tu búsqueda." : "No products match your search.",
+    yieldQuantityPlaceholder: language === "es" ? "Cantidad de rendimiento" : "Yield quantity",
+    unitPricePlaceholder: language === "es" ? "Precio unitario" : "Unit price",
+    deleteConfirm: (name: string) =>
+      language === "es"
+        ? `¿Eliminar ${name}? Esto puede afectar pedidos relacionados.`
+        : `Delete ${name}? This can affect related orders.`,
+    saveError: language === "es" ? "No se pudo guardar el producto." : "Unable to save product.",
+    deleteError: language === "es" ? "No se pudo eliminar el producto." : "Unable to delete product.",
+    restoreError: language === "es" ? "No se pudo restaurar el producto." : "Unable to restore product.",
+    saved: language === "es" ? "Producto guardado." : "Product saved.",
+    deleted: language === "es" ? "Producto eliminado. Deshacer disponible." : "Product deleted. Undo available.",
+    restored: language === "es" ? "Producto restaurado." : "Product restored.",
+    noCustomersTip:
+      language === "es"
+        ? "Consejo · agrega un cliente después para poder usar este producto en pedidos."
+        : "Tip · Add a customer next so this product can be used in orders.",
+    enterRequired:
+      language === "es" ? "Introduce tanto el SKU como el nombre del producto." : "Enter both SKU and product name.",
+    yieldRequired:
+      language === "es" ? "El rendimiento debe ser mayor que cero." : "Yield quantity must be greater than zero.",
+    priceNegative: language === "es" ? "El precio unitario no puede ser negativo." : "Unit price cannot be negative.",
+    formulaRequired:
+      language === "es"
+        ? "Añade al menos una línea válida de fórmula en formato nombre:unidad:cantidad."
+        : "Add at least one valid formula line in name:unit:quantity format.",
+    currentOrderTip:
+      language === "es"
+        ? "Añade un cliente y un producto antes de registrar un pedido."
+        : "Add a customer and a product before submitting an order."
+  };
+}
+
+export function contactStudioCopy(language: Language) {
+  return {
+    customerEyebrow: language === "es" ? "Detalles del cliente" : "Customer details",
+    customerTitle: language === "es" ? "Agregar un cliente" : "Add a customer",
+    customerDescription:
+      language === "es"
+        ? "Captura los datos del cliente para que los pedidos nuevos puedan asignarse sin volver a escribirlos."
+        : "Capture customer details so new orders can be assigned without retyping.",
+    supplierEyebrow: language === "es" ? "Detalles del proveedor" : "Supplier details",
+    supplierTitle: language === "es" ? "Agregar un proveedor" : "Add a supplier",
+    supplierDescription:
+      language === "es"
+        ? "Mantén proveedores preferidos a mano para que el plan de compras ya apunte a la fuente correcta."
+        : "Keep preferred suppliers on hand so the purchasing plan already points to the right source.",
+    supplierTip:
+      language === "es"
+        ? "Consejo · agrega un proveedor para que las líneas de compras se conecten a una fuente."
+        : "Tip · add a supplier so purchasing lines link to a source.",
+    namePlaceholder: language === "es" ? "Nombre" : "Name",
+    customerEmailPlaceholder: language === "es" ? "Correo del cliente" : "Customer email",
+    supplierEmailPlaceholder: language === "es" ? "Correo del proveedor" : "Supplier email",
+    channelPlaceholder: language === "es" ? "Canal de ventas" : "Sales channel",
+    categoryPlaceholder: language === "es" ? "Categoría" : "Category",
+    saveCustomer: language === "es" ? "Guardar cliente" : "Save customer",
+    saveSupplier: language === "es" ? "Guardar proveedor" : "Save supplier",
+    searchCustomers: language === "es" ? "Buscar clientes" : "Search customers",
+    searchSuppliers: language === "es" ? "Buscar proveedores" : "Search suppliers",
+    edit: language === "es" ? "Editar" : "Edit",
+    delete: language === "es" ? "Eliminar" : "Delete",
+    noCustomers:
+      language === "es"
+        ? "Todavía no hay clientes. Agrega uno para empezar a crear pedidos."
+        : "No customers yet. Add one to start creating orders.",
+    noCustomerMatches:
+      language === "es" ? "No hay clientes que coincidan con tu búsqueda." : "No customers match your search.",
+    noSuppliers:
+      language === "es"
+        ? "Todavía no hay proveedores. Agrega uno para vincular materiales en compras."
+        : "No suppliers yet. Add one to link materials in purchasing.",
+    noSupplierMatches:
+      language === "es" ? "No hay proveedores que coincidan con tu búsqueda." : "No suppliers match your search.",
+    saveError: language === "es" ? "No se pudo guardar el contacto." : "Unable to save contact.",
+    deleteError: language === "es" ? "No se pudo eliminar el contacto." : "Unable to delete contact.",
+    restoreError: language === "es" ? "No se pudo restaurar el contacto." : "Unable to restore contact.",
+    saved: (kind: "client" | "supplier") =>
+      language === "es"
+        ? `${kind === "client" ? "Cliente" : "Proveedor"} guardado.`
+        : `${kind === "client" ? "Customer" : "Supplier"} saved.`,
+    deleted: (kind: "client" | "supplier") =>
+      language === "es"
+        ? `${kind === "client" ? "Cliente" : "Proveedor"} eliminado. Deshacer disponible.`
+        : `${kind === "client" ? "Customer" : "Supplier"} deleted. Undo available.`,
+    restored: language === "es" ? "Contacto restaurado." : "Contact restored.",
+    undoLastDelete: language === "es" ? "Deshacer último borrado" : "Undo last delete",
+    required: language === "es" ? "Nombre, correo y categoría/canal son obligatorios." : "Name, email, and category/channel are required.",
+    emailInvalid: language === "es" ? "Introduce una dirección de correo válida." : "Please enter a valid email address.",
+    deleteConfirm: (name: string) => (language === "es" ? `¿Eliminar ${name}?` : `Delete ${name}?`)
+  };
+}
+
+export function orderStudioCopy(language: Language) {
+  return {
+    eyebrow: language === "es" ? "Intake de pedidos" : "Order intake",
+    title: language === "es" ? "Agrega el siguiente trabajo a la cola" : "Add the next job to the queue",
+    description:
+      language === "es"
+        ? "Elige el cliente, el producto y la fecha de entrega. El plan se actualiza en cuanto guardas."
+        : "Pick the customer, the product, and a due date. The plan ahead reacts the moment you save.",
+    noCustomers:
+      language === "es" ? "Todavía no hay clientes. Agrega uno primero en Contactos." : "No customers yet. Add one in Contacts first.",
+    noProducts:
+      language === "es" ? "Todavía no hay productos. Agrega uno primero en Catálogo." : "No products yet. Add one in Catalog before saving orders.",
+    orderNumberRequired: language === "es" ? "El número de pedido es obligatorio." : "Order number is required.",
+    quantityRequired: language === "es" ? "La cantidad debe ser mayor que cero." : "Quantity must be greater than zero.",
+    saveOrder: language === "es" ? "Guardar pedido" : "Save order",
+    updateOrder: language === "es" ? "Actualizar pedido" : "Update order",
+    undoDelete: language === "es" ? "Deshacer último borrado" : "Undo last delete",
+    blocked: language === "es" ? "Agrega un cliente y un producto antes de enviar un pedido." : "Add a customer and a product before submitting an order.",
+    manageEyebrow: language === "es" ? "Administrar pedidos" : "Manage orders",
+    queueLabel: (count: number) => (language === "es" ? `${count} en la cola` : `${count} on the queue`),
+    searchPlaceholder: language === "es" ? "Buscar número, cliente, estado, fecha" : "Search number, customer, status, date",
+    edit: language === "es" ? "Editar" : "Edit",
+    delete: language === "es" ? "Eliminar" : "Delete",
+    noOrders:
+      language === "es" ? "Todavía no hay pedidos. Crea uno para generar demanda de compras." : "No orders yet. Create one to generate purchasing demand.",
+    noOrderMatches:
+      language === "es" ? "No hay pedidos que coincidan con tu búsqueda." : "No orders match your search.",
+    noItemRestore:
+      language === "es" ? "No se puede restaurar un pedido sin líneas." : "Cannot restore an order with no line items.",
+    saveError: language === "es" ? "No se pudo guardar el pedido." : "Unable to save order.",
+    deleteError: language === "es" ? "No se pudo eliminar el pedido." : "Unable to delete order.",
+    restoreError: language === "es" ? "No se pudo restaurar el pedido." : "Unable to restore order.",
+    saved: language === "es" ? "Pedido guardado." : "Order saved.",
+    deleted: language === "es" ? "Pedido eliminado. Deshacer disponible." : "Order deleted. Undo available.",
+    restored: language === "es" ? "Pedido restaurado." : "Order restored.",
+    due: language === "es" ? "vence" : "due",
+    open: language === "es" ? "abierto" : "open",
+    draft: language === "es" ? "borrador" : "draft",
+    fulfilled: language === "es" ? "cumplido" : "fulfilled"
+  };
+}
+
+export function materialStockCopy(language: Language) {
+  return {
+    eyebrow: language === "es" ? "Inventario" : "Inventory",
+    title: language === "es" ? "Rastrea el stock disponible" : "Track stock on hand",
+    description:
+      language === "es"
+        ? "Agrega entradas, descuenta uso y mantén el plan de compras basado en lo que ya está en la estantería."
+        : "Add receipts, subtract usage, and keep the purchasing plan grounded in what is already on the shelf.",
+    materials: language === "es" ? "materiales" : "materials",
+    stocked: language === "es" ? "abastecidos" : "stocked",
+    searchPlaceholder: language === "es" ? "Buscar material o proveedor" : "Search material or supplier",
+    unitCostPlaceholder: language === "es" ? "Costo unitario" : "Unit cost",
+    saveCost: language === "es" ? "Guardar costo" : "Save cost",
+    applyAdjustment: language === "es" ? "Aplicar ajuste" : "Apply adjustment",
+    saving: language === "es" ? "Guardando…" : "Saving…",
+    chooseMaterial: language === "es" ? "Elige primero un material." : "Choose a material first.",
+    nonZeroAdjustment:
+      language === "es" ? "Introduce un ajuste de stock distinto de cero." : "Enter a non-zero stock adjustment.",
+    validCost: language === "es" ? "Introduce un costo unitario válido." : "Enter a valid unit cost.",
+    updateStockError: language === "es" ? "No se pudo actualizar el stock del material." : "Unable to update material stock.",
+    updateCostError: language === "es" ? "No se pudo actualizar el costo del material." : "Unable to update material cost.",
+    stockUpdated: language === "es" ? "Stock del material actualizado." : "Material stock updated.",
+    costUpdated: language === "es" ? "Costo del material actualizado." : "Material cost updated.",
+    material: language === "es" ? "Material" : "Material",
+    onHand: language === "es" ? "En mano" : "On hand",
+    cost: language === "es" ? "Costo" : "Cost",
+    supplier: language === "es" ? "Proveedor" : "Supplier",
+    unit: language === "es" ? "Unidad" : "Unit",
+    noMaterials: language === "es" ? "Ningún material coincide con esa búsqueda." : "No materials match that search.",
+    selected: language === "es" ? "Seleccionado" : "Selected",
+    per: language === "es" ? "por" : "per",
+    unassigned: language === "es" ? "Sin asignar" : "Unassigned"
   };
 }
