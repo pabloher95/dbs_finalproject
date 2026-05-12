@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { businessNameCopy } from "@/lib/i18n";
 
 const DEFAULT_BUSINESS_NAME = "Your Business";
+const STORAGE_KEY = "smallbiz.business-name.dismissed";
 
 export function BusinessNameGate({
   businessName,
@@ -17,13 +18,22 @@ export function BusinessNameGate({
   const trimmedName = businessName.trim();
   const needsSetup = !trimmedName || trimmedName === DEFAULT_BUSINESS_NAME;
   const [name, setName] = useState(needsSetup ? "" : trimmedName);
+  const [dismissed, setDismissed] = useState(false);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const { language } = useLanguage();
   const copy = businessNameCopy(language);
 
-  if (!needsSetup) {
+  useEffect(() => {
+    try {
+      setDismissed(window.localStorage.getItem(STORAGE_KEY) === "1");
+    } catch {
+      setDismissed(false);
+    }
+  }, []);
+
+  if (!needsSetup || dismissed) {
     return children;
   }
 
@@ -53,6 +63,12 @@ export function BusinessNameGate({
     }
 
     startTransition(() => {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, "1");
+      } catch {
+        // ignore storage failures
+      }
+      setDismissed(true);
       router.refresh();
     });
   }
