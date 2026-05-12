@@ -341,7 +341,6 @@ export function analyticsCopy(language: Language) {
     leadingProduct: language === "es" ? "Producto líder" : "Leading product",
     leadingClient: language === "es" ? "Cliente líder" : "Leading client",
     strongestMonth: language === "es" ? "Mes más fuerte" : "Strongest month",
-    workingNote: language === "es" ? "Nota de trabajo" : "Working note",
     noTrend: language === "es" ? "Aún no hay una tendencia de ingresos disponible." : "No revenue trend is available yet.",
     noProduct: language === "es" ? "Todavía no hay datos de productos" : "No product data yet",
     noClient: language === "es" ? "Todavía no hay datos de clientes" : "No client data yet",
@@ -366,10 +365,6 @@ export function analyticsCopy(language: Language) {
       language === "es"
         ? "Los pedidos abiertos aparecerán aquí una vez que haya precios definidos."
         : "Open orders will appear here once pricing is in place.",
-    checks:
-      language === "es"
-        ? "El negocio ya muestra una mezcla de pedidos con precio. Usa los líderes de producto y cliente como primeras comprobaciones descriptivas antes de añadir cualquier capa de previsión."
-        : "The business is already showing a priced order mix. Use the product and customer leaders as your first descriptive checks before adding any forecast layer."
   };
 }
 

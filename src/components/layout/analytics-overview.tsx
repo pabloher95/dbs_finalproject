@@ -108,17 +108,6 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
               {topMonth ? `${formatMoney(topMonth.revenue)} in revenue and ${formatPercent(topMonth.margin / Math.max(topMonth.revenue, 1))} margin rate.` : copy.monthReadings}
             </p>
           </div>
-
-          <div className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
-            <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-              {copy.workingNote}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted-strong)]">
-              {insights.totalRevenue > 0
-                ? copy.checks
-                : copy.addPrices}
-            </p>
-          </div>
       </div>
       </div>
 
