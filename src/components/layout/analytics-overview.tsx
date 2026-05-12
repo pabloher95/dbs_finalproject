@@ -30,7 +30,6 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
       <SectionHeading
         eyebrow={copy.eyebrow}
         title={copy.title}
-        description={copy.description}
       />
 
       <div className="mt-6 flex flex-wrap gap-2">
