@@ -8,12 +8,12 @@ export default async function ImportPage() {
   const language = await getRequestLanguage();
   return (
     <WorkflowPageShell
-      eyebrow={language === "es" ? "Ingesta de datos" : "Data intake"}
-      title={language === "es" ? "Importa tus productos, fórmulas y pedidos" : "Bring in your products, formulas, and orders"}
+      eyebrow={language === "es" ? "Entrada directa" : "Direct intake"}
+      title={language === "es" ? "Crea productos y pedidos en línea" : "Create products and orders online"}
       description={
         language === "es"
-          ? "Usa plantillas CSV guiadas para detectar problemas por fila y líneas duplicadas antes de guardar nada; luego pasa de la demanda entrante a la planificación de materiales en un solo lugar."
-          : "Use guided CSV templates to catch row-level issues and duplicate lines before anything is saved, then move from incoming demand to material planning in one place."
+          ? "Completa los formularios de productos y pedidos para que el espacio de trabajo se actualice al instante, sin subir archivos."
+          : "Fill out the product and order forms so the workspace updates instantly, without uploading files."
       }
       metrics={[
         { label: language === "es" ? "Elementos del catálogo" : "Catalog items", value: String(snapshot.products.length) },
@@ -22,34 +22,34 @@ export default async function ImportPage() {
       ]}
       steps={[
         {
-          title: language === "es" ? "Elige una plantilla" : "Choose a template",
+          title: language === "es" ? "Escribe un producto" : "Enter a product",
           description:
             language === "es"
-              ? "Usa el formato CSV versionado para productos/fórmulas o para pedidos."
-              : "Use the versioned CSV format for products/formulas or for orders."
+              ? "Captura el SKU, el rendimiento y la fórmula en una sola forma."
+              : "Capture the SKU, yield, and formula in one form."
         },
         {
-          title: language === "es" ? "Pega y previsualiza" : "Paste and preview",
+          title: language === "es" ? "Registra un pedido" : "Record an order",
           description:
             language === "es"
-              ? "Revisa la validación por fila antes de confirmar cualquier cosa."
-              : "Check row-level validation before anything is committed."
+              ? "Escribe el cliente, el producto y la fecha de entrega."
+              : "Enter the customer, product, and due date."
         },
         {
-          title: language === "es" ? "Pasar a operaciones" : "Move to operations",
+          title: language === "es" ? "Pasa a compras" : "Move to purchasing",
           description:
             language === "es"
-              ? "Revisa productos, pedidos y compras cuando el catálogo esté listo."
-              : "Review products, orders, and purchasing once the catalog is in shape."
+              ? "La demanda abierta alimenta la cola de compras sin otro paso."
+              : "Open demand feeds purchasing without another handoff."
         }
       ]}
       nextStep={
         language === "es"
-          ? "Una vez que la ingesta se vea bien, revisa primero los productos para que el plan de compras tenga una fuente de verdad limpia."
-          : "Once the intake looks right, review products first so the purchasing plan has a clean source of truth."
+          ? "Empieza por un producto; después registra el pedido que lo pone en marcha."
+          : "Start with one product, then record the order that puts it to work."
       }
     >
-      <ImportPageContent />
+      <ImportPageContent snapshot={snapshot} />
     </WorkflowPageShell>
   );
 }

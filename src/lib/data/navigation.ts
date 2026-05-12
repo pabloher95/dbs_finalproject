@@ -15,7 +15,7 @@ export const appNav: NavItem[] = [
   {
     href: "/import" as Route,
     label: "Intake",
-    description: "Versioned CSV templates with preview."
+    description: "Product and order forms for direct intake."
   },
   {
     href: "/products" as Route,

@@ -1104,6 +1104,61 @@ export async function saveOrder(ownerId: string, input: OrderInput) {
   });
 }
 
+type IntakeOrderInput = {
+  id?: string;
+  orderNumber: string;
+  clientName: string;
+  dueDate: string;
+  status: Order["status"];
+  productId?: string;
+  productSku?: string;
+  quantity: number;
+};
+
+export async function saveIntakeOrder(ownerId: string, input: IntakeOrderInput) {
+  return mutateWorkspace(ownerId, (snapshot) => {
+    const clientName = input.clientName.trim();
+    if (!clientName) {
+      throw new UserFacingError("Client name is required.");
+    }
+
+    const product = input.productId
+      ? snapshot.products.find((item) => item.id === input.productId)
+      : input.productSku
+        ? findProduct(snapshot, input.productSku)
+        : undefined;
+    if (!product) {
+      throw new UserFacingError("Product not found for order.");
+    }
+
+    const client = ensureClientForImport(snapshot, clientName);
+    const items = buildOrderItems(snapshot, product.id, input.quantity);
+    const existing = input.id
+      ? snapshot.orders.find((order) => order.id === input.id)
+      : snapshot.orders.find((order) => order.orderNumber === input.orderNumber);
+
+    if (existing) {
+      existing.orderNumber = input.orderNumber;
+      existing.clientId = client.id;
+      existing.clientName = client.name;
+      existing.dueDate = input.dueDate;
+      existing.status = input.status;
+      existing.items = items;
+      return;
+    }
+
+    snapshot.orders.push({
+      id: input.id ?? `ord_${slugify(input.orderNumber) || crypto.randomUUID()}`,
+      orderNumber: input.orderNumber,
+      clientId: client.id,
+      clientName: client.name,
+      dueDate: input.dueDate,
+      status: input.status,
+      items
+    });
+  });
+}
+
 export async function deleteOrder(ownerId: string, orderId: string) {
   return mutateWorkspace(ownerId, (snapshot) => {
     snapshot.orders = snapshot.orders.filter((order) => order.id !== orderId);

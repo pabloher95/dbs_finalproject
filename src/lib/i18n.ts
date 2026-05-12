@@ -44,8 +44,8 @@ export function landingCopy(language: Language) {
     heroTitleAfterEmphasis: language === "es" ? "." : " business.",
     heroBody:
       language === "es"
-        ? "SmallBiz IQ mantiene el catálogo, los pedidos abiertos y el plan de materiales en una sola superficie medida. Importa un CSV, registra un pedido y obtén una lista de compra lista para proveedores."
-        : "SmallBiz IQ keeps the catalog, the open orders, and the material plan in a single measured surface. Import a CSV, capture an order, get a supplier-ready buy list.",
+        ? "SmallBiz IQ mantiene el catálogo, los pedidos abiertos y el plan de materiales en una sola superficie medida. Crea productos, registra pedidos y obtén una lista de compra lista para proveedores."
+        : "SmallBiz IQ keeps the catalog, the open orders, and the material plan in a single measured surface. Create products, capture orders, and get a supplier-ready buy list.",
     heroLink: language === "es" ? "Cómo funciona" : "How it works",
     methodEyebrow: language === "es" ? "Cómo funciona" : "How it works",
     methodTitle: language === "es" ? "Tres pasos." : "Three steps.",
@@ -133,28 +133,28 @@ export function landingCopy(language: Language) {
     dataFlowStages:
       language === "es"
         ? [
-            { label: "CSV", note: "Ingesta" },
+            { label: "Formularios", note: "Ingesta" },
             { label: "Catálogo", note: "Catálogo" },
             { label: "Pedidos", note: "Pedidos" },
             { label: "Lista de compra", note: "Lista de compra" }
           ]
         : [
-            { label: "CSV", note: "Intake" },
+            { label: "Forms", note: "Intake" },
             { label: "Catalog", note: "Catalog" },
             { label: "Orders", note: "Orders" },
             { label: "Buy list", note: "Buy list" }
           ],
     dataFlowCaption:
-      language === "es" ? "CSV → Catálogo → Pedidos → Lista de compra" : "CSV → Catalog → Orders → Buy list",
+      language === "es" ? "Formularios → Catálogo → Pedidos → Lista de compra" : "Forms → Catalog → Orders → Buy list",
     dataFlow: {
       orders: language === "es" ? "Pedidos" : "Orders",
       buyList: language === "es" ? "Lista de compra" : "Buy list"
     },
-    importTitle: language === "es" ? "Importar." : "Import.",
+    importTitle: language === "es" ? "Capturar." : "Enter.",
     importBody:
       language === "es"
-        ? "Sube un CSV de productos, contactos o pedidos. Cada fila se valida antes de guardarse."
-        : "Upload a CSV of products, contacts, or orders. Each row is validated before it lands.",
+        ? "Completa los formularios de productos y pedidos. Cada guardado actualiza el espacio al instante."
+        : "Fill out the product and order forms. Each save updates the workspace right away.",
     defineTitle: language === "es" ? "Define productos." : "Define products.",
     defineBody:
       language === "es"
@@ -232,7 +232,7 @@ export function workspaceCopy(language: Language) {
     ],
     nav: [
       { label: language === "es" ? "Estudio" : "Studio", description: language === "es" ? "Vista de hoy del trabajo y del siguiente paso." : "Today's view of the work and the next move." },
-      { label: language === "es" ? "Ingesta" : "Intake", description: language === "es" ? "Plantillas CSV versionadas con vista previa." : "Versioned CSV templates with preview." },
+      { label: language === "es" ? "Ingesta" : "Intake", description: language === "es" ? "Productos y pedidos capturados directamente." : "Products and orders captured directly." },
       { label: language === "es" ? "Catálogo" : "Catalog", description: language === "es" ? "Productos, rendimientos y fórmulas de materiales." : "Products, yields, and material formulas." },
       { label: language === "es" ? "Contactos" : "Contacts", description: language === "es" ? "Clientes y fuentes de proveedores." : "Customers and supplier sources." },
       { label: language === "es" ? "Pedidos" : "Orders", description: language === "es" ? "Demanda abierta y la cola de producción." : "Open demand and the production queue." },
@@ -274,8 +274,8 @@ export function dashboardCopy(language: Language) {
         title: language === "es" ? "Importar" : "Import",
         description:
           language === "es"
-            ? "Sube productos, contactos o pedidos como CSV."
-            : "Upload products, contacts, or orders as CSV."
+            ? "Captura productos y pedidos en formularios."
+            : "Capture products and orders in forms."
       },
       {
         href: "/products" as const,
@@ -394,8 +394,8 @@ export function onboardingCopy(language: Language) {
     title: language === "es" ? "Tres pasos para tu primera lista de compra." : "Three steps to your first buy list.",
     description:
       language === "es"
-        ? "Empieza con el catálogo o importa un CSV de ejemplo, registra un pedido y el estudio escribirá el resto."
-        : "Start with the catalog or import a sample CSV, capture an order, and the studio writes the rest.",
+        ? "Empieza con el catálogo o llena el formulario de ingreso, registra un pedido y el estudio escribirá el resto."
+        : "Start with the catalog or fill out the intake form, capture an order, and the studio writes the rest.",
     beginIntake: language === "es" ? "Iniciar ingesta" : "Begin intake",
     skip: language === "es" ? "Omitir" : "Skip"
   };
@@ -523,51 +523,30 @@ export function contactBoardCopy(language: Language) {
 
 export function importExperienceCopy(language: Language) {
   return {
-    templatesEyebrow: language === "es" ? "Plantillas versionadas" : "Versioned templates",
-    templatesTitle: language === "es" ? "Valida antes de confirmar" : "Validate before you commit",
-    templatesDescription:
+    eyebrow: language === "es" ? "Ingesta directa" : "Direct intake",
+    title: language === "es" ? "Crea productos y pedidos sin archivo" : "Create products and orders without a file",
+    description:
       language === "es"
-        ? "Elige una plantilla, pega un CSV o sube filas y revisa exactamente qué quedará en el espacio de trabajo. Las líneas duplicadas se informan antes de guardar nada."
-        : "Pick a template, drop a CSV or paste rows, and see exactly what will land in the workspace. Duplicate lines are reported before anything is saved.",
-    productsTemplate: language === "es" ? "Productos v1" : "Products v1",
-    ordersTemplate: language === "es" ? "Pedidos v1" : "Orders v1",
-    dropCsv: language === "es" ? "Suelta un CSV o haz clic para subirlo" : "Drop a CSV or click to upload",
-    draftsKept:
-      language === "es" ? "Los borradores se guardan en esta sesión del navegador" : "Drafts are kept for this browser session",
-    downloadTemplate: language === "es" ? "Descargar plantilla" : "Download template",
-    previewEyebrow: language === "es" ? "Vista previa" : "Preview",
-    previewTitle: language === "es" ? "Informe de validación por fila" : "Row-level validation report",
-    previewDescription:
+        ? "Completa los formularios, guarda cada registro y deja que el espacio de trabajo se actualice al instante."
+        : "Fill out the forms, save each record, and let the workspace update instantly.",
+    productEyebrow: language === "es" ? "Producto" : "Product",
+    productTitle: language === "es" ? "Agregar producto con fórmula" : "Add a product with a formula",
+    productDescription:
       language === "es"
-        ? "Revisa qué está listo para cargar, qué se omitió y qué requiere corrección antes de confirmar."
-        : "See what is ready to load, what was skipped, and what needs correction before committing.",
-    created: language === "es" ? "Creado" : "Created",
-    skipped: language === "es" ? "Omitido" : "Skipped",
-    errors: language === "es" ? "Errores" : "Errors",
-    row: language === "es" ? "Fila" : "Row",
-    state: language === "es" ? "Estado" : "State",
-    detail: language === "es" ? "Detalle" : "Detail",
-    ready: language === "es" ? "Listo" : "Ready",
-    error: language === "es" ? "Error" : "Error",
-    pasteHint:
+        ? "Captura SKU, precio y rendimiento; después agrega los materiales una fila a la vez."
+        : "Capture SKU, price, and yield, then add materials one row at a time.",
+    orderEyebrow: language === "es" ? "Pedido" : "Order",
+    orderTitle: language === "es" ? "Registrar el siguiente trabajo" : "Record the next job",
+    orderDescription:
       language === "es"
-        ? "Pega o arrastra un CSV arriba para previsualizar la validación por fila."
-        : "Paste or drop a CSV above to preview row-level validation.",
-    recoveryEyebrow: language === "es" ? "Recuperación" : "Recovery",
-    recoveryDescription:
-      language === "es"
-        ? "Carga solo las filas con errores de nuevo al editor y corrígelas en su lugar."
-        : "Pull only the rows with errors back into the editor and fix them in place.",
-    recoveryIdle:
-      language === "es" ? "No hay errores por fila que bloqueen la recuperación." : "No row-level errors are currently blocking recovery.",
-    loadErrorRows: language === "es" ? "Cargar filas con error" : "Load error rows",
-    rowsPreviewed: language === "es" ? "filas previsualizadas" : "rows previewed",
-    importing: language === "es" ? "Importando…" : "Importing…",
-    importToWorkspace: language === "es" ? "Importar al espacio de trabajo" : "Import to workspace",
-    validateHint:
-      language === "es"
-        ? "Elige una plantilla, suelta un CSV o pega filas, y verás exactamente qué entrará al espacio de trabajo. Las líneas duplicadas se informan antes de guardar."
-        : "Pick a template, drop a CSV or paste rows, and see exactly what will land in the workspace. Duplicate lines are reported before anything is saved."
+        ? "Escribe el cliente, el producto y la fecha de entrega para poner la demanda en cola."
+        : "Enter the customer, product, and due date to put demand in the queue.",
+    addMaterial: language === "es" ? "Agregar material" : "Add material",
+    productSaved: language === "es" ? "Producto guardado." : "Product saved.",
+    orderSaved: language === "es" ? "Pedido guardado." : "Order saved.",
+    clientRequired: language === "es" ? "El nombre del cliente es obligatorio." : "Customer name is required.",
+    productRequired: language === "es" ? "Elige un producto." : "Choose a product.",
+    dueDateRequired: language === "es" ? "La fecha de entrega es obligatoria." : "Due date is required."
   };
 }
 
