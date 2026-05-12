@@ -247,11 +247,14 @@ export function dashboardCopy(language: Language) {
     sourcingGap: language === "es" ? "brecha de abastecimiento" : "sourcing gap",
     sourcingGaps: language === "es" ? "brechas de abastecimiento" : "sourcing gaps",
     sourcingComplete: language === "es" ? "Abastecimiento completo" : "Sourcing complete",
-    title: language === "es" ? "El trabajo, por escrito." : "The work, written down.",
-    body:
+    title:
       language === "es"
         ? "Base operativa y presión de ventas, de un vistazo."
         : "Operating base and sales pressure, at a glance.",
+    body:
+      language === "es"
+        ? "Lecturas de demanda y tendencia, debajo."
+        : "Demand and trend readings below.",
     operationsEyebrow: language === "es" ? "Base operativa" : "Operating base",
     operationsTitle: language === "es" ? "Capacidad del negocio" : "Business capacity",
     operationsBody:
