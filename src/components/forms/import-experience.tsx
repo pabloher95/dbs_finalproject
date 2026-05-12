@@ -22,7 +22,6 @@ type ProductDraft = {
   name: string;
   category: string;
   unit: string;
-  yieldQuantity: string;
   unitPrice: string;
   formula: FormulaDraft[];
 };
@@ -52,7 +51,6 @@ function createProductDraft(): ProductDraft {
     name: "",
     category: "general",
     unit: "each",
-    yieldQuantity: "12",
     unitPrice: "0",
     formula: [createFormulaRow()]
   };
@@ -193,7 +191,6 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
     const name = productDraft.name.trim();
     const category = productDraft.category.trim();
     const unit = productDraft.unit.trim();
-    const yieldQuantity = toNumber(productDraft.yieldQuantity);
     const unitPrice = toNumber(productDraft.unitPrice);
     const formula = productDraft.formula
       .map((row) => ({
@@ -205,10 +202,6 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
 
     if (!sku || !name || !category || !unit) {
       setToast({ message: productCopy.enterRequired, tone: "warn" });
-      return;
-    }
-    if (!Number.isFinite(yieldQuantity) || yieldQuantity <= 0) {
-      setToast({ message: productCopy.yieldRequired, tone: "warn" });
       return;
     }
     if (!Number.isFinite(unitPrice) || unitPrice < 0) {
@@ -233,7 +226,6 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
             name,
             category,
             unit,
-            yieldQuantity,
             unitPrice,
             formula
           }
@@ -389,13 +381,6 @@ export function ImportExperience({ snapshot }: Readonly<{ snapshot: BusinessSnap
                 onChange={(event) => setProductDraft((current) => ({ ...current, unit: event.target.value }))}
                 placeholder={productCopy.unitPlaceholder}
                 className="field"
-              />
-              <input
-                value={productDraft.yieldQuantity}
-                onChange={(event) => setProductDraft((current) => ({ ...current, yieldQuantity: event.target.value }))}
-                placeholder={productCopy.yieldQuantityPlaceholder}
-                className="field font-mono text-sm"
-                inputMode="decimal"
               />
               <input
                 value={productDraft.unitPrice}

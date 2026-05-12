@@ -32,7 +32,6 @@ export async function POST(request: Request) {
         const name = nonEmpty(body.draft.name);
         const category = nonEmpty(body.draft.category);
         const unit = nonEmpty(body.draft.unit);
-        const yieldQuantity = Number(body.draft.yieldQuantity ?? 0);
         const unitPrice = Number(body.draft.unitPrice ?? 0);
         const formula = Array.isArray(body.draft.formula) ? body.draft.formula : [];
         const resolvedFormula = formula
@@ -47,9 +46,6 @@ export async function POST(request: Request) {
 
         if (!sku || !name || !category || !unit) {
           return NextResponse.json({ error: "SKU, name, category, and unit are required." }, { status: 400 });
-        }
-        if (!Number.isFinite(yieldQuantity) || yieldQuantity <= 0) {
-          return NextResponse.json({ error: "Yield quantity must be greater than zero." }, { status: 400 });
         }
         if (!Number.isFinite(unitPrice) || unitPrice < 0) {
           return NextResponse.json({ error: "Unit price must be a valid non-negative number." }, { status: 400 });
@@ -70,7 +66,7 @@ export async function POST(request: Request) {
           name,
           category,
           unit,
-          yieldQuantity,
+          yieldQuantity: 1,
           unitPrice,
           formula: resolvedFormula
         });

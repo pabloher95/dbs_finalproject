@@ -12,8 +12,8 @@ export default async function ImportPage() {
       title={language === "es" ? "Crea productos y pedidos en línea" : "Create products and orders online"}
       description={
         language === "es"
-          ? "Completa los formularios de productos y pedidos para que el espacio de trabajo se actualice al instante, sin subir archivos."
-          : "Fill out the product and order forms so the workspace updates instantly, without uploading files."
+          ? "Completa los formularios de productos y pedidos para que el espacio de trabajo se actualice al instante, sin subir archivos. La fórmula del producto se guarda por unidad."
+          : "Fill out the product and order forms so the workspace updates instantly, without uploading files. Product formulas are saved at the unit level."
       }
       metrics={[
         { label: language === "es" ? "Elementos del catálogo" : "Catalog items", value: String(snapshot.products.length) },
@@ -25,8 +25,8 @@ export default async function ImportPage() {
           title: language === "es" ? "Escribe un producto" : "Enter a product",
           description:
             language === "es"
-              ? "Captura el SKU, el rendimiento y la fórmula en una sola forma."
-              : "Capture the SKU, yield, and formula in one form."
+              ? "Captura el SKU y la fórmula del producto por unidad."
+              : "Capture the SKU and the product's unit-level formula."
         },
         {
           title: language === "es" ? "Registra un pedido" : "Record an order",
@@ -45,8 +45,8 @@ export default async function ImportPage() {
       ]}
       nextStep={
         language === "es"
-          ? "Empieza por un producto; después registra el pedido que lo pone en marcha."
-          : "Start with one product, then record the order that puts it to work."
+          ? "Empieza por un producto por unidad; después registra el pedido que lo pone en marcha."
+          : "Start with a unit-level product, then record the order that puts it to work."
       }
     >
       <ImportPageContent snapshot={snapshot} />

@@ -533,8 +533,8 @@ export function importExperienceCopy(language: Language) {
     productTitle: language === "es" ? "Agregar producto con fórmula" : "Add a product with a formula",
     productDescription:
       language === "es"
-        ? "Captura SKU, precio y rendimiento; después agrega los materiales una fila a la vez."
-        : "Capture SKU, price, and yield, then add materials one row at a time.",
+        ? "Captura SKU, precio y fórmula por unidad; después agrega los materiales una fila a la vez."
+        : "Capture SKU, price, and a unit-level formula, then add materials one row at a time.",
     orderEyebrow: language === "es" ? "Pedido" : "Order",
     orderTitle: language === "es" ? "Registrar el siguiente trabajo" : "Record the next job",
     orderDescription:
