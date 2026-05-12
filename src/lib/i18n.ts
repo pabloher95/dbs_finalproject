@@ -327,10 +327,10 @@ export function workflowPageCopy(language: Language) {
 export function analyticsCopy(language: Language) {
   return {
     eyebrow: language === "es" ? "Lecturas" : "Readings",
-    description:
+    title:
       language === "es"
-        ? "Analítica descriptiva construida a partir del libro de pedidos actual, los precios de los productos y los costos de materiales. Sin previsiones todavía, solo la forma del negocio."
-        : "Descriptive analytics built from the current order book, product pricing, and material costs. No forecasts yet, just the shape of the business.",
+        ? "Base operativa y presión de ventas, de un vistazo."
+        : "Operating base and sales pressure, at a glance.",
     revenue: language === "es" ? "Ingresos" : "Revenue",
     grossMargin: language === "es" ? "Margen bruto" : "Gross margin",
     marginRate: language === "es" ? "Tasa de margen" : "Margin rate",
