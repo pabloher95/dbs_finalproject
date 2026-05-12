@@ -6,13 +6,6 @@ import { getWorkspaceOverview } from "@/lib/server/workspace";
 export default async function OrdersPage() {
   const { snapshot } = await getWorkspaceOverview();
   const language = await getRequestLanguage();
-  const today = new Date().toISOString().slice(0, 10);
-  const activeOrdersCount = snapshot.orders.filter((order) => order.status === "open").length;
-  const fulfilledOrdersCount = snapshot.orders.filter((order) => order.status === "fulfilled").length;
-  const backlogCount = snapshot.orders.filter((order) => order.status === "open" && order.dueDate < today).length;
-  const activeUnits = snapshot.orders
-    .filter((order) => order.status === "open")
-    .reduce((total, order) => total + order.items.reduce((sum, item) => sum + item.quantity, 0), 0);
   return (
     <WorkflowPageShell
       eyebrow={language === "es" ? "Pedidos" : "Orders"}
@@ -26,12 +19,6 @@ export default async function OrdersPage() {
           ? "Escribe el cliente directamente, registra lo que necesita, marca lo cumplido y deja que el estado del pedido te diga qué viene después."
           : "Type the customer directly, record what they need, mark work as fulfilled, and let order status tell you what comes next."
       }
-      metrics={[
-        { label: language === "es" ? "Pedidos activos" : "Active orders", value: String(activeOrdersCount) },
-        { label: language === "es" ? "Pedidos cumplidos" : "Fulfilled orders", value: String(fulfilledOrdersCount) },
-        { label: language === "es" ? "Pedidos en cola" : "Backlog orders", value: String(backlogCount) },
-        { label: language === "es" ? "Unidades activas" : "Active units", value: String(activeUnits) }
-      ]}
       steps={[
         {
           title: language === "es" ? "Escribe el cliente" : "Type the customer",
