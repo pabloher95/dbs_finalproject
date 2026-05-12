@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
 import { OrdersBoard } from "@/components/layout/orders-board";
 import { Card, Eyebrow, Pill, Toast } from "@/components/ui/surfaces";
 import type { BusinessSnapshot, Order } from "@/lib/domain/types";
+import { orderStudioCopy } from "@/lib/i18n";
 
 type Tone = "info" | "success" | "warn" | "error";
 
@@ -16,6 +18,8 @@ function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
 
 export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const copy = orderStudioCopy(language);
   const [orders, setOrders] = useState(snapshot.orders);
   const [draft, setDraft] = useState({
     id: "",
@@ -50,19 +54,19 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
 
   async function saveOrder() {
     if (!snapshot.clients.length) {
-      setToast({ message: "Add a customer in Contacts before creating orders.", tone: "warn" });
+      setToast({ message: copy.noCustomers, tone: "warn" });
       return;
     }
     if (!snapshot.products.length) {
-      setToast({ message: "Add a product in Catalog before creating orders.", tone: "warn" });
+      setToast({ message: copy.noProducts, tone: "warn" });
       return;
     }
     if (!draft.orderNumber.trim()) {
-      setToast({ message: "Order number is required.", tone: "warn" });
+      setToast({ message: copy.orderNumberRequired, tone: "warn" });
       return;
     }
     if (Number(draft.quantity) <= 0) {
-      setToast({ message: "Quantity must be greater than zero.", tone: "warn" });
+      setToast({ message: copy.quantityRequired, tone: "warn" });
       return;
     }
 
@@ -81,13 +85,13 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to save order.", tone: "error" });
+      setToast({ message: data.error ?? copy.saveError, tone: "error" });
       return;
     }
 
     setOrders(data.snapshot.orders);
     setLastDeleted(null);
-    setToast({ message: "Order saved.", tone: "success" });
+    setToast({ message: copy.saved, tone: "success" });
     setDraft((current) => ({
       ...current,
       id: "",
@@ -97,7 +101,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
   }
 
   async function deleteOrder(order: Order) {
-    if (!window.confirm(`Delete ${order.orderNumber}?`)) return;
+    if (!window.confirm(language === "es" ? `¿Eliminar ${order.orderNumber}?` : `Delete ${order.orderNumber}?`)) return;
     const response = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -105,7 +109,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to delete order.", tone: "error" });
+      setToast({ message: data.error ?? copy.deleteError, tone: "error" });
       return;
     }
     setOrders(data.snapshot.orders);
@@ -121,7 +125,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
         quantity: "24"
       });
     }
-    setToast({ message: "Order deleted. Undo available.", tone: "info" });
+    setToast({ message: copy.deleted, tone: "info" });
     router.refresh();
   }
 
@@ -129,7 +133,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     if (!lastDeleted) return;
     const firstItem = lastDeleted.items[0];
     if (!firstItem) {
-      setToast({ message: "Cannot restore an order with no line items.", tone: "warn" });
+      setToast({ message: copy.noItemRestore, tone: "warn" });
       return;
     }
     const response = await fetch("/api/orders", {
@@ -147,12 +151,12 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to restore order.", tone: "error" });
+      setToast({ message: data.error ?? copy.restoreError, tone: "error" });
       return;
     }
     setOrders(data.snapshot.orders);
     setLastDeleted(null);
-    setToast({ message: "Order restored.", tone: "success" });
+    setToast({ message: copy.restored, tone: "success" });
     router.refresh();
   }
 
@@ -167,29 +171,29 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
           }}
         >
           <div className="lg:col-span-6">
-            <Eyebrow tone="flame">Order intake</Eyebrow>
-            <p className="mt-2 font-display text-3xl leading-tight text-[var(--ink)]">Add the next job to the queue</p>
+            <Eyebrow tone="flame">{copy.eyebrow}</Eyebrow>
+            <p className="mt-2 font-display text-3xl leading-tight text-[var(--ink)]">{copy.title}</p>
             <p className="mt-2 text-[0.92rem] leading-6 text-[var(--muted-strong)]">
-              Pick the customer, the product, and a due date. The plan ahead reacts the moment you save.
+              {copy.description}
             </p>
             {!snapshot.clients.length ? (
               <Pill tone="amber" className="mt-3">
-                No customers yet. Add one in Contacts first.
+                {copy.noCustomers}
               </Pill>
             ) : null}
             {!snapshot.products.length ? (
               <Pill tone="amber" className="mt-3 ml-2">
-                No products yet. Add one in Catalog before saving orders.
+                {copy.noProducts}
               </Pill>
             ) : null}
           </div>
           <input
             value={draft.orderNumber}
             onChange={(event) => setDraft((current) => ({ ...current, orderNumber: event.target.value }))}
-            placeholder="Order number"
+            placeholder={language === "es" ? "Número de pedido" : "Order number"}
             className="field font-mono text-sm"
           />
-          <select
+            <select
             value={draft.clientId}
             onChange={(event) => setDraft((current) => ({ ...current, clientId: event.target.value }))}
             className="field"
@@ -229,22 +233,22 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as Order["status"] }))}
             className="field"
           >
-            <option value="draft">draft</option>
-            <option value="open">open</option>
-            <option value="fulfilled">fulfilled</option>
+            <option value="draft">{copy.draft}</option>
+            <option value="open">{copy.open}</option>
+            <option value="fulfilled">{copy.fulfilled}</option>
           </select>
           <div className="lg:col-span-6 flex flex-wrap items-center gap-2 pt-2">
             <button className="btn btn-flame" type="submit" disabled={blocked}>
-              {draft.id ? "Update order" : "Save order"}
+              {draft.id ? copy.updateOrder : copy.saveOrder}
             </button>
             {lastDeleted ? (
               <button type="button" className="btn btn-soft" onClick={() => void undoDelete()}>
-                Undo last delete
+                {copy.undoDelete}
               </button>
             ) : null}
             {blocked ? (
               <span className="font-mono text-[0.66rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
-                Add a customer and a product before submitting an order.
+                {copy.blocked}
               </span>
             ) : null}
           </div>
@@ -254,13 +258,13 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       <Card className="p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <Eyebrow tone="flame">Manage orders</Eyebrow>
-            <p className="mt-2 font-display text-2xl text-[var(--ink)]">{orders.length} on the queue</p>
+            <Eyebrow tone="flame">{copy.manageEyebrow}</Eyebrow>
+            <p className="mt-2 font-display text-2xl text-[var(--ink)]">{copy.queueLabel(orders.length)}</p>
           </div>
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search number, customer, status, date"
+            placeholder={copy.searchPlaceholder}
             className="field max-w-xs"
           />
         </div>
@@ -273,10 +277,12 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-display text-lg text-[var(--ink)]">{order.orderNumber}</p>
-                  <Pill tone={statusTone(order.status)}>{order.status}</Pill>
+                  <Pill tone={statusTone(order.status)}>
+                    {order.status === "draft" ? copy.draft : order.status === "open" ? copy.open : copy.fulfilled}
+                  </Pill>
                 </div>
                 <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
-                  {order.clientName} · due {order.dueDate}
+                  {order.clientName} · {copy.due} {order.dueDate}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -295,22 +301,22 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                     })
                   }
                 >
-                  Edit
+                  {copy.edit}
                 </button>
                 <button type="button" className="btn btn-soft" onClick={() => void deleteOrder(order)}>
-                  Delete
+                  {copy.delete}
                 </button>
               </div>
             </article>
           ))}
           {!orders.length ? (
             <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-              No orders yet. Create one to generate purchasing demand.
+              {copy.noOrders}
             </p>
           ) : null}
           {orders.length > 0 && !visibleOrders.length ? (
             <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-              No orders match your search.
+              {copy.noOrderMatches}
             </p>
           ) : null}
         </div>

@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Pill, SectionHeading, Toast } from "@/components/ui/surfaces";
+import { useLanguage } from "@/components/providers/language-provider";
 import {
   parseOrderImport,
   parseProductImport,
   type ImportPreview,
   type ImportTarget
 } from "@/lib/import/parser";
+import { importExperienceCopy } from "@/lib/i18n";
 
 const examples: Record<ImportTarget, string> = {
   products: `sku,name,category,unit,yield_quantity,material_name,material_unit,material_quantity\nCANDLE-01,Signature Candle,home goods,each,12,Soy Wax,g,1200\nCANDLE-01,Signature Candle,home goods,each,12,Fragrance Oil,g,120\nGIFT-SET,Gift Set,bundles,each,8,Gift Box Insert,each,8`,
@@ -26,27 +28,30 @@ function templateHeader(target: ImportTarget) {
   return examples[target].split("\n")[0] ?? "";
 }
 
-function statusPill(status: ImportPreview["rowReports"][number]["status"]) {
-  if (status === "created") return <Pill tone="moss">Ready</Pill>;
-  if (status === "skipped") return <Pill tone="amber">Skipped</Pill>;
-  return <Pill tone="flame">Error</Pill>;
+function statusPill(status: ImportPreview["rowReports"][number]["status"], copy: ReturnType<typeof importExperienceCopy>) {
+  if (status === "created") return <Pill tone="moss">{copy.ready}</Pill>;
+  if (status === "skipped") return <Pill tone="amber">{copy.skipped}</Pill>;
+  return <Pill tone="flame">{copy.error}</Pill>;
 }
 
-function PreviewTable({ preview }: Readonly<{ preview: ImportPreview }>) {
+function PreviewTable({
+  preview,
+  copy
+}: Readonly<{ preview: ImportPreview; copy: ReturnType<typeof importExperienceCopy> }>) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2">
-        <SummaryCell label="Created" value={String(preview.createdRecords)} tone="moss" />
-        <SummaryCell label="Skipped" value={String(preview.skippedRows.length)} tone="amber" />
-        <SummaryCell label="Errors" value={String(preview.errors.length)} tone="flame" />
+        <SummaryCell label={copy.created} value={String(preview.createdRecords)} tone="moss" />
+        <SummaryCell label={copy.skipped} value={String(preview.skippedRows.length)} tone="amber" />
+        <SummaryCell label={copy.errors} value={String(preview.errors.length)} tone="flame" />
       </div>
       <div className="overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
         <table className="console-table">
           <thead>
             <tr>
-              <th>Row</th>
-              <th>State</th>
-              <th>Detail</th>
+              <th>{copy.row}</th>
+              <th>{copy.state}</th>
+              <th>{copy.detail}</th>
             </tr>
           </thead>
           <tbody>
@@ -55,14 +60,14 @@ function PreviewTable({ preview }: Readonly<{ preview: ImportPreview }>) {
                 <td className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted-strong)]">
                   {String(row.rowNumber).padStart(2, "0")}
                 </td>
-                <td>{statusPill(row.status)}</td>
+                <td>{statusPill(row.status, copy)}</td>
                 <td className="text-[var(--muted-strong)]">{row.message}</td>
               </tr>
             ))}
             {!preview.rowReports.length ? (
               <tr>
                 <td colSpan={3} className="text-center text-sm text-[var(--muted)]">
-                  Paste or drop a CSV above to preview row-level validation.
+                  {copy.pasteHint}
                 </td>
               </tr>
             ) : null}
@@ -93,6 +98,8 @@ function SummaryCell({
 
 export function ImportExperience() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const copy = importExperienceCopy(language);
   const [target, setTarget] = useState<ImportTarget>("products");
   const [csv, setCsv] = useState(examples.products);
   const [result, setResult] = useState<ImportPreview | null>(null);
@@ -113,7 +120,13 @@ export function ImportExperience() {
     const nextCsv = [templateHeader(target), ...errorRows.map((row) => row.raw ?? "")].join("\n");
     setCsv(nextCsv);
     setResult(null);
-    setToast({ message: "Loaded only the invalid rows so you can repair them.", tone: "info" });
+    setToast({
+      message:
+        language === "es"
+          ? "Se cargaron solo las filas inválidas para que las corrijas."
+          : "Loaded only the invalid rows so you can repair them.",
+      tone: "info"
+    });
   }
 
   useEffect(() => {
@@ -142,12 +155,18 @@ export function ImportExperience() {
   async function loadFile(file: File) {
     const text = await file.text();
     setCsv(text);
-    setToast({ message: `Loaded ${file.name}. Review preview before importing.`, tone: "info" });
+    setToast({
+      message:
+        language === "es"
+          ? `Se cargó ${file.name}. Revisa la vista previa antes de importar.`
+          : `Loaded ${file.name}. Review preview before importing.`,
+      tone: "info"
+    });
   }
 
   async function importRows() {
     setBusy(true);
-    setToast({ message: "Importing rows…", tone: "info" });
+    setToast({ message: copy.importing, tone: "info" });
     try {
       const response = await fetch("/api/import", {
         method: "POST",
@@ -156,11 +175,17 @@ export function ImportExperience() {
       });
       const data = (await response.json()) as { preview?: ImportPreview; error?: string };
       if (!response.ok || !data.preview) {
-        setToast({ message: data.error ?? "Unable to import data.", tone: "error" });
+        setToast({ message: data.error ?? (language === "es" ? "No se pudieron importar los datos." : "Unable to import data."), tone: "error" });
         return;
       }
       setResult(data.preview);
-      setToast({ message: `Imported ${data.preview.createdRecords} rows.`, tone: "success" });
+      setToast({
+        message:
+          language === "es"
+            ? `Se importaron ${data.preview.createdRecords} filas.`
+            : `Imported ${data.preview.createdRecords} rows.`,
+        tone: "success"
+      });
       router.refresh();
     } finally {
       setBusy(false);
@@ -171,9 +196,9 @@ export function ImportExperience() {
     <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
       <Card className="p-6">
         <SectionHeading
-          eyebrow="Versioned templates"
-          title="Validate before you commit"
-          description="Pick a template, drop a CSV or paste rows, and see exactly what will land in the workspace. Duplicate lines are reported before anything is saved."
+          eyebrow={copy.templatesEyebrow}
+          title={copy.templatesTitle}
+          description={copy.templatesDescription}
         />
         <div className="mt-6 flex flex-wrap gap-2">
           {(["products", "orders"] as const).map((option) => {
@@ -185,7 +210,13 @@ export function ImportExperience() {
                 onClick={() => {
                   setTarget(option);
                   setCsv(examples[option]);
-                  setToast({ message: `Loaded ${option} template example.`, tone: "info" });
+                  setToast({
+                    message:
+                      language === "es"
+                        ? `Se cargó la plantilla de ejemplo de ${option === "products" ? "productos" : "pedidos"}.`
+                        : `Loaded ${option} template example.`,
+                    tone: "info"
+                  });
                 }}
                 className={
                   active
@@ -194,13 +225,13 @@ export function ImportExperience() {
                 }
               >
                 <span className="font-mono text-[0.62rem] uppercase tracking-[0.28em]">
-                  {option === "products" ? "Products v1" : "Orders v1"}
+                  {option === "products" ? copy.productsTemplate : copy.ordersTemplate}
                 </span>
               </button>
             );
           })}
           <Link href={`/api/templates/${target}`} className="btn btn-soft">
-            Download template
+            {copy.downloadTemplate}
           </Link>
         </div>
         <div
@@ -233,9 +264,9 @@ export function ImportExperience() {
               event.currentTarget.value = "";
             }}
           />
-          <p className="font-display text-lg text-[var(--ink)]">Drop a CSV or click to upload</p>
+          <p className="font-display text-lg text-[var(--ink)]">{copy.dropCsv}</p>
           <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
-            Drafts are kept for this browser session
+            {copy.draftsKept}
           </p>
         </div>
         <textarea
@@ -246,29 +277,27 @@ export function ImportExperience() {
         />
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-dashed border-[var(--line)] pt-4">
           <button type="button" className="btn btn-flame" disabled={busy} onClick={() => void importRows()}>
-            {busy ? "Importing…" : "Import to workspace"}
+            {busy ? copy.importing : copy.importToWorkspace}
           </button>
           <span className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
-            {preview.rowReports.length} row{preview.rowReports.length === 1 ? "" : "s"} previewed
+            {preview.rowReports.length} {copy.rowsPreviewed}
           </span>
         </div>
       </Card>
       <Card className="p-6">
         <SectionHeading
-          eyebrow="Preview"
-          title="Row-level validation report"
-          description="See what is ready to load, what was skipped, and what needs correction before committing."
+          eyebrow={copy.previewEyebrow}
+          title={copy.previewTitle}
+          description={copy.previewDescription}
         />
         <div className="mt-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.65)] px-4 py-3">
             <div>
               <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
-                Recovery
+                {copy.recoveryEyebrow}
               </p>
               <p className="mt-1 text-sm text-[var(--muted-strong)]">
-                {errorRows.length
-                  ? "Pull only the rows with errors back into the editor and fix them in place."
-                  : "No row-level errors are currently blocking recovery."}
+                {errorRows.length ? copy.recoveryDescription : copy.recoveryIdle}
               </p>
             </div>
             <button
@@ -277,10 +306,10 @@ export function ImportExperience() {
               disabled={!errorRows.length}
               onClick={recoverErrorRows}
             >
-              Load error rows
+              {copy.loadErrorRows}
             </button>
           </div>
-          <PreviewTable preview={activePreview} />
+          <PreviewTable preview={activePreview} copy={copy} />
         </div>
       </Card>
       {toast ? <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast(null)} /> : null}

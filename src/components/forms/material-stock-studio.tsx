@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
 import { Card, Eyebrow, Pill, Toast } from "@/components/ui/surfaces";
 import type { Material, Supplier } from "@/lib/domain/types";
+import { materialStockCopy } from "@/lib/i18n";
 
-function supplierName(material: Material, suppliers: Supplier[]) {
-  return suppliers.find((supplier) => supplier.id === material.preferredSupplierId)?.name ?? "Unassigned";
+function supplierName(material: Material, suppliers: Supplier[], fallback: string) {
+  return suppliers.find((supplier) => supplier.id === material.preferredSupplierId)?.name ?? fallback;
 }
 
 export function MaterialStockStudio({
@@ -17,6 +19,8 @@ export function MaterialStockStudio({
   suppliers: Supplier[];
 }>) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const copy = materialStockCopy(language);
   const [inventory, setInventory] = useState(materials);
   const [selectedMaterialId, setSelectedMaterialId] = useState(materials[0]?.id ?? "");
   const [delta, setDelta] = useState("12");
@@ -36,11 +40,11 @@ export function MaterialStockStudio({
     const key = search.trim().toLowerCase();
     if (!key) return inventory;
     return inventory.filter((material) =>
-      [material.name, material.unit, supplierName(material, suppliers)].some((value) =>
+      [material.name, material.unit, supplierName(material, suppliers, copy.unassigned)].some((value) =>
         value.toLowerCase().includes(key)
       )
     );
-  }, [inventory, search, suppliers]);
+  }, [copy.unassigned, inventory, search, suppliers]);
 
   const selectedMaterial = inventory.find((material) => material.id === selectedMaterialId) ?? visibleMaterials[0];
   const selectedMaterialUnitCost = selectedMaterial?.unitCost ?? 0;
@@ -57,11 +61,11 @@ export function MaterialStockStudio({
 
   async function applyAdjustment(amount: number) {
     if (!selectedMaterialId) {
-      setToast({ message: "Choose a material first.", tone: "warn" });
+      setToast({ message: copy.chooseMaterial, tone: "warn" });
       return;
     }
     if (!Number.isFinite(amount) || amount === 0) {
-      setToast({ message: "Enter a non-zero stock adjustment.", tone: "warn" });
+      setToast({ message: copy.nonZeroAdjustment, tone: "warn" });
       return;
     }
 
@@ -78,12 +82,12 @@ export function MaterialStockStudio({
       });
       const data = (await response.json()) as { snapshot?: { materials: Material[] }; error?: string };
       if (!response.ok || !data.snapshot) {
-        setToast({ message: data.error ?? "Unable to update material stock.", tone: "error" });
+        setToast({ message: data.error ?? copy.updateStockError, tone: "error" });
         return;
       }
 
       setInventory(data.snapshot.materials);
-      setToast({ message: "Material stock updated.", tone: "success" });
+      setToast({ message: copy.stockUpdated, tone: "success" });
       router.refresh();
     } finally {
       setBusy(false);
@@ -92,12 +96,12 @@ export function MaterialStockStudio({
 
   async function saveCost() {
     if (!selectedMaterialId) {
-      setToast({ message: "Choose a material first.", tone: "warn" });
+      setToast({ message: copy.chooseMaterial, tone: "warn" });
       return;
     }
     const parsed = Number(unitCost);
     if (!Number.isFinite(parsed) || parsed < 0) {
-      setToast({ message: "Enter a valid unit cost.", tone: "warn" });
+      setToast({ message: copy.validCost, tone: "warn" });
       return;
     }
 
@@ -114,12 +118,12 @@ export function MaterialStockStudio({
       });
       const data = (await response.json()) as { snapshot?: { materials: Material[] }; error?: string };
       if (!response.ok || !data.snapshot) {
-        setToast({ message: data.error ?? "Unable to update material cost.", tone: "error" });
+        setToast({ message: data.error ?? copy.updateCostError, tone: "error" });
         return;
       }
 
       setInventory(data.snapshot.materials);
-      setToast({ message: "Material cost updated.", tone: "success" });
+      setToast({ message: copy.costUpdated, tone: "success" });
       router.refresh();
     } finally {
       setBusy(false);
@@ -130,16 +134,18 @@ export function MaterialStockStudio({
     <Card className="rounded-[28px] p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Eyebrow tone="flame">Inventory</Eyebrow>
-          <p className="mt-2 font-display text-3xl leading-tight text-[var(--ink)]">Track stock on hand</p>
+          <Eyebrow tone="flame">{copy.eyebrow}</Eyebrow>
+          <p className="mt-2 font-display text-3xl leading-tight text-[var(--ink)]">{copy.title}</p>
           <p className="mt-2 max-w-2xl text-[0.92rem] leading-6 text-[var(--muted-strong)]">
-            Add receipts, subtract usage, and keep the purchasing plan grounded in what is already on the shelf.
+            {copy.description}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Pill tone="ink">{inventory.length} materials</Pill>
+          <Pill tone="ink">
+            {inventory.length} {copy.materials}
+          </Pill>
           <Pill tone={inventory.some((material) => material.onHandQuantity > 0) ? "moss" : "amber"}>
-            {inventory.filter((material) => material.onHandQuantity > 0).length} stocked
+            {inventory.filter((material) => material.onHandQuantity > 0).length} {copy.stocked}
           </Pill>
         </div>
       </div>
@@ -148,7 +154,7 @@ export function MaterialStockStudio({
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search material or supplier"
+          placeholder={copy.searchPlaceholder}
           className="field"
         />
         <select
@@ -177,16 +183,16 @@ export function MaterialStockStudio({
           min="0"
           step="0.01"
           className="field font-mono text-sm"
-          placeholder="Unit cost"
+          placeholder={copy.unitCostPlaceholder}
         />
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" className="btn btn-flame" disabled={busy} onClick={() => void applyAdjustment(Number(delta))}>
-          {busy ? "Saving…" : "Apply adjustment"}
+          {busy ? copy.saving : copy.applyAdjustment}
         </button>
         <button type="button" className="btn btn-soft" disabled={busy} onClick={() => void saveCost()}>
-          Save cost
+          {copy.saveCost}
         </button>
         {([1, 5, 12, -12] as const).map((amount) => (
           <button
@@ -208,10 +214,10 @@ export function MaterialStockStudio({
         <table className="console-table">
           <thead>
             <tr>
-              <th>Material</th>
-              <th>On hand</th>
-              <th>Cost</th>
-              <th>Supplier</th>
+              <th>{copy.material}</th>
+              <th>{copy.onHand}</th>
+              <th>{copy.cost}</th>
+              <th>{copy.supplier}</th>
             </tr>
           </thead>
           <tbody>
@@ -224,7 +230,7 @@ export function MaterialStockStudio({
                 <td>
                   <p className="font-display text-lg text-[var(--ink)]">{material.name}</p>
                   <p className="font-mono text-[0.66rem] uppercase tracking-[0.22em] text-[var(--muted-strong)]">
-                    Unit {material.unit}
+                    {copy.unit} {material.unit}
                   </p>
                 </td>
                 <td className="font-mono text-[0.9rem]">
@@ -234,13 +240,13 @@ export function MaterialStockStudio({
                 <td className="font-mono text-[0.78rem] uppercase tracking-[0.18em] text-[var(--muted-strong)]">
                   {(material.unitCost ?? 0).toFixed(2)} per {material.unit}
                 </td>
-                <td className="text-sm text-[var(--muted-strong)]">{supplierName(material, suppliers)}</td>
+                <td className="text-sm text-[var(--muted-strong)]">{supplierName(material, suppliers, copy.unassigned)}</td>
               </tr>
             ))}
             {!visibleMaterials.length ? (
               <tr>
                 <td colSpan={4} className="text-center text-sm text-[var(--muted-strong)]">
-                  No materials match that search.
+                  {copy.noMaterials}
                 </td>
               </tr>
             ) : null}
@@ -250,9 +256,11 @@ export function MaterialStockStudio({
 
       {selectedMaterial ? (
         <p className="mt-4 text-sm text-[var(--muted-strong)]">
-          Selected <span className="font-medium text-[var(--ink)]">{selectedMaterial.name}</span> at{" "}
-          {selectedMaterial.onHandQuantity.toFixed(0)} {selectedMaterial.unit} on hand, costing{" "}
-          {(selectedMaterial.unitCost ?? 0).toFixed(2)} per {selectedMaterial.unit}.
+          {language === "es" ? "Seleccionado" : "Selected"}{" "}
+          <span className="font-medium text-[var(--ink)]">{selectedMaterial.name}</span>{" "}
+          {language === "es"
+            ? `con ${selectedMaterial.onHandQuantity.toFixed(0)} ${selectedMaterial.unit} en mano, costando ${(selectedMaterial.unitCost ?? 0).toFixed(2)} por ${selectedMaterial.unit}.`
+            : `at ${selectedMaterial.onHandQuantity.toFixed(0)} ${selectedMaterial.unit} on hand, costing ${(selectedMaterial.unitCost ?? 0).toFixed(2)} per ${selectedMaterial.unit}.`}
         </p>
       ) : null}
 

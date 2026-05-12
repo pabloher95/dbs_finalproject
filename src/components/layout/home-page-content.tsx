@@ -7,27 +7,6 @@ import { dashboardCopy } from "@/lib/i18n";
 import type { BusinessSnapshot } from "@/lib/domain/types";
 import { buildPurchasingPlan } from "@/lib/domain/purchasing-plan";
 
-const shortcuts = [
-  {
-    href: "/import" as Route,
-    n: "01",
-    title: "Import",
-    description: "Upload products, contacts, or orders as CSV."
-  },
-  {
-    href: "/products" as Route,
-    n: "02",
-    title: "Define products",
-    description: "Write each product as a formula of materials, yields, and units."
-  },
-  {
-    href: "/purchasing" as Route,
-    n: "03",
-    title: "Plan purchasing",
-    description: "Expand open demand into a supplier-ready material list."
-  }
-] as const;
-
 export async function HomePageContent({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
   const language = await getRequestLanguage();
   const copy = dashboardCopy(language);
@@ -159,7 +138,7 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
               </h2>
             </header>
             <div className="mt-2">
-              {shortcuts.map((item) => (
+              {copy.shortcuts.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

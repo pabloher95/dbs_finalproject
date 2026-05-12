@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
 import { CatalogOverview } from "@/components/layout/catalog-overview";
 import { Card, Eyebrow, Pill, Toast } from "@/components/ui/surfaces";
 import type { BusinessSnapshot, Product, ProductMaterial } from "@/lib/domain/types";
+import { productStudioCopy } from "@/lib/i18n";
 
 type ProductDraft = {
   id?: string;
@@ -51,6 +53,8 @@ function textToFormula(formula: string): ProductMaterial[] {
 
 export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const copy = productStudioCopy(language);
   const [products, setProducts] = useState(snapshot.products);
   const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
   const [toast, setToast] = useState<{ message: string; tone: "info" | "success" | "warn" | "error" } | null>(null);
@@ -73,23 +77,20 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
 
   async function saveProduct() {
     if (!draft.sku.trim() || !draft.name.trim()) {
-      setToast({ message: "Enter both SKU and product name.", tone: "warn" });
+      setToast({ message: copy.enterRequired, tone: "warn" });
       return;
     }
     if (Number(draft.yieldQuantity) <= 0) {
-      setToast({ message: "Yield quantity must be greater than zero.", tone: "warn" });
+      setToast({ message: copy.yieldRequired, tone: "warn" });
       return;
     }
     if (Number(draft.unitPrice) < 0) {
-      setToast({ message: "Unit price cannot be negative.", tone: "warn" });
+      setToast({ message: copy.priceNegative, tone: "warn" });
       return;
     }
     const parsedFormula = textToFormula(draft.formula);
     if (!parsedFormula.length) {
-      setToast({
-        message: "Add at least one valid formula line in name:unit:quantity format.",
-        tone: "warn"
-      });
+      setToast({ message: copy.formulaRequired, tone: "warn" });
       return;
     }
 
@@ -109,18 +110,18 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to save product.", tone: "error" });
+      setToast({ message: data.error ?? copy.saveError, tone: "error" });
       return;
     }
     setProducts(data.snapshot.products);
     setDraft(emptyDraft);
     setLastDeleted(null);
-    setToast({ message: "Product saved.", tone: "success" });
+    setToast({ message: copy.saved, tone: "success" });
     router.refresh();
   }
 
   async function deleteProduct(product: Product) {
-    if (!window.confirm(`Delete ${product.name}? This can affect related orders.`)) return;
+    if (!window.confirm(copy.deleteConfirm(product.name))) return;
     const response = await fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -128,13 +129,13 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to delete product.", tone: "error" });
+      setToast({ message: data.error ?? copy.deleteError, tone: "error" });
       return;
     }
     setProducts(data.snapshot.products);
     setLastDeleted(product);
     if (draft.id === product.id) setDraft(emptyDraft);
-    setToast({ message: `${product.name} deleted. Undo available.`, tone: "info" });
+    setToast({ message: copy.deleted, tone: "info" });
     router.refresh();
   }
 
@@ -160,12 +161,12 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
     });
     const data = (await response.json()) as { snapshot?: BusinessSnapshot; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to restore product.", tone: "error" });
+      setToast({ message: data.error ?? copy.restoreError, tone: "error" });
       return;
     }
     setProducts(data.snapshot.products);
     setLastDeleted(null);
-    setToast({ message: "Product restored.", tone: "success" });
+    setToast({ message: copy.restored, tone: "success" });
     router.refresh();
   }
 
@@ -181,14 +182,14 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
             }}
           >
             <div>
-              <Eyebrow tone="flame">Product details</Eyebrow>
-              <p className="mt-2 font-display text-2xl leading-tight text-[var(--ink)]">Add or update an item</p>
+              <Eyebrow tone="flame">{copy.eyebrow}</Eyebrow>
+              <p className="mt-2 font-display text-2xl leading-tight text-[var(--ink)]">{copy.title}</p>
               <p className="mt-2 text-[0.92rem] leading-6 text-[var(--muted-strong)]">
-                Capture name, SKU, unit, and batch yield so the item can be planned and priced consistently.
+                {copy.description}
               </p>
               {!snapshot.clients.length ? (
                 <Pill tone="amber" className="mt-3">
-                  Tip · Add a customer next so this product can be used in orders.
+                  {copy.noCustomersTip}
                 </Pill>
               ) : null}
             </div>
@@ -196,45 +197,46 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
               <input
                 value={draft.sku}
                 onChange={(event) => setDraft((current) => ({ ...current, sku: event.target.value }))}
-                placeholder="SKU"
+                placeholder={copy.skuPlaceholder}
                 className="field font-mono text-sm"
               />
               <input
                 value={draft.name}
                 onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
-                placeholder="Product name"
+                placeholder={copy.namePlaceholder}
                 className="field"
               />
               <input
                 value={draft.category}
                 onChange={(event) => setDraft((current) => ({ ...current, category: event.target.value }))}
-                placeholder="Category"
+                placeholder={copy.categoryPlaceholder}
                 className="field"
               />
               <input
                 value={draft.unit}
                 onChange={(event) => setDraft((current) => ({ ...current, unit: event.target.value }))}
-                placeholder="Unit"
+                placeholder={copy.unitPlaceholder}
                 className="field"
               />
               <input
                 value={draft.yieldQuantity}
                 onChange={(event) => setDraft((current) => ({ ...current, yieldQuantity: event.target.value }))}
-                placeholder="Yield quantity"
+                placeholder={copy.yieldQuantityPlaceholder}
                 className="field font-mono text-sm"
               />
               <input
                 value={draft.unitPrice}
                 onChange={(event) => setDraft((current) => ({ ...current, unitPrice: event.target.value }))}
-                placeholder="Unit price"
+                placeholder={copy.unitPricePlaceholder}
                 className="field font-mono text-sm"
                 inputMode="decimal"
               />
             </div>
             <div className="border-t border-dashed border-[var(--line)] pt-4">
-              <Eyebrow tone="flame">Formula</Eyebrow>
+              <Eyebrow tone="flame">{language === "es" ? "Fórmula" : "Formula"}</Eyebrow>
               <p className="mt-2 text-[0.85rem] leading-5 text-[var(--muted-strong)]">
-                One material per line. Format: <span className="font-mono">name:unit:quantity</span>.
+                {language === "es" ? "Un material por línea. Formato:" : "One material per line. Format:"}{" "}
+                <span className="font-mono">name:unit:quantity</span>.
               </p>
             </div>
             <textarea
@@ -244,14 +246,14 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
             />
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <button className="btn btn-flame" type="submit">
-                {draft.id ? "Update item" : "Save item"}
+                {draft.id ? copy.updateItem : copy.saveItem}
               </button>
               <button className="btn btn-ghost" type="button" onClick={() => setDraft(emptyDraft)}>
-                Reset
+                {copy.reset}
               </button>
               {lastDeleted ? (
                 <button type="button" className="btn btn-soft" onClick={() => void undoDelete()}>
-                  Undo last delete
+                  {copy.undoLastDelete}
                 </button>
               ) : null}
             </div>
@@ -260,16 +262,20 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
         <Card className="p-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <Eyebrow tone="flame">Catalog</Eyebrow>
-              <p className="mt-2 font-display text-2xl text-[var(--ink)]">{products.length} items</p>
+              <Eyebrow tone="flame">{language === "es" ? "Catálogo" : "Catalog"}</Eyebrow>
+              <p className="mt-2 font-display text-2xl text-[var(--ink)]">
+                {products.length} {language === "es" ? "artículos" : "items"}
+              </p>
               <p className="mt-2 text-[0.9rem] text-[var(--muted-strong)]">
-                Edit yields, replace placeholders, and keep formulas aligned with how items are actually made.
+                {language === "es"
+                  ? "Edita rendimientos, reemplaza marcadores y mantén las fórmulas alineadas con cómo se hacen realmente los artículos."
+                  : "Edit yields, replace placeholders, and keep formulas aligned with how items are actually made."}
               </p>
             </div>
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search name, SKU, category"
+              placeholder={copy.search}
               className="field max-w-xs"
             />
           </div>
@@ -328,7 +334,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
             ))}
             {products.length > 0 && filteredProducts.length === 0 ? (
               <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-                No products match that search yet.
+                {copy.noMatch}
               </p>
             ) : null}
           </div>

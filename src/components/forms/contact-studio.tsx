@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
 import { ContactBoard } from "@/components/layout/contact-board";
 import { Card, Eyebrow, Pill, Toast } from "@/components/ui/surfaces";
 import type { Client, Supplier } from "@/lib/domain/types";
+import { contactStudioCopy } from "@/lib/i18n";
 
 type Tone = "info" | "success" | "warn" | "error";
 
@@ -16,6 +18,8 @@ export function ContactStudio({
   suppliers: Supplier[];
 }>) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const copy = contactStudioCopy(language);
   const [clients, setClients] = useState(initialClients);
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [clientDraft, setClientDraft] = useState({ id: "", name: "", email: "", channel: "" });
@@ -57,11 +61,11 @@ export function ContactStudio({
     const email = draft.email.trim();
     const categoryValue = "channel" in draft ? draft.channel.trim() : draft.category.trim();
     if (!name || !email || !categoryValue) {
-      setToast({ message: "Name, email, and category/channel are required.", tone: "warn" });
+      setToast({ message: copy.required, tone: "warn" });
       return;
     }
     if (!isValidEmail(email)) {
-      setToast({ message: "Please enter a valid email address.", tone: "warn" });
+      setToast({ message: copy.emailInvalid, tone: "warn" });
       return;
     }
 
@@ -72,14 +76,14 @@ export function ContactStudio({
     });
     const data = (await response.json()) as { snapshot?: { clients: Client[]; suppliers: Supplier[] }; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to save contact.", tone: "error" });
+      setToast({ message: data.error ?? copy.saveError, tone: "error" });
       return;
     }
 
     setClients(data.snapshot.clients);
     setSuppliers(data.snapshot.suppliers);
     setLastDeleted(null);
-    setToast({ message: `${kind === "client" ? "Customer" : "Supplier"} saved.`, tone: "success" });
+    setToast({ message: copy.saved(kind), tone: "success" });
     router.refresh();
   }
 
@@ -87,7 +91,7 @@ export function ContactStudio({
     const record =
       kind === "client" ? clients.find((item) => item.id === id) : suppliers.find((item) => item.id === id);
     if (!record) return;
-    if (!window.confirm(`Delete ${record.name}?`)) return;
+    if (!window.confirm(copy.deleteConfirm(record.name))) return;
 
     const response = await fetch("/api/contacts", {
       method: "POST",
@@ -96,7 +100,7 @@ export function ContactStudio({
     });
     const data = (await response.json()) as { snapshot?: { clients: Client[]; suppliers: Supplier[] }; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to delete contact.", tone: "error" });
+      setToast({ message: data.error ?? copy.deleteError, tone: "error" });
       return;
     }
 
@@ -106,7 +110,7 @@ export function ContactStudio({
     if (kind === "client" && clientDraft.id === id) setClientDraft({ id: "", name: "", email: "", channel: "" });
     if (kind === "supplier" && supplierDraft.id === id) setSupplierDraft({ id: "", name: "", email: "", category: "" });
     setToast({
-      message: `${kind === "client" ? "Customer" : "Supplier"} deleted. Undo available.`,
+      message: copy.deleted(kind),
       tone: "info"
     });
     router.refresh();
@@ -137,13 +141,13 @@ export function ContactStudio({
     });
     const data = (await response.json()) as { snapshot?: { clients: Client[]; suppliers: Supplier[] }; error?: string };
     if (!response.ok || !data.snapshot) {
-      setToast({ message: data.error ?? "Unable to restore contact.", tone: "error" });
+      setToast({ message: data.error ?? copy.restoreError, tone: "error" });
       return;
     }
     setClients(data.snapshot.clients);
     setSuppliers(data.snapshot.suppliers);
     setLastDeleted(null);
-    setToast({ message: "Contact restored.", tone: "success" });
+    setToast({ message: copy.restored, tone: "success" });
     router.refresh();
   }
 
@@ -160,42 +164,42 @@ export function ContactStudio({
             }}
           >
             <div>
-              <Eyebrow tone="flame">Customer details</Eyebrow>
-              <p className="mt-2 font-display text-2xl text-[var(--ink)]">Add a customer</p>
+              <Eyebrow tone="flame">{copy.customerEyebrow}</Eyebrow>
+              <p className="mt-2 font-display text-2xl text-[var(--ink)]">{copy.customerTitle}</p>
               <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
-                Capture customer details so new orders can be assigned without retyping.
+                {copy.customerDescription}
               </p>
               {!suppliers.length ? (
                 <Pill tone="amber" className="mt-3">
-                  Tip · add a supplier so purchasing lines link to a source.
+                  {copy.supplierTip}
                 </Pill>
               ) : null}
             </div>
             <input
               value={clientDraft.name}
               onChange={(event) => setClientDraft((current) => ({ ...current, name: event.target.value }))}
-              placeholder="Customer name"
+              placeholder={copy.namePlaceholder}
               className="field"
             />
             <input
               value={clientDraft.email}
               onChange={(event) => setClientDraft((current) => ({ ...current, email: event.target.value }))}
-              placeholder="Customer email"
+              placeholder={copy.customerEmailPlaceholder}
               className="field"
             />
             <input
               value={clientDraft.channel}
               onChange={(event) => setClientDraft((current) => ({ ...current, channel: event.target.value }))}
-              placeholder="Sales channel"
+              placeholder={copy.channelPlaceholder}
               className="field"
             />
             <button className="btn btn-flame" type="submit">
-              Save customer
+              {copy.saveCustomer}
             </button>
             <input
               value={clientSearch}
               onChange={(event) => setClientSearch(event.target.value)}
-              placeholder="Search customers"
+              placeholder={copy.searchCustomers}
               className="field"
             />
             <div className="space-y-2">
@@ -224,22 +228,22 @@ export function ContactStudio({
                         })
                       }
                     >
-                      Edit
+                      {copy.edit}
                     </button>
                     <button type="button" className="btn btn-soft" onClick={() => void removeContact("client", client.id)}>
-                      Delete
+                      {copy.delete}
                     </button>
                   </div>
                 </article>
               ))}
               {!clients.length ? (
                 <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-                  No customers yet. Add one to start creating orders.
+                  {copy.noCustomers}
                 </p>
               ) : null}
               {clients.length > 0 && !visibleClients.length ? (
                 <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-                  No customers match your search.
+                  {copy.noCustomerMatches}
                 </p>
               ) : null}
             </div>
@@ -255,37 +259,37 @@ export function ContactStudio({
             }}
           >
             <div>
-              <Eyebrow tone="flame">Supplier details</Eyebrow>
-              <p className="mt-2 font-display text-2xl text-[var(--ink)]">Add a supplier</p>
+              <Eyebrow tone="flame">{copy.supplierEyebrow}</Eyebrow>
+              <p className="mt-2 font-display text-2xl text-[var(--ink)]">{copy.supplierTitle}</p>
               <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
-                Keep preferred suppliers on hand so the purchasing plan already points to the right source.
+                {copy.supplierDescription}
               </p>
             </div>
             <input
               value={supplierDraft.name}
               onChange={(event) => setSupplierDraft((current) => ({ ...current, name: event.target.value }))}
-              placeholder="Supplier name"
+              placeholder={copy.namePlaceholder}
               className="field"
             />
             <input
               value={supplierDraft.email}
               onChange={(event) => setSupplierDraft((current) => ({ ...current, email: event.target.value }))}
-              placeholder="Supplier email"
+              placeholder={copy.supplierEmailPlaceholder}
               className="field"
             />
             <input
               value={supplierDraft.category}
               onChange={(event) => setSupplierDraft((current) => ({ ...current, category: event.target.value }))}
-              placeholder="Category"
+              placeholder={copy.categoryPlaceholder}
               className="field"
             />
             <button className="btn btn-flame" type="submit">
-              Save supplier
+              {copy.saveSupplier}
             </button>
             <input
               value={supplierSearch}
               onChange={(event) => setSupplierSearch(event.target.value)}
-              placeholder="Search suppliers"
+              placeholder={copy.searchSuppliers}
               className="field"
             />
             <div className="space-y-2">
@@ -312,22 +316,22 @@ export function ContactStudio({
                         })
                       }
                     >
-                      Edit
+                      {copy.edit}
                     </button>
                     <button type="button" className="btn btn-soft" onClick={() => void removeContact("supplier", supplier.id)}>
-                      Delete
+                      {copy.delete}
                     </button>
                   </div>
                 </article>
               ))}
               {!suppliers.length ? (
                 <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-                  No suppliers yet. Add one to link materials in purchasing.
+                  {copy.noSuppliers}
                 </p>
               ) : null}
               {suppliers.length > 0 && !visibleSuppliers.length ? (
                 <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-                  No suppliers match your search.
+                  {copy.noSupplierMatches}
                 </p>
               ) : null}
             </div>
@@ -336,7 +340,7 @@ export function ContactStudio({
       </div>
       {lastDeleted ? (
         <button type="button" className="btn btn-soft" onClick={() => void undoDelete()}>
-          Undo last delete
+          {copy.undoLastDelete}
         </button>
       ) : null}
       <ContactBoard clients={clients} suppliers={suppliers} />
