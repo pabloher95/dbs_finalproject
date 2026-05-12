@@ -22,24 +22,31 @@ export default async function ImportPage() {
       ]}
       steps={[
         {
-          title: language === "es" ? "Escribe un producto" : "Enter a product",
+          title: language === "es" ? "Escribe el producto" : "Enter the product",
           description:
             language === "es"
-              ? "Captura el SKU y la fórmula del producto por unidad."
-              : "Capture the SKU and the product's unit-level formula."
+              ? "Captura el SKU, el nombre y la unidad vendible."
+              : "Capture the SKU, name, and sellable unit."
         },
         {
-          title: language === "es" ? "Pasa a compras" : "Move to purchasing",
+          title: language === "es" ? "Añade la fórmula" : "Add the formula",
           description:
             language === "es"
-              ? "La fórmula alimenta compras sin otro paso."
-              : "The formula feeds purchasing without another handoff."
+              ? "Agrega los materiales una línea a la vez para dejar lista la receta."
+              : "Add materials one line at a time to finish the recipe."
+        },
+        {
+          title: language === "es" ? "Guarda y sigue" : "Save and move on",
+          description:
+            language === "es"
+              ? "El producto actualiza el catálogo y la compra al instante."
+              : "The product updates the catalog and purchasing right away."
         }
       ]}
       nextStep={
         language === "es"
-          ? "Empieza por un producto por unidad; luego ajusta materiales en el catálogo si hace falta."
-          : "Start with a unit-level product, then adjust materials in the catalog if needed."
+          ? "Empieza por el producto y termina con sus materiales; todo lo demás se actualiza después."
+          : "Start with the product and finish with its materials; everything else updates after that."
       }
     >
       <ImportPageContent snapshot={snapshot} />
