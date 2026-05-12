@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { getLanguageName, supportedLanguages, type Language } from "@/lib/i18n";
 
 export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
+  const router = useRouter();
 
   return (
     <label className="inline-flex items-center gap-2 rounded-full border border-[rgba(19,36,58,0.12)] bg-[rgba(255,255,255,0.56)] px-3 py-2 text-sm backdrop-blur">
@@ -13,7 +15,11 @@ export function LanguageSwitcher() {
       </span>
       <select
         value={language}
-        onChange={(event) => setLanguage(event.target.value as Language)}
+        onChange={(event) => {
+          const nextLanguage = event.target.value as Language;
+          setLanguage(nextLanguage);
+          router.refresh();
+        }}
         className="bg-transparent text-sm outline-none"
         aria-label={language === "es" ? "Idioma" : "Language"}
       >

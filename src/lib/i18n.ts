@@ -39,7 +39,9 @@ export function landingCopy(language: Language) {
     openStudio: language === "es" ? "Abrir estudio" : "Open studio",
     heroEyebrow: language === "es" ? "Inventario · Pedidos · Compras" : "Inventory · Orders · Purchasing",
     heroTitleLead: language === "es" ? "Un estudio operativo práctico" : "A practical operating studio",
-    heroTitleTail: language === "es" ? "para el negocio de oficio." : "for the hands-on business.",
+    heroTitleBeforeEmphasis: language === "es" ? "para el negocio " : "for the ",
+    heroEmphasis: language === "es" ? "de oficio" : "hands-on",
+    heroTitleAfterEmphasis: language === "es" ? "." : " business.",
     heroBody:
       language === "es"
         ? "SmallBiz IQ mantiene el catálogo, los pedidos abiertos y el plan de materiales en una sola superficie medida. Importa un CSV, registra un pedido y obtén una lista de compra lista para proveedores."

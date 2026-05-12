@@ -327,6 +327,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       response = await fetch(`${baseUrl.replace(/\/$/, "")}/rest/v1${path}`, {
         ...init,
         signal: controller.signal,
+        cache: "no-store",
         headers: {
           ...headers,
           ...(init?.headers ?? {})

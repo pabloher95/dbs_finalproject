@@ -99,7 +99,9 @@ function Hero({ copy }: { copy: ReturnType<typeof landingCopy> }) {
       <h1 className="editorial mt-6 text-[clamp(3.4rem,9vw,8.4rem)]">
         {copy.heroTitleLead}
         <br />
-        {copy.heroTitleTail}
+        {copy.heroTitleBeforeEmphasis}
+        <em>{copy.heroEmphasis}</em>
+        {copy.heroTitleAfterEmphasis}
       </h1>
 
       <p className="mt-12 max-w-2xl text-[1.05rem] leading-7 text-[var(--ink-soft)]">{copy.heroBody}</p>
