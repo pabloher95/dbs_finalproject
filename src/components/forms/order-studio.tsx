@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { OrdersBoard } from "@/components/layout/orders-board";
 import { Card, Eyebrow, Pill, Toast } from "@/components/ui/surfaces";
+import { getSuggestedDueDate, getSuggestedOrderNumber } from "@/lib/domain/orders";
 import type { BusinessSnapshot, Order } from "@/lib/domain/types";
 import { orderStudioCopy } from "@/lib/i18n";
 
@@ -45,10 +46,10 @@ function createLine(snapshot: BusinessSnapshot, productId = snapshot.products[0]
 
 function createDraft(snapshot: BusinessSnapshot): OrderDraft {
   return {
-    orderNumber: `ORD-${2000 + snapshot.orders.length + 1}`,
+    orderNumber: getSuggestedOrderNumber(snapshot.orders),
     clientName: "",
     destination: "",
-    dueDate: "2026-05-01",
+    dueDate: getSuggestedDueDate(),
     status: "open",
     items: [createLine(snapshot)]
   };
@@ -145,7 +146,8 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       return;
     }
 
-    setOrders(data.snapshot.orders);
+    const nextSnapshot = data.snapshot;
+    setOrders(nextSnapshot.orders);
     setLastDeleted(null);
     setToast({ message: copy.saved, tone: "success" });
     setDraft((current) => ({
@@ -153,7 +155,9 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       id: "",
       clientName: current.clientName,
       destination: current.destination,
-      orderNumber: `ORD-${Number(current.orderNumber.slice(4)) + 1}`
+      orderNumber: getSuggestedOrderNumber(nextSnapshot.orders),
+      dueDate: current.dueDate || getSuggestedDueDate(),
+      status: "open"
     }));
     router.refresh();
   }
@@ -201,17 +205,18 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
       setToast({ message: data.error ?? copy.deleteError, tone: "error" });
       return;
     }
-    setOrders(data.snapshot.orders);
+    const nextSnapshot = data.snapshot;
+    setOrders(nextSnapshot.orders);
     setLastDeleted(order);
     if (draft.id === order.id) {
       setDraft({
         id: "",
-        orderNumber: `ORD-${2000 + data.snapshot.orders.length + 1}`,
+        orderNumber: getSuggestedOrderNumber(nextSnapshot.orders),
         clientName: "",
         destination: "",
-        dueDate: "2026-05-01",
+        dueDate: getSuggestedDueDate(),
         status: "open",
-        items: [createLine(data.snapshot)]
+        items: [createLine(nextSnapshot)]
       });
     }
     setToast({ message: copy.deleted, tone: "info" });

@@ -21,7 +21,13 @@ function formatTime(date: Date) {
   return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
-export function CommandBar({ businessName }: Readonly<{ businessName: string }>) {
+export function CommandBar({
+  businessName,
+  source
+}: Readonly<{
+  businessName: string;
+  source: "memory" | "supabase";
+}>) {
   const pathname = usePathname();
   const { language } = useLanguage();
   const [now, setNow] = useState<Date | null>(null);
@@ -47,6 +53,8 @@ export function CommandBar({ businessName }: Readonly<{ businessName: string }>)
         </div>
       </div>
       <div className="hidden items-center gap-4 md:flex">
+        <span className="marginalia">{source === "supabase" ? copy.supabase : copy.localDemo}</span>
+        <span className="h-3 w-px bg-[var(--line-strong)]" />
         <span className="marginalia">{formatTime(now ?? new Date())}</span>
         <span className="h-3 w-px bg-[var(--line-strong)]" />
         <span className="marginalia">{now ? copy.synced : copy.syncing}</span>

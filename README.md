@@ -9,6 +9,7 @@ It is built around a practical operating workflow:
 - capture multi-line orders and mark them fulfilled
 - generate a purchasing plan from open demand, stock on hand, and supplier links
 - review descriptive analytics for demand, revenue, margin, operating load, and reorder pressure
+- restore a clean demo workspace if a live walkthrough needs a reset
 
 ## Stack
 
@@ -97,11 +98,16 @@ API routes:
 - orders now include a free-form `destination`
 - orders can be marked fulfilled or reopened
 - backlog means open orders with due dates before today
+- duplicate order numbers are rejected instead of silently overwriting another order
 
 ### Purchasing
 - `/purchasing` combines open-order demand, product formulas, stock on hand, preferred suppliers, and unit costs
 - material unit cost is maintained here and feeds margin/cost analytics
 - reorder alerts rank shortages by coverage, next due date, and missing supplier linkage
+
+### Demo controls
+- the workspace header includes a `Restore demo` action that reloads the seeded demo dataset
+- restoring demo data preserves a custom business name while resetting products, contacts, materials, and orders
 
 ### Dashboard
 - `/dashboard` separates operating-base metrics from sales-pressure metrics
@@ -119,6 +125,7 @@ API routes:
 - Trend chart behavior lives in `src/components/layout/trend-chart.tsx`.
 - Purchasing-plan logic lives in `src/lib/domain/purchasing-plan.ts`.
 - Analytics logic lives in `src/lib/domain/analytics.ts`.
+- Duplicate-protection helpers live in `src/lib/domain/workspace-validation.ts`.
 - Import parsing lives in `src/lib/import/parser.ts`.
 
 ## Security Notes

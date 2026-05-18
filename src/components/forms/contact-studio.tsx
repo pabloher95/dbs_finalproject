@@ -56,6 +56,14 @@ export function ContactStudio({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   }
 
+  function resetClientDraft() {
+    setClientDraft({ id: "", name: "", email: "", channel: "" });
+  }
+
+  function resetSupplierDraft() {
+    setSupplierDraft({ id: "", name: "", email: "", category: "" });
+  }
+
   async function persistContact(kind: "client" | "supplier", draft: typeof clientDraft | typeof supplierDraft) {
     const name = draft.name.trim();
     const email = draft.email.trim();
@@ -84,6 +92,11 @@ export function ContactStudio({
     setSuppliers(data.snapshot.suppliers);
     setLastDeleted(null);
     setToast({ message: copy.saved(kind), tone: "success" });
+    if (kind === "client") {
+      resetClientDraft();
+    } else {
+      resetSupplierDraft();
+    }
     router.refresh();
   }
 
@@ -107,8 +120,8 @@ export function ContactStudio({
     setClients(data.snapshot.clients);
     setSuppliers(data.snapshot.suppliers);
     setLastDeleted(kind === "client" ? { kind: "client", data: record as Client } : { kind: "supplier", data: record as Supplier });
-    if (kind === "client" && clientDraft.id === id) setClientDraft({ id: "", name: "", email: "", channel: "" });
-    if (kind === "supplier" && supplierDraft.id === id) setSupplierDraft({ id: "", name: "", email: "", category: "" });
+    if (kind === "client" && clientDraft.id === id) resetClientDraft();
+    if (kind === "supplier" && supplierDraft.id === id) resetSupplierDraft();
     setToast({
       message: copy.deleted(kind),
       tone: "info"
@@ -160,7 +173,6 @@ export function ContactStudio({
             onSubmit={(event) => {
               event.preventDefault();
               void persistContact("client", clientDraft);
-              setClientDraft({ id: "", name: "", email: "", channel: "" });
             }}
           >
             <div>
@@ -172,6 +184,11 @@ export function ContactStudio({
               {!suppliers.length ? (
                 <Pill tone="amber" className="mt-3">
                   {copy.supplierTip}
+                </Pill>
+              ) : null}
+              {clientDraft.id ? (
+                <Pill tone="ink" className="mt-3">
+                  {copy.editingCustomer}
                 </Pill>
               ) : null}
             </div>
@@ -193,9 +210,16 @@ export function ContactStudio({
               placeholder={copy.channelPlaceholder}
               className="field"
             />
-            <button className="btn btn-flame" type="submit">
-              {copy.saveCustomer}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button className="btn btn-flame" type="submit">
+                {clientDraft.id ? copy.updateCustomer : copy.saveCustomer}
+              </button>
+              {clientDraft.id ? (
+                <button type="button" className="btn btn-ghost" onClick={resetClientDraft}>
+                  {copy.reset}
+                </button>
+              ) : null}
+            </div>
             <input
               value={clientSearch}
               onChange={(event) => setClientSearch(event.target.value)}
@@ -255,7 +279,6 @@ export function ContactStudio({
             onSubmit={(event) => {
               event.preventDefault();
               void persistContact("supplier", supplierDraft);
-              setSupplierDraft({ id: "", name: "", email: "", category: "" });
             }}
           >
             <div>
@@ -264,6 +287,11 @@ export function ContactStudio({
               <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
                 {copy.supplierDescription}
               </p>
+              {supplierDraft.id ? (
+                <Pill tone="ink" className="mt-3">
+                  {copy.editingSupplier}
+                </Pill>
+              ) : null}
             </div>
             <input
               value={supplierDraft.name}
@@ -283,9 +311,16 @@ export function ContactStudio({
               placeholder={copy.categoryPlaceholder}
               className="field"
             />
-            <button className="btn btn-flame" type="submit">
-              {copy.saveSupplier}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button className="btn btn-flame" type="submit">
+                {supplierDraft.id ? copy.updateSupplier : copy.saveSupplier}
+              </button>
+              {supplierDraft.id ? (
+                <button type="button" className="btn btn-ghost" onClick={resetSupplierDraft}>
+                  {copy.reset}
+                </button>
+              ) : null}
+            </div>
             <input
               value={supplierSearch}
               onChange={(event) => setSupplierSearch(event.target.value)}

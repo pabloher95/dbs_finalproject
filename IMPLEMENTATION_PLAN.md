@@ -43,6 +43,13 @@ The shipped product shape is:
 - Added demand-aware reorder alerts to purchasing and dashboard analytics
 - Added focused tests for reorder-alert severity and purchasing coverage behavior
 
+### Demo Convergence Pass
+- Refreshed seeded demo dates and order-entry defaults so the app presents current, non-stale operating data
+- Added a restore-demo control to recover a clean walkthrough state without touching auth or persistence setup
+- Blocked silent overwrites on duplicate SKU, order number, and contact identity collisions
+- Fixed contact editing so draft state is only cleared after successful saves
+- Added focused tests for duplicate-protection rules and order-entry defaults
+
 ## Current Architecture Decisions
 - Next.js App Router with server-rendered workspace pages and client-side forms/interactions
 - Clerk handles authentication; Supabase enforces data isolation through RLS

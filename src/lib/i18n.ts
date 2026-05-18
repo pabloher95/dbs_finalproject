@@ -420,7 +420,17 @@ export function commandBarCopy(language: Language) {
   return {
     home: language === "es" ? "Inicio" : "Home",
     synced: language === "es" ? "sincronizado" : "synced",
-    syncing: language === "es" ? "sincronizando" : "syncing"
+    syncing: language === "es" ? "sincronizando" : "syncing",
+    localDemo: language === "es" ? "demo local" : "local demo",
+    supabase: language === "es" ? "supabase" : "supabase",
+    restoreDemo: language === "es" ? "Restaurar demo" : "Restore demo",
+    restoringDemo: language === "es" ? "Restaurando..." : "Restoring...",
+    restoreDemoDone: language === "es" ? "Datos de demo restaurados." : "Demo data restored.",
+    restoreDemoError: language === "es" ? "No se pudo restaurar la demo." : "Unable to restore demo data.",
+    restoreDemoConfirm:
+      language === "es"
+        ? "¿Restaurar los datos de demo actuales? Esto reemplazará productos, contactos, pedidos y compras."
+        : "Restore the current demo data? This will replace products, contacts, orders, and purchasing data."
   };
 }
 
@@ -663,7 +673,12 @@ export function contactStudioCopy(language: Language) {
     channelPlaceholder: language === "es" ? "Canal de ventas" : "Sales channel",
     categoryPlaceholder: language === "es" ? "Categoría" : "Category",
     saveCustomer: language === "es" ? "Guardar cliente" : "Save customer",
+    updateCustomer: language === "es" ? "Actualizar cliente" : "Update customer",
     saveSupplier: language === "es" ? "Guardar proveedor" : "Save supplier",
+    updateSupplier: language === "es" ? "Actualizar proveedor" : "Update supplier",
+    reset: language === "es" ? "Restablecer" : "Reset",
+    editingCustomer: language === "es" ? "Editando cliente" : "Editing customer",
+    editingSupplier: language === "es" ? "Editando proveedor" : "Editing supplier",
     searchCustomers: language === "es" ? "Buscar clientes" : "Search customers",
     searchSuppliers: language === "es" ? "Buscar proveedores" : "Search suppliers",
     edit: language === "es" ? "Editar" : "Edit",

@@ -3,6 +3,7 @@ import "server-only";
 import { auth } from "@clerk/nextjs/server";
 import { getDemoBusinessSnapshot } from "@/lib/data/demo";
 import { applyStockDelta } from "@/lib/domain/inventory";
+import { getContactConflict, hasOrderNumberConflict, hasProductSkuConflict } from "@/lib/domain/workspace-validation";
 import { UserFacingError } from "@/lib/user-facing-error.js";
 import { parseOrderImportRows, parseProductImportRows, type ImportPreview } from "@/lib/import/parser";
 import type { Business, BusinessSnapshot, Client, Material, Order, Product } from "@/lib/domain/types";
@@ -884,11 +885,6 @@ function findClient(snapshot: BusinessSnapshot, value: string) {
   return snapshot.clients.find((client) => normalizeKey(client.name) === key || client.id === value);
 }
 
-function findSupplier(snapshot: BusinessSnapshot, value: string) {
-  const key = normalizeKey(value);
-  return snapshot.suppliers.find((supplier) => normalizeKey(supplier.name) === key || supplier.id === value);
-}
-
 function findMaterial(snapshot: BusinessSnapshot, value: string) {
   const key = normalizeKey(value);
   return snapshot.materials.find((material) => normalizeKey(material.name) === key || material.id === value);
@@ -1071,6 +1067,9 @@ export async function renameBusiness(ownerId: string, name: string) {
 
 export async function saveProduct(ownerId: string, input: ProductInput) {
   return mutateWorkspace(ownerId, (snapshot) => {
+    if (hasProductSkuConflict(snapshot.products, input.sku, input.id)) {
+      throw new UserFacingError("A product with that SKU already exists. Edit it from Catalog instead.");
+    }
     ensureProduct(snapshot, input);
   });
 }
@@ -1088,9 +1087,17 @@ export async function deleteProduct(ownerId: string, productId: string) {
 export async function saveContact(ownerId: string, input: ContactInput) {
   return mutateWorkspace(ownerId, (snapshot) => {
     if (input.kind === "client") {
+      const conflict = getContactConflict(snapshot.clients, input);
+      if (conflict?.field === "name") {
+        throw new UserFacingError("A customer with that name already exists.");
+      }
+      if (conflict?.field === "email") {
+        throw new UserFacingError("A customer with that email already exists.");
+      }
+
       const existing = input.id
         ? snapshot.clients.find((client) => client.id === input.id)
-        : findClient(snapshot, input.name);
+        : undefined;
       if (existing) {
         existing.name = input.name;
         existing.email = input.email;
@@ -1107,9 +1114,17 @@ export async function saveContact(ownerId: string, input: ContactInput) {
       return;
     }
 
+    const conflict = getContactConflict(snapshot.suppliers, input);
+    if (conflict?.field === "name") {
+      throw new UserFacingError("A supplier with that name already exists.");
+    }
+    if (conflict?.field === "email") {
+      throw new UserFacingError("A supplier with that email already exists.");
+    }
+
     const existing = input.id
       ? snapshot.suppliers.find((supplier) => supplier.id === input.id)
-      : findSupplier(snapshot, input.name);
+      : undefined;
     if (existing) {
       existing.name = input.name;
       existing.email = input.email;
@@ -1170,6 +1185,10 @@ export async function updateMaterialCost(ownerId: string, input: MaterialCostInp
 
 export async function saveOrder(ownerId: string, input: OrderInput) {
   return mutateWorkspace(ownerId, (snapshot) => {
+    if (hasOrderNumberConflict(snapshot.orders, input.orderNumber, input.id)) {
+      throw new UserFacingError("An order with that number already exists.");
+    }
+
     const resolvedClient = input.clientId
       ? snapshot.clients.find((item) => item.id === input.clientId)
       : undefined;
@@ -1181,7 +1200,7 @@ export async function saveOrder(ownerId: string, input: OrderInput) {
 
     const items = normalizeOrderItems(snapshot, input);
     const destination = input.destination?.trim() ?? "";
-    const existing = input.id ? snapshot.orders.find((order) => order.id === input.id) : snapshot.orders.find((order) => order.orderNumber === input.orderNumber);
+    const existing = input.id ? snapshot.orders.find((order) => order.id === input.id) : undefined;
 
     if (existing) {
       existing.orderNumber = input.orderNumber;
@@ -1269,6 +1288,26 @@ export async function saveIntakeOrder(ownerId: string, input: IntakeOrderInput) 
 export async function deleteOrder(ownerId: string, orderId: string) {
   return mutateWorkspace(ownerId, (snapshot) => {
     snapshot.orders = snapshot.orders.filter((order) => order.id !== orderId);
+  });
+}
+
+export async function restoreDemoWorkspace(ownerId: string) {
+  return mutateWorkspace(ownerId, (snapshot) => {
+    const seeded = createFallbackSnapshot(ownerId);
+    const preservedBusinessName =
+      snapshot.business.name.trim() && snapshot.business.name !== "Your Business"
+        ? snapshot.business.name.trim()
+        : seeded.business.name;
+
+    snapshot.business = {
+      ...seeded.business,
+      name: preservedBusinessName
+    };
+    snapshot.suppliers = seeded.suppliers;
+    snapshot.materials = seeded.materials;
+    snapshot.products = seeded.products;
+    snapshot.clients = seeded.clients;
+    snapshot.orders = seeded.orders;
   });
 }
 

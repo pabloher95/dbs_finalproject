@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { BusinessRenameButton } from "@/components/layout/business-rename-button";
 import { CommandBar } from "@/components/layout/command-bar";
+import { DemoResetButton } from "@/components/layout/demo-reset-button";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { LanguageSwitcher } from "@/components/providers/language-switcher";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -16,7 +17,7 @@ export async function WorkspaceShell({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { snapshot } = await getWorkspaceOverview();
+  const { snapshot, source } = await getWorkspaceOverview();
   const language = await getRequestLanguage();
   const copy = workspaceCopy(language);
   const businessName = snapshot.business.name;
@@ -50,6 +51,8 @@ export async function WorkspaceShell({
             <LanguageSwitcher />
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <BusinessRenameButton businessName={businessName} />
+            <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
+            <DemoResetButton />
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <div className="group relative">
               <Link href={"/orders" as Route} className="link-rule text-sm">
@@ -108,7 +111,7 @@ export async function WorkspaceShell({
             </div>
           </aside>
           <main className="min-w-0 space-y-5">
-            <CommandBar businessName={businessName} />
+            <CommandBar businessName={businessName} source={source} />
             {children}
           </main>
         </div>

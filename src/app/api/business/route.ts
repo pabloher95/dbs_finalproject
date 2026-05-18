@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { toErrorResponse } from "@/lib/server/route-error-response";
-import { renameBusiness } from "@/lib/server/workspace";
+import { renameBusiness, restoreDemoWorkspace } from "@/lib/server/workspace";
 
 function nonEmpty(value: unknown) {
   return String(value ?? "").trim();
@@ -15,6 +15,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    if (body.action === "restore-demo") {
+      const result = await restoreDemoWorkspace(userId);
+      return NextResponse.json(result);
+    }
+
     const name = nonEmpty(body.name);
 
     if (!name) {

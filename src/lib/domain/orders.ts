@@ -23,3 +23,19 @@ export function summarizeOrderDemand(orders: Order[], products: Product[]) {
 
   return Array.from(totals.values()).sort((left, right) => right.totalQuantity - left.totalQuantity);
 }
+
+export function getSuggestedOrderNumber(orders: Order[]) {
+  const parsedNumbers = orders
+    .map((order) => /^ORD-(\d+)$/i.exec(order.orderNumber.trim())?.[1])
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value));
+
+  const nextNumber = parsedNumbers.length ? Math.max(...parsedNumbers) + 1 : 2001;
+  return `ORD-${nextNumber}`;
+}
+
+export function getSuggestedDueDate(today = new Date(), leadDays = 7) {
+  const base = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  base.setDate(base.getDate() + leadDays);
+  return `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, "0")}-${String(base.getDate()).padStart(2, "0")}`;
+}
