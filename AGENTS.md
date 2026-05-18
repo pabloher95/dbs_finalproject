@@ -5,7 +5,7 @@ Minimal handoff for future Codex sessions in this repo.
 ## Project
 - Name: `smallbiz-iq`
 - Goal: a small-business inventory and sales intelligence app for product-based micro-businesses.
-- Core flow: import data, manage products and contacts, capture orders, generate a purchasing plan.
+- Core flow: import data, manage products and contacts, capture orders, generate a purchasing plan, and act on reorder alerts.
 
 ## Stack
 - Next.js 15 App Router
@@ -40,7 +40,7 @@ Minimal handoff for future Codex sessions in this repo.
 - `src/app/page.tsx` is the public home page.
 - `src/app/(workspace)/layout.tsx` wraps workspace routes in `WorkspaceShell`.
 - `src/app/api/products/route.ts`, `src/app/api/contacts/route.ts`, `src/app/api/orders/route.ts`, and `src/app/api/import/route.ts` handle workspace mutations.
-- `src/lib/domain/purchasing-plan.ts` contains the production purchasing-plan logic.
+- `src/lib/domain/purchasing-plan.ts` contains the production purchasing-plan and reorder-alert logic.
 - `src/lib/domain/orders.ts` summarizes open-order demand.
 - `src/lib/data/navigation.ts` defines the workspace nav items.
 - `src/tests/purchasing-plan.test.js` is a lightweight Node test file that mirrors the domain logic contract.

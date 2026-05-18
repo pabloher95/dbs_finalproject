@@ -363,6 +363,21 @@ export function analyticsCopy(language: Language) {
       language === "es"
         ? "Los pedidos abiertos aparecerán aquí una vez que haya precios definidos."
         : "Open orders will appear here once pricing is in place.",
+    reorderEyebrow: language === "es" ? "Reposición" : "Reorder",
+    reorderTitle: language === "es" ? "Alertas de material" : "Material alerts",
+    reorderDescription:
+      language === "es"
+        ? "Materiales que ya necesitan compra o todavía no tienen una fuente asignada."
+        : "Materials that already need buying or still do not have a named source.",
+    critical: language === "es" ? "Crítica" : "Critical",
+    warning: language === "es" ? "Atención" : "Warning",
+    nextDue: language === "es" ? "Próximo vencimiento" : "Next due",
+    noAlerts:
+      language === "es"
+        ? "No hay alertas de reposición activas. La cobertura actual alcanza para la demanda abierta."
+        : "No active reorder alerts. Current coverage is keeping up with open demand.",
+    uncoveredDemand: language === "es" ? "demanda sin cubrir" : "uncovered demand",
+    supplierGap: language === "es" ? "sin proveedor" : "supplier gap"
   };
 }
 
@@ -515,6 +530,26 @@ export function purchasingBoardCopy(language: Language) {
     supplier: language === "es" ? "Proveedor" : "Supplier",
     state: language === "es" ? "Estado" : "State",
     unassigned: language === "es" ? "Sin asignar" : "Unassigned",
+    source: language === "es" ? "Asignar fuente" : "Source",
+    covered: language === "es" ? "Cubierto" : "Covered",
+    heavy: language === "es" ? "Alto volumen" : "Heavy",
+    ready: language === "es" ? "Listo" : "Ready",
+    reorderEyebrow: language === "es" ? "Alertas" : "Alerts",
+    reorderTitle: language === "es" ? "Qué reponer primero" : "What to reorder first",
+    reorderDescription:
+      language === "es"
+        ? "Prioridad de compra según cobertura actual, proximidad de entrega y enlace de proveedor."
+        : "Buying priority based on current coverage, due-date pressure, and supplier linkage.",
+    critical: language === "es" ? "Crítica" : "Critical",
+    warning: language === "es" ? "Atención" : "Warning",
+    shortage: language === "es" ? "Faltante" : "Shortage",
+    coverage: language === "es" ? "Cobertura" : "Coverage",
+    nextDue: language === "es" ? "Próximo vencimiento" : "Next due",
+    orderPressure: language === "es" ? "Presión de pedidos" : "Order pressure",
+    noReorderAlerts:
+      language === "es"
+        ? "No hay alertas de reposición activas. La demanda abierta está cubierta con el stock y los enlaces actuales."
+        : "No active reorder alerts. Open demand is covered by current stock and sourcing links.",
     emptyPlan:
       language === "es"
         ? "El plan de compras está vacío. Importa o crea productos y pedidos abiertos para poblar esta vista."

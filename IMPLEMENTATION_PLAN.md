@@ -12,6 +12,7 @@ The shipped product shape is:
 - Multi-line manual order entry with customer auto-creation, destination capture, fulfillment actions, and backlog logic
 - Purchasing plan generation from open demand, product formulas, supplier links, on-hand stock, and material unit cost
 - Dashboard analytics for operating base, sales pressure, revenue, margin, and trend signals
+- Reorder alerts that rank material shortages by stock coverage, due-date pressure, and supplier linkage
 - English/Spanish localization across the user-facing app
 
 ## Delivered Revisions
@@ -36,6 +37,12 @@ The shipped product shape is:
 - Added the order `destination` field end-to-end
 - Hardened runtime behavior so production does not silently fall back from configured Supabase persistence to memory
 
+### Revision 4
+- Chose reorder alerts as the next product step; forecasting remains a later stream
+- Extended purchasing-plan logic with coverage ratios, next-due pressure, and order-pressure metadata
+- Added demand-aware reorder alerts to purchasing and dashboard analytics
+- Added focused tests for reorder-alert severity and purchasing coverage behavior
+
 ## Current Architecture Decisions
 - Next.js App Router with server-rendered workspace pages and client-side forms/interactions
 - Clerk handles authentication; Supabase enforces data isolation through RLS
@@ -58,7 +65,7 @@ The shipped product shape is:
 
 ### Data and analytics
 - Add deeper customer/product performance cuts if needed
-- Decide whether forecasting or reorder-alert logic becomes Revision 4 or a separate stream
+- Forecasting remains a future stream after reorder alerts
 - Expand test coverage around auth/persistence failure modes and API validation edges
 
 ## Delivery Rule

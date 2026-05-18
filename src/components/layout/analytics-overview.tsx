@@ -1,5 +1,6 @@
 import { Card, Pill, SectionHeading, StatPill } from "@/components/ui/surfaces";
 import { buildBusinessInsights } from "@/lib/domain/analytics";
+import { buildReorderAlerts } from "@/lib/domain/purchasing-plan";
 import { getRequestLanguage } from "@/lib/i18n-server";
 import { analyticsCopy } from "@/lib/i18n";
 import type { BusinessSnapshot } from "@/lib/domain/types";
@@ -21,6 +22,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
   const language = await getRequestLanguage();
   const copy = analyticsCopy(language);
   const insights = buildBusinessInsights(snapshot);
+  const reorderAlerts = buildReorderAlerts(snapshot).slice(0, 3);
   const topProduct = insights.productRows[0];
   const topClient = insights.clientRows[0];
   const topMonth = insights.trendRows.reduce((best, current) => (current.revenue > best.revenue ? current : best), insights.trendRows[0]);
@@ -106,6 +108,29 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
             <p className="mt-2 text-sm text-[var(--muted-strong)]">
               {topMonth ? `${formatMoney(topMonth.revenue)} in revenue and ${formatPercent(topMonth.margin / Math.max(topMonth.revenue, 1))} margin rate.` : copy.monthReadings}
             </p>
+          </div>
+
+          <div className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
+            <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
+              {copy.reorderEyebrow}
+            </p>
+            <p className="mt-2 font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
+              {reorderAlerts.length ? reorderAlerts[0]?.materialName : copy.noAlerts}
+            </p>
+            <p className="mt-2 text-sm text-[var(--muted-strong)]">
+              {reorderAlerts.length
+                ? `${reorderAlerts[0]?.shortageQuantity.toFixed(2)} ${reorderAlerts[0]?.unit} ${copy.uncoveredDemand} · ${reorderAlerts[0]?.supplierName ?? copy.supplierGap}`
+                : copy.reorderDescription}
+            </p>
+            {reorderAlerts.length ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {reorderAlerts.map((alert) => (
+                  <Pill key={alert.materialId} tone={alert.severity === "critical" ? "flame" : "amber"}>
+                    {alert.severity === "critical" ? copy.critical : copy.warning}: {alert.materialName}
+                  </Pill>
+                ))}
+              </div>
+            ) : null}
           </div>
       </div>
       </div>

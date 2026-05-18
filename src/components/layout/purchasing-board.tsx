@@ -1,15 +1,22 @@
 import { Card, Eyebrow, Pill } from "@/components/ui/surfaces";
 import { MaterialStockStudio } from "@/components/forms/material-stock-studio";
-import { buildPurchasingPlan } from "@/lib/domain/purchasing-plan";
+import { buildPurchasingPlan, buildReorderAlerts } from "@/lib/domain/purchasing-plan";
 import { getRequestLanguage } from "@/lib/i18n-server";
 import { purchasingBoardCopy } from "@/lib/i18n";
 import type { BusinessSnapshot } from "@/lib/domain/types";
 
-function priorityFor(line: { netToBuyQuantity: number; supplierName?: string }) {
-  if (!line.supplierName) return { tone: "amber" as const, label: "Source" };
-  if (line.netToBuyQuantity <= 0) return { tone: "moss" as const, label: "Covered" };
-  if (line.netToBuyQuantity > 1000) return { tone: "flame" as const, label: "Heavy" };
-  return { tone: "moss" as const, label: "Ready" };
+function priorityFor(
+  line: { netToBuyQuantity: number; supplierName?: string },
+  copy: ReturnType<typeof purchasingBoardCopy>
+) {
+  if (!line.supplierName) return { tone: "amber" as const, label: copy.source };
+  if (line.netToBuyQuantity <= 0) return { tone: "moss" as const, label: copy.covered };
+  if (line.netToBuyQuantity > 1000) return { tone: "flame" as const, label: copy.heavy };
+  return { tone: "moss" as const, label: copy.ready };
+}
+
+function formatCoverage(value: number) {
+  return `${Math.round(value * 100)}%`;
 }
 
 export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
@@ -20,6 +27,7 @@ export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: Busines
     snapshot.materials,
     snapshot.suppliers
   );
+  const reorderAlerts = buildReorderAlerts(snapshot).slice(0, 3);
 
   const totalLines = purchasingPlan.length;
   const linkedLines = purchasingPlan.filter((line) => Boolean(line.supplierName)).length;
@@ -66,6 +74,45 @@ export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: Busines
             {uncoveredLines} {copy.uncovered}
           </p>
         ) : null}
+        <div className="mt-6 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <Eyebrow tone="flame">{copy.reorderEyebrow}</Eyebrow>
+              <p className="mt-2 font-display text-2xl leading-none text-[var(--ink)]">{copy.reorderTitle}</p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-strong)]">{copy.reorderDescription}</p>
+            </div>
+            <Pill tone={reorderAlerts.some((alert) => alert.severity === "critical") ? "flame" : "amber"}>
+              {reorderAlerts.length} {copy.reorderEyebrow.toLowerCase()}
+            </Pill>
+          </div>
+          {reorderAlerts.length ? (
+            <div className="mt-4 grid gap-3 lg:grid-cols-3">
+              {reorderAlerts.map((alert) => (
+                <div key={alert.materialId} className="rounded-[20px] border border-[var(--line)] bg-[var(--paper-bright)] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-display text-xl leading-none text-[var(--ink)]">{alert.materialName}</p>
+                      <p className="mt-2 text-sm text-[var(--muted-strong)]">
+                        {copy.shortage}: {alert.shortageQuantity.toFixed(2)} {alert.unit}
+                      </p>
+                    </div>
+                    <Pill tone={alert.severity === "critical" ? "flame" : "amber"}>
+                      {alert.severity === "critical" ? copy.critical : copy.warning}
+                    </Pill>
+                  </div>
+                  <div className="mt-4 space-y-2 text-sm text-[var(--muted-strong)]">
+                    <p>{copy.coverage}: {formatCoverage(alert.coverageRatio)}</p>
+                    <p>{copy.nextDue}: {alert.nextDueDate ?? "—"}</p>
+                    <p>{copy.orderPressure}: {alert.openOrderCount}</p>
+                    <p>{copy.supplier}: {alert.supplierName ?? copy.unassigned}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-[var(--muted-strong)]">{copy.noReorderAlerts}</p>
+          )}
+        </div>
         <div className="mt-6 overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
           <table className="console-table">
             <thead>
@@ -80,7 +127,7 @@ export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: Busines
             </thead>
             <tbody>
               {purchasingPlan.map((item) => {
-                const priority = priorityFor(item);
+                const priority = priorityFor(item, copy);
                 return (
                   <tr key={item.materialId}>
                     <td>

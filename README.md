@@ -8,7 +8,7 @@ It is built around a practical operating workflow:
 - manage customers and suppliers
 - capture multi-line orders and mark them fulfilled
 - generate a purchasing plan from open demand, stock on hand, and supplier links
-- review descriptive analytics for demand, revenue, margin, and operating load
+- review descriptive analytics for demand, revenue, margin, operating load, and reorder pressure
 
 ## Stack
 
@@ -101,10 +101,12 @@ API routes:
 ### Purchasing
 - `/purchasing` combines open-order demand, product formulas, stock on hand, preferred suppliers, and unit costs
 - material unit cost is maintained here and feeds margin/cost analytics
+- reorder alerts rank shortages by coverage, next due date, and missing supplier linkage
 
 ### Dashboard
 - `/dashboard` separates operating-base metrics from sales-pressure metrics
 - analytics surfaces include demand rollups plus descriptive revenue/margin/trend views
+- dashboard analytics now surface the highest-priority reorder alerts
 
 ## Architecture Notes
 
