@@ -11,6 +11,7 @@ export type PurchasingPlanLine = {
   unit: string;
   supplierName?: string;
   supplierEmail?: string;
+  supplierPhone?: string;
   nextDueDate?: string;
   openOrderCount: number;
 };
@@ -24,6 +25,7 @@ export type ReorderAlert = {
   coverageRatio: number;
   supplierName?: string;
   supplierEmail?: string;
+  supplierPhone?: string;
   nextDueDate?: string;
   daysUntilNextDue?: number;
   openOrderCount: number;
@@ -72,6 +74,7 @@ export function buildPurchasingPlan(
       unit: string;
       supplierName?: string;
       supplierEmail?: string;
+      supplierPhone?: string;
       nextDueDate?: string;
       orderIds: Set<string>;
     }
@@ -115,6 +118,7 @@ export function buildPurchasingPlan(
       const supplier = supplierLookup.get(preferredSupplierId);
       item.supplierName = supplier?.name;
       item.supplierEmail = supplier?.email;
+      item.supplierPhone = supplier?.phone;
     }
     item.onHandQuantity = onHandQuantity;
     item.shortageQuantity = roundQuantity(Math.max(item.requiredQuantity - onHandQuantity, 0));
@@ -135,6 +139,7 @@ export function buildPurchasingPlan(
       unit: item.unit,
       supplierName: item.supplierName,
       supplierEmail: item.supplierEmail,
+      supplierPhone: item.supplierPhone,
       nextDueDate: item.nextDueDate,
       openOrderCount: item.orderIds.size
     }))
@@ -184,6 +189,7 @@ export function buildReorderAlerts(snapshot: BusinessSnapshot, today = new Date(
         coverageRatio: line.coverageRatio,
         supplierName: line.supplierName,
         supplierEmail: line.supplierEmail,
+        supplierPhone: line.supplierPhone,
         nextDueDate: line.nextDueDate,
         daysUntilNextDue,
         openOrderCount: line.openOrderCount

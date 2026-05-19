@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useRef } from "react";
 import { max, scaleBand, scaleLinear } from "d3";
 import type { PurchaseInsights } from "@/lib/domain/analytics";
 import { analyticsCopy } from "@/lib/i18n";
@@ -17,6 +20,7 @@ function formatPercent(value: number) {
 }
 
 type AnalyticsCopy = ReturnType<typeof analyticsCopy>;
+type Tooltip = { x: number; y: number; label: string; lines: string[] };
 
 export function PurchaseGraphs({
   insights,
@@ -25,6 +29,22 @@ export function PurchaseGraphs({
   insights: PurchaseInsights;
   copy: AnalyticsCopy;
 }>) {
+  const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  function show(e: React.MouseEvent, label: string, lines: string[]) {
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+    const targetRect = (e.currentTarget as Element).getBoundingClientRect();
+    // anchor to top-center of the hovered bar/group
+    setTooltip({
+      x: targetRect.left + targetRect.width / 2 - containerRect.left,
+      y: targetRect.top - containerRect.top,
+      label,
+      lines
+    });
+  }
+
   const monthlyWidth = 640;
   const monthlyHeight = 250;
   const monthlyMargin = { top: 18, right: 18, bottom: 42, left: 58 };
@@ -37,7 +57,7 @@ export function PurchaseGraphs({
     .paddingInner(0.28)
     .paddingOuter(0.08);
   const monthBandwidth = monthScale.bandwidth();
-  const monthlyMax = max(insights.trendRows, (row) => Math.max(row.averageUnitCost, row.updates)) ?? 1;
+  const monthlyMax = max(insights.trendRows, (row) => row.averageUnitCost) ?? 1;
   const costScale = scaleLinear()
     .domain([0, monthlyMax])
     .nice(4)
@@ -67,7 +87,11 @@ export function PurchaseGraphs({
     .paddingOuter(0.1);
 
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
+    <div
+      ref={containerRef}
+      className="relative grid gap-4 xl:grid-cols-2"
+      onMouseLeave={() => setTooltip(null)}
+    >
       <article className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
         <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
           {copy.purchaseGraphEyebrow}
@@ -93,7 +117,17 @@ export function PurchaseGraphs({
               const lineY = costScale(row.averageUnitCost);
               const barHeight = Math.max(2, monthlyInnerHeight - lineY);
               return (
-                <g key={row.label}>
+                <g
+                  key={row.label}
+                  style={{ cursor: "crosshair" }}
+                  onMouseEnter={(e) =>
+                    show(e, row.label, [
+                      `${copy.averageCost}: ${formatMoney(row.averageUnitCost)}`,
+                      `${copy.priceUpdates}: ${row.updates}`,
+                      `${copy.averageChange}: ${formatPercent(row.averageChangeRate)}`
+                    ])
+                  }
+                >
                   <rect x={x} y={lineY} width={monthBandwidth} height={barHeight} rx="14" fill="rgba(46,83,57,0.10)" />
                   <circle cx={x + monthBandwidth / 2} cy={lineY} r="5" fill="var(--botanical)" />
                   <text x={x + monthBandwidth / 2} y={monthlyInnerHeight + 18} textAnchor="middle" className="fill-[var(--muted-strong)] font-mono text-[10px]">
@@ -111,10 +145,6 @@ export function PurchaseGraphs({
           <span className="inline-flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-[var(--botanical)]" />
             {copy.averageCost}
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-[rgba(46,83,57,0.10)]" />
-            {copy.priceUpdates}
           </span>
         </div>
       </article>
@@ -134,7 +164,18 @@ export function PurchaseGraphs({
               const y = rowScale(row.materialId) ?? 0;
               const barWidth = changeScale(Math.abs(row.absoluteChange));
               return (
-                <g key={row.materialId} transform={`translate(0, ${y})`}>
+                <g
+                  key={row.materialId}
+                  transform={`translate(0, ${y})`}
+                  style={{ cursor: "crosshair" }}
+                  onMouseEnter={(e) =>
+                    show(e, row.materialName, [
+                      `${copy.change}: ${formatPercent(row.changeRate)}`,
+                      `${copy.startingCost}: ${formatMoney(row.startingUnitCost)}`,
+                      `${copy.currentCost}: ${formatMoney(row.latestUnitCost)}`
+                    ])
+                  }
+                >
                   <text x={-10} y={rowScale.bandwidth() / 2 + 4} textAnchor="end" className="fill-[var(--ink)] font-display text-[13px]">
                     {row.materialName}
                   </text>
@@ -154,6 +195,20 @@ export function PurchaseGraphs({
 
         {!materialRows.length ? <p className="mt-2 text-sm text-[var(--muted-strong)]">{copy.noPurchaseData}</p> : null}
       </article>
+
+      {tooltip ? (
+        <div
+          className="pointer-events-none absolute z-10 min-w-[160px] -translate-x-1/2 rounded-[16px] border border-[var(--line)] bg-white/95 p-3 shadow-lg backdrop-blur-sm"
+          style={{ left: tooltip.x, top: tooltip.y - 8 }}
+        >
+          <p className="font-display text-sm text-[var(--ink)]">{tooltip.label}</p>
+          {tooltip.lines.map((line) => (
+            <p key={line} className="mt-1 font-mono text-[0.7rem] text-[var(--muted-strong)]">
+              {line}
+            </p>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
