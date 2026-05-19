@@ -69,6 +69,18 @@ Template routes under `/api/templates/*` are intentionally outside the protected
 
 ---
 
+## Rate limiting
+
+No application-level rate limiting is implemented in source code. Current approach relies on platform-level controls:
+
+- **Vercel / hosting layer:** Deploy behind a platform that offers edge-rate limiting (e.g. Vercel's request limits, Cloudflare WAF rules) — no code change required.
+- **Supabase PostgREST:** Each request is authenticated; the Supabase project settings include request-rate caps.
+- **Clerk:** Auth endpoints are rate-limited by Clerk's infrastructure.
+
+If you add `POST /api/import` volume requirements or a public-facing surface, add a lightweight per-user limit using the `next` middleware or a thin `@upstash/ratelimit` call before the route handler. Mutating routes (`/api/import`, `/api/products`, etc.) are the highest-risk targets for abuse.
+
+---
+
 ## Data layer fallback
 
 `src/lib/server/workspace.ts` can fall back to an **in-memory** store if Supabase is not configured or token exchange fails. Workspace UI routes are middleware-protected, but new server entry points should keep calling the same auth assumptions so data never attaches to the wrong owner.

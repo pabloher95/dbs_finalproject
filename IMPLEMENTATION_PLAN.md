@@ -57,21 +57,36 @@ The shipped product shape is:
 - Domain logic stays in `src/lib/domain/` rather than being embedded inside route handlers
 - User-facing copy is centralized in `src/lib/i18n.ts`
 
+## Demo QA Checklist
+
+Full walkthrough path to verify before a demo or submission:
+
+1. **Sign in** — land at `/dashboard` with demo mode on; confirm business name appears in header.
+2. **Rename business** — click the business name in the header, enter a new name, save; confirm header updates.
+3. **Restore demo** — click "Restore demo" in the header; confirm demo data reloads without auth disruption.
+4. **Create product** — go to Intake (`/import`); enter SKU, name, category, unit, price, and at least one material formula row; save; confirm the product appears in Catalog.
+5. **Edit product** — from Catalog (`/products`), click Edit on a product; update a field; save; confirm catalog reflects the change.
+6. **Add contact** — go to Contacts (`/contacts`); add a customer with name, email, and channel; add a supplier with name, email, and category; confirm both appear in their sections.
+7. **Create order** — go to Orders (`/orders`); click new order; set order number, customer, destination, due date, and at least one product/quantity line; save; confirm it appears as open.
+8. **Fulfill order** — mark the order as fulfilled; confirm it leaves the open queue.
+9. **Update stock/cost** — go to Purchasing (`/purchasing`); find a material; update on-hand quantity; update unit cost; confirm the purchasing plan reflects the change.
+10. **View purchasing plan** — confirm the material table shows required, on-hand, and net-to-buy quantities; reorder alerts show if stock is short.
+11. **Verify analytics** — go to Dashboard (`/dashboard`); confirm revenue, margin, and trend signals update; confirm reorder alerts reflect current state.
+12. **Switch to live workspace** — toggle demo mode off; confirm workspace is blank (first-time live) or shows real data; switch back to demo.
+
 ## Remaining Work
 
 ### Product and workflow
-- Clarify the final role split between Intake and Catalog if product editing needs another pass
-- Expand fulfillment beyond open/fulfilled if the team later needs partial shipment or staged production states
-- Decide whether destination should be folded into customer records, shipping records, or kept as a free-form order field
+- Expand fulfillment beyond open/fulfilled if partial shipment or staged production states are needed later
+- Decide whether destination should be folded into customer records or kept as a free-form order field
 
 ### Security and operations
-- Add committed CI/security workflow checks for lint, test, build, and dependency audit
-- Add rate limiting for mutating APIs, especially `/api/import`
-- Add production error monitoring
+- Add production error monitoring (e.g. Sentry)
 - Consider a CSP once Clerk requirements are accounted for
+- ~~CI/security workflow~~ — shipped in `.github/workflows/ci.yml`
+- ~~Rate limiting docs~~ — documented in `SECURITY_STATUS.md`; platform-level controls are in place
 
 ### Data and analytics
-- Add deeper customer/product performance cuts if needed
 - Forecasting remains a future stream after reorder alerts
 - Expand test coverage around auth/persistence failure modes and API validation edges
 
