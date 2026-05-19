@@ -4,9 +4,10 @@ SmallBiz IQ is a small-business inventory and sales intelligence app for product
 
 It is built around a practical operating workflow:
 - create products with unit-level formulas
-- maintain a readable catalog of products and recipe math
-- manage customers and suppliers
-- capture multi-line orders and mark them fulfilled
+- browse and inline-edit the product catalog
+- manage customers and suppliers in a unified contact directory
+- capture multi-line orders and mark them fulfilled or cancelled
+- log material purchase receipts to keep stock counts and cost history current
 - generate a purchasing plan from open demand, stock on hand, and supplier links
 - review descriptive analytics for demand, revenue, margin, operating load, and reorder pressure
 - track purchasing analytics for input-cost changes and inventory exposure
@@ -86,40 +87,46 @@ API routes:
 ## Current Workflow
 
 ### Intake
-- `/import` is product-first intake
+- `/import` is the product-first intake surface
 - users create products with SKU, category, price, and material formula rows
-- intake is no longer the main place for order entry
+- existing products can be edited inline from the catalog
 
 ### Catalog
-- `/products` is the catalog review surface
-- it is focused on browsing items, formula math, and edit handoff back to intake
+- `/products` is the catalog review and edit surface
+- supports browsing items, formula math, and inline editing of product specs
+
+### Contacts
+- `/contacts` manages customers and suppliers in a unified directory
+- dedicated forms for each contact type with a delete guard
+- contacts link to orders (customers) and purchasing (suppliers)
 
 ### Orders
 - `/orders` supports multi-line manual orders
 - typing a new customer name will create the customer on save
-- orders now include a free-form `destination`
-- orders can be marked fulfilled or reopened
+- orders include a free-form `destination` field
+- orders can be marked fulfilled, cancelled, or reopened
 - backlog means open orders with due dates before today
-- duplicate order numbers are rejected instead of silently overwriting another order
+- duplicate order numbers are rejected
 
 ### Purchasing
 - `/purchasing` combines open-order demand, product formulas, stock on hand, preferred suppliers, and unit costs
-- material unit cost is maintained here and feeds margin/cost analytics
-- material cost edits append to a cost-history ledger for purchasing analytics
+- stock is updated by logging purchase receipts: each receipt adds quantity received and records the unit price paid
+- cost history is derived from receipts, not manually maintained — sales drive consumption, receipts drive cost
 - reorder alerts rank shortages by coverage, next due date, and missing supplier linkage
+- purchasing analytics surface input-cost trends and material exposure across the catalog
 
 ### Demo controls
 - the workspace header includes a `Demo mode` toggle
 - when demo mode is on, the app reads and writes against the seeded fake workspace
-- when demo mode is off, the app reads and writes against the user’s separate live workspace
+- when demo mode is off, the app reads and writes against the user's separate live workspace
 - a first-time live workspace can be completely empty
-- `Restore demo` is still available while demo mode is on and reseeds the fake workspace without touching the live workspace
+- `Restore demo` reseeds the fake workspace without touching the live workspace
 
 ### Dashboard
 - `/dashboard` separates operating-base metrics from sales-pressure metrics
-- analytics surfaces include demand rollups plus descriptive revenue/margin/trend views
-- analytics now also surface purchasing readings for inventory value and input-cost movement over time
-- dashboard analytics now surface the highest-priority reorder alerts
+- analytics surfaces include demand rollups plus descriptive revenue, margin, and trend views
+- purchasing readings surface inventory value and input-cost movement over time
+- the highest-priority reorder alerts are surfaced on the dashboard
 
 ## Architecture Notes
 
@@ -130,6 +137,7 @@ API routes:
 - User-facing copy is localized through the i18n helpers in `src/lib/i18n.ts` and `src/lib/i18n-server.ts`.
 - Dashboard analytics live in `src/components/layout/analytics-overview.tsx`.
 - Trend chart behavior lives in `src/components/layout/trend-chart.tsx`.
+- Purchasing analytics and graphs live in `src/components/layout/purchase-graphs.tsx`.
 - Purchasing-plan logic lives in `src/lib/domain/purchasing-plan.ts`.
 - Analytics logic lives in `src/lib/domain/analytics.ts`.
 - Historical input costs live in `snapshot.materialCostHistory` and the `material_cost_history` table.
@@ -139,7 +147,7 @@ API routes:
 ## Security Notes
 
 - Workspace routes and mutating API routes are protected by Clerk middleware and server-side `auth()` checks.
-- Supabase access is performed with the signed-in user’s Clerk token plus the publishable key.
+- Supabase access is performed with the signed-in user's Clerk token plus the publishable key.
 - Baseline response headers are defined in `next.config.ts`.
 - Schema changes and RLS assumptions live in `supabase/migrations/`.
 
@@ -147,7 +155,7 @@ API routes:
 
 Schema changes live in `supabase/migrations/`.
 
-The `business` table now uses `workspace_mode` so each signed-in user can have both:
+The `business` table uses `workspace_mode` so each signed-in user can have both:
 - one `demo` workspace
 - one `live` workspace
 
