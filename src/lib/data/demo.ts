@@ -7,9 +7,9 @@ const snapshot: BusinessSnapshot = {
     ownerUserId: "owner_demo"
   },
   suppliers: [
-    { id: "sup_mill", name: "Northline Materials", email: "orders@northline.test", category: "base materials" },
-    { id: "sup_dairy", name: "Foundry Supply Co.", email: "sales@foundrysupply.test", category: "specialty inputs" },
-    { id: "sup_pantry", name: "Atlas Packaging", email: "hello@atlaspackaging.test", category: "packaging" }
+    { id: "sup_mill", name: "Northline Materials", email: "orders@northline.test", phone: "+1 (312) 555-0142", category: "base materials" },
+    { id: "sup_dairy", name: "Foundry Supply Co.", email: "sales@foundrysupply.test", phone: "+1 (415) 555-0187", category: "specialty inputs" },
+    { id: "sup_pantry", name: "Atlas Packaging", email: "hello@atlaspackaging.test", phone: "+1 (206) 555-0163", category: "packaging" }
   ],
   materials: [
     {
@@ -102,9 +102,9 @@ const snapshot: BusinessSnapshot = {
     }
   ],
   clients: [
-    { id: "cl_river", name: "Common Goods Market", email: "orders@commongoods.test", channel: "wholesale retail" },
-    { id: "cl_studio", name: "North Studio Events", email: "events@northstudio.test", channel: "event gifting" },
-    { id: "cl_harbor", name: "Harbor House Mercantile", email: "buying@harborhouse.test", channel: "seasonal retail" }
+    { id: "cl_river", name: "Common Goods Market", email: "orders@commongoods.test", phone: "+1 (503) 555-0219", channel: "wholesale retail" },
+    { id: "cl_studio", name: "North Studio Events", email: "events@northstudio.test", phone: "+1 (312) 555-0334", channel: "event gifting" },
+    { id: "cl_harbor", name: "Harbor House Mercantile", email: "buying@harborhouse.test", phone: "+1 (617) 555-0271", channel: "seasonal retail" }
   ],
   orders: [
     {
