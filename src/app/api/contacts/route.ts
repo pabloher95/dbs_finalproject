@@ -38,6 +38,8 @@ export async function POST(request: Request) {
     const name = nonEmpty(body.name);
     const email = nonEmpty(body.email);
     const category = nonEmpty(body.category ?? body.channel);
+    const phone = nonEmpty(body.phone) || undefined;
+    const address = nonEmpty(body.address) || undefined;
 
     if (!name || !email || !category) {
       return NextResponse.json(
@@ -55,6 +57,8 @@ export async function POST(request: Request) {
       name,
       email,
       category,
+      phone,
+      address,
       kind
     });
 

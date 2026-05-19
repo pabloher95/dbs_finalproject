@@ -22,8 +22,8 @@ export function ContactStudio({
   const copy = contactStudioCopy(language);
   const [clients, setClients] = useState(initialClients);
   const [suppliers, setSuppliers] = useState(initialSuppliers);
-  const [clientDraft, setClientDraft] = useState({ id: "", name: "", email: "", channel: "" });
-  const [supplierDraft, setSupplierDraft] = useState({ id: "", name: "", email: "", category: "" });
+  const [clientDraft, setClientDraft] = useState({ id: "", name: "", email: "", channel: "", phone: "", address: "" });
+  const [supplierDraft, setSupplierDraft] = useState({ id: "", name: "", email: "", category: "", phone: "", address: "" });
   const [toast, setToast] = useState<{ message: string; tone: Tone } | null>(null);
   const [clientSearch, setClientSearch] = useState("");
   const [supplierSearch, setSupplierSearch] = useState("");
@@ -57,11 +57,11 @@ export function ContactStudio({
   }
 
   function resetClientDraft() {
-    setClientDraft({ id: "", name: "", email: "", channel: "" });
+    setClientDraft({ id: "", name: "", email: "", channel: "", phone: "", address: "" });
   }
 
   function resetSupplierDraft() {
-    setSupplierDraft({ id: "", name: "", email: "", category: "" });
+    setSupplierDraft({ id: "", name: "", email: "", category: "", phone: "", address: "" });
   }
 
   async function persistContact(kind: "client" | "supplier", draft: typeof clientDraft | typeof supplierDraft) {
@@ -138,14 +138,18 @@ export function ContactStudio({
             id: lastDeleted.data.id,
             name: lastDeleted.data.name,
             email: lastDeleted.data.email,
-            channel: lastDeleted.data.channel
+            channel: lastDeleted.data.channel,
+            phone: lastDeleted.data.phone ?? "",
+            address: lastDeleted.data.address ?? ""
           }
         : {
             kind: "supplier",
             id: lastDeleted.data.id,
             name: lastDeleted.data.name,
             email: lastDeleted.data.email,
-            category: lastDeleted.data.category
+            category: lastDeleted.data.category,
+            phone: lastDeleted.data.phone ?? "",
+            address: lastDeleted.data.address ?? ""
           };
     const response = await fetch("/api/contacts", {
       method: "POST",
@@ -210,6 +214,21 @@ export function ContactStudio({
               placeholder={copy.channelPlaceholder}
               className="field"
             />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input
+                value={clientDraft.phone}
+                onChange={(event) => setClientDraft((current) => ({ ...current, phone: event.target.value }))}
+                placeholder={copy.phonePlaceholder}
+                className="field"
+                type="tel"
+              />
+              <input
+                value={clientDraft.address}
+                onChange={(event) => setClientDraft((current) => ({ ...current, address: event.target.value }))}
+                placeholder={copy.addressPlaceholder}
+                className="field"
+              />
+            </div>
             <div className="flex flex-wrap gap-2">
               <button className="btn btn-flame" type="submit">
                 {clientDraft.id ? copy.updateCustomer : copy.saveCustomer}
@@ -238,6 +257,8 @@ export function ContactStudio({
                       {client.channel}
                     </p>
                     <p className="mt-1 text-sm text-[var(--muted-strong)]">{client.email}</p>
+                    {client.phone ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{client.phone}</p> : null}
+                    {client.address ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{client.address}</p> : null}
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -248,7 +269,9 @@ export function ContactStudio({
                           id: client.id,
                           name: client.name,
                           email: client.email,
-                          channel: client.channel
+                          channel: client.channel,
+                          phone: client.phone ?? "",
+                          address: client.address ?? ""
                         })
                       }
                     >
@@ -311,6 +334,21 @@ export function ContactStudio({
               placeholder={copy.categoryPlaceholder}
               className="field"
             />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input
+                value={supplierDraft.phone}
+                onChange={(event) => setSupplierDraft((current) => ({ ...current, phone: event.target.value }))}
+                placeholder={copy.phonePlaceholder}
+                className="field"
+                type="tel"
+              />
+              <input
+                value={supplierDraft.address}
+                onChange={(event) => setSupplierDraft((current) => ({ ...current, address: event.target.value }))}
+                placeholder={copy.addressPlaceholder}
+                className="field"
+              />
+            </div>
             <div className="flex flex-wrap gap-2">
               <button className="btn btn-flame" type="submit">
                 {supplierDraft.id ? copy.updateSupplier : copy.saveSupplier}
@@ -336,6 +374,8 @@ export function ContactStudio({
                   <div className="min-w-0">
                     <p className="font-display text-lg text-[var(--ink)]">{supplier.name}</p>
                     <p className="mt-1 text-sm text-[var(--muted-strong)]">{supplier.email}</p>
+                    {supplier.phone ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{supplier.phone}</p> : null}
+                    {supplier.address ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{supplier.address}</p> : null}
                     <Pill className="mt-2">{supplier.category}</Pill>
                   </div>
                   <div className="flex gap-2">
@@ -347,7 +387,9 @@ export function ContactStudio({
                           id: supplier.id,
                           name: supplier.name,
                           email: supplier.email,
-                          category: supplier.category
+                          category: supplier.category,
+                          phone: supplier.phone ?? "",
+                          address: supplier.address ?? ""
                         })
                       }
                     >

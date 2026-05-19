@@ -9,6 +9,8 @@ export type Supplier = {
   name: string;
   email: string;
   category: string;
+  phone?: string;
+  address?: string;
 };
 
 export type Material = {
@@ -50,6 +52,8 @@ export type Client = {
   name: string;
   email: string;
   channel: string;
+  phone?: string;
+  address?: string;
 };
 
 export type OrderItem = {

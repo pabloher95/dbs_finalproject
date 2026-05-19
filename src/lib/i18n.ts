@@ -729,6 +729,8 @@ export function contactStudioCopy(language: Language) {
     supplierEmailPlaceholder: language === "es" ? "Correo del proveedor" : "Supplier email",
     channelPlaceholder: language === "es" ? "Canal de ventas" : "Sales channel",
     categoryPlaceholder: language === "es" ? "Categoría" : "Category",
+    phonePlaceholder: language === "es" ? "Teléfono (opcional)" : "Phone (optional)",
+    addressPlaceholder: language === "es" ? "Dirección (opcional)" : "Address (optional)",
     saveCustomer: language === "es" ? "Guardar cliente" : "Save customer",
     updateCustomer: language === "es" ? "Actualizar cliente" : "Update customer",
     saveSupplier: language === "es" ? "Guardar proveedor" : "Save supplier",

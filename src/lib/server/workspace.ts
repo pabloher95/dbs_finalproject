@@ -28,6 +28,8 @@ type SupplierRow = {
   name: string;
   email: string;
   category: string;
+  phone: string | null;
+  address: string | null;
   business_id: string;
 };
 
@@ -65,6 +67,8 @@ type ClientRow = {
   name: string;
   email: string;
   channel: string;
+  phone: string | null;
+  address: string | null;
   business_id: string;
 };
 
@@ -124,6 +128,8 @@ type ContactInput = {
   name: string;
   email: string;
   category: string;
+  phone?: string;
+  address?: string;
   kind: "client" | "supplier";
 };
 
@@ -489,7 +495,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
   async function read(ownerId: string, mode = "demo" as WorkspaceMode): Promise<WorkspaceState> {
     const business = await ensureBusiness(ownerId, mode);
     const [suppliers, materials, materialCostHistory, products, clients, orders] = await Promise.all([
-      readRows<SupplierRow>(`/suppliers?select=id,name,email,category,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
+      readRows<SupplierRow>(`/suppliers?select=id,name,email,category,phone,address,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
       readRows<MaterialRow>(
         `/materials?select=id,name,unit,preferred_supplier_id,on_hand_quantity,unit_cost,business_id&business_id=eq.${encodeURIComponent(business.id)}`
       ),
@@ -499,7 +505,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       readRows<ProductRow>(
         `/products?select=id,sku,name,category,unit,yield_quantity,unit_price,business_id&business_id=eq.${encodeURIComponent(business.id)}`
       ),
-      readRows<ClientRow>(`/clients?select=id,name,email,channel,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
+      readRows<ClientRow>(`/clients?select=id,name,email,channel,phone,address,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
       readRows<OrderRow>(
         `/orders?select=id,client_id,destination,order_number,due_date,status,business_id&business_id=eq.${encodeURIComponent(business.id)}`
       )
@@ -557,7 +563,9 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
           id: row.id,
           name: row.name,
           email: row.email,
-          channel: row.channel
+          channel: row.channel,
+          phone: row.phone ?? undefined,
+          address: row.address ?? undefined
         }
       ])
     );
@@ -585,7 +593,9 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
         id: row.id,
         name: row.name,
         email: row.email,
-        category: row.category
+        category: row.category,
+        phone: row.phone ?? undefined,
+        address: row.address ?? undefined
       })),
       materials: Array.from(materialsById.values()),
       materialCostHistory: materialCostHistory.map((row) => ({
@@ -724,7 +734,9 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
           business_id: business.id,
           name: supplier.name,
           email: supplier.email,
-          category: supplier.category
+          category: supplier.category,
+          phone: supplier.phone ?? null,
+          address: supplier.address ?? null
         })))
       });
     }
@@ -822,7 +834,9 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
           business_id: business.id,
           name: client.name,
           email: client.email,
-          channel: client.channel
+          channel: client.channel,
+          phone: client.phone ?? null,
+          address: client.address ?? null
         })))
       });
     }
@@ -1218,6 +1232,8 @@ export async function saveContact(ownerId: string, input: ContactInput) {
         existing.name = input.name;
         existing.email = input.email;
         existing.channel = input.category;
+        existing.phone = input.phone || undefined;
+        existing.address = input.address || undefined;
         return;
       }
 
@@ -1225,7 +1241,9 @@ export async function saveContact(ownerId: string, input: ContactInput) {
         id: input.id ?? `cl_${slugify(input.name) || crypto.randomUUID()}`,
         name: input.name,
         email: input.email,
-        channel: input.category
+        channel: input.category,
+        phone: input.phone || undefined,
+        address: input.address || undefined
       });
       return;
     }
@@ -1245,6 +1263,8 @@ export async function saveContact(ownerId: string, input: ContactInput) {
       existing.name = input.name;
       existing.email = input.email;
       existing.category = input.category;
+      existing.phone = input.phone || undefined;
+      existing.address = input.address || undefined;
       return;
     }
 
@@ -1252,7 +1272,9 @@ export async function saveContact(ownerId: string, input: ContactInput) {
       id: input.id ?? `sup_${slugify(input.name) || crypto.randomUUID()}`,
       name: input.name,
       email: input.email,
-      category: input.category
+      category: input.category,
+      phone: input.phone || undefined,
+      address: input.address || undefined
     });
   });
 }
