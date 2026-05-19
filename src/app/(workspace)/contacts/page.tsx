@@ -15,11 +15,6 @@ export default async function ContactsPage() {
           ? "Agrega las personas y empresas de las que depende tu equipo para que la ingesta de pedidos y las compras sigan siendo rápidas y consistentes."
           : "Add the people and companies your team depends on so order intake and purchasing stay fast and consistent."
       }
-      metrics={[
-        { label: language === "es" ? "Clientes" : "Customers", value: String(snapshot.clients.length) },
-        { label: language === "es" ? "Proveedores" : "Suppliers", value: String(snapshot.suppliers.length) },
-        { label: language === "es" ? "Acción principal" : "Primary action", value: language === "es" ? "Guardar registros" : "Save records" }
-      ]}
       steps={[
         {
           title: language === "es" ? "Agrega un cliente" : "Add a customer",
