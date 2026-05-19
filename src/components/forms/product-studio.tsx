@@ -78,7 +78,7 @@ function FormulaRowField({
   language: "en" | "es";
 }>) {
   return (
-    <div className="grid gap-2 rounded-[20px] border border-[var(--line)] bg-[rgba(255,255,255,0.66)] p-3 md:grid-cols-[1.4fr_0.7fr_0.8fr_auto] md:items-end">
+    <div className="grid gap-2 rounded-[20px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-3 md:grid-cols-[1.4fr_0.7fr_0.8fr_auto] md:items-end">
       <label className="grid gap-1">
         <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
           {language === "es" ? "Material" : "Material"}
@@ -228,7 +228,7 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      <Card variant="featured" className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <Eyebrow tone="flame">{copy.eyebrow}</Eyebrow>

@@ -4,13 +4,14 @@ import { clsx } from "clsx";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 
-type CardVariant = "paper" | "ink" | "flame" | "ghost";
+type CardVariant = "paper" | "ink" | "flame" | "ghost" | "featured";
 
 const cardVariantClass: Record<CardVariant, string> = {
   paper: "paper-card",
   ink: "ink-card",
   flame: "flame-card",
-  ghost: ""
+  ghost: "",
+  featured: "featured-card"
 };
 
 export function Card({

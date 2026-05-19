@@ -375,6 +375,13 @@ textarea {
   box-shadow: 0 22px 48px -28px rgba(168, 51, 28, 0.55);
 }
 
+.featured-card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  box-shadow: 0 32px 72px -26px rgba(22, 22, 24, 0.28), 0 1px 0 rgba(255, 255, 255, 0.8);
+  position: relative;
+}
+
 /* Magazine plate — flat, ruled, no shadow. For editorial sections. */
 .plate {
   background: var(--paper-bright);
@@ -747,6 +754,21 @@ textarea.field {
 
 .nav-row[data-active="true"] p {
   color: rgba(250, 246, 236, 0.62);
+}
+
+.nav-row[data-primary="true"]:not([data-active="true"]) {
+  background: rgba(46, 83, 57, 0.08);
+  border-color: rgba(46, 83, 57, 0.22);
+  color: var(--ink);
+}
+
+.nav-row[data-primary="true"]:not([data-active="true"]):hover {
+  background: rgba(46, 83, 57, 0.13);
+}
+
+.nav-row[data-primary="true"][data-active="true"] {
+  background: var(--botanical);
+  border-color: var(--botanical);
 }
 
 .nav-index {

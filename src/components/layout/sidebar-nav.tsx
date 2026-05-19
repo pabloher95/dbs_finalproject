@@ -18,7 +18,7 @@ export function SidebarNav({ items }: Readonly<{ items: NavItem[] }>) {
       {items.map((item) => {
         const active = isItemActive(pathname, item.href);
         return (
-          <Link key={item.href} href={item.href} data-active={active} className="nav-row min-w-[14rem] shrink-0 xl:min-w-0">
+          <Link key={item.href} href={item.href} data-active={active} data-primary={item.primary ?? false} className="nav-row min-w-[14rem] shrink-0 xl:min-w-0">
             <div className="min-w-0 flex-1">
               <span className="block font-display text-xl leading-[1.05] tracking-tight text-inherit">{item.label}</span>
               <p className="mt-1 text-[0.78rem] leading-5 opacity-70">{item.description}</p>

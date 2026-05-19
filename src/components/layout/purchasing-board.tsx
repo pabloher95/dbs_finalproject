@@ -37,7 +37,7 @@ export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: Busines
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-[28px] p-6">
+      <Card variant="featured" className="rounded-[28px] p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <Eyebrow tone="flame">{copy.todayRun}</Eyebrow>
@@ -88,7 +88,7 @@ export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: Busines
           {reorderAlerts.length ? (
             <div className="mt-4 grid gap-3 lg:grid-cols-3">
               {reorderAlerts.map((alert) => (
-                <div key={alert.materialId} className="rounded-[20px] border border-[var(--line)] bg-[var(--paper-bright)] p-4">
+                <div key={alert.materialId} className="rounded-[20px] border border-[var(--line)] bg-white p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-display text-xl leading-none text-[var(--ink)]">{alert.materialName}</p>

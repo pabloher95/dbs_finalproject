@@ -87,7 +87,7 @@ function FormulaRowField({
   language: "en" | "es";
 }>) {
   return (
-    <div className="grid gap-2 rounded-[20px] border border-[var(--line)] bg-[rgba(255,255,255,0.66)] p-3 md:grid-cols-[1.4fr_0.7fr_0.8fr_auto] md:items-end">
+    <div className="grid gap-2 rounded-[20px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-3 md:grid-cols-[1.4fr_0.7fr_0.8fr_auto] md:items-end">
       <label className="grid gap-1">
         <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
           {language === "es" ? "Material" : "Material"}
@@ -224,7 +224,7 @@ export function ImportExperience({
 
   return (
     <section className="space-y-6">
-      <Card className="p-6">
+      <Card variant="featured" className="p-6">
         {editingProduct ? (
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3">
             <div>
