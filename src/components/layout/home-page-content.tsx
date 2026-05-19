@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { Card, Pill } from "@/components/ui/surfaces";
+import { Card } from "@/components/ui/surfaces";
 import { AnalyticsOverview } from "@/components/layout/analytics-overview";
+import { DashboardActiveOrders } from "@/components/layout/dashboard-active-orders";
 import { Reveal } from "@/components/ui/surfaces";
 import { getRequestLanguage } from "@/lib/i18n-server";
 import { dashboardCopy } from "@/lib/i18n";
@@ -29,33 +30,12 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
   );
   const lowStockMaterials = planLines.filter((line) => line.netToBuyQuantity > 0).length;
   const sourcingGaps = planLines.filter((line) => !line.supplierName).length;
-  const nextOrders = [...openOrders].slice(0, 3);
-  const today = new Intl.DateTimeFormat(language === "es" ? "es-ES" : "en-US", {
-    month: "long",
-    day: "numeric"
-  }).format(new Date());
-
   return (
     <div className="space-y-10 md:space-y-14">
       {/* HERO — editorial plate */}
       <Reveal>
         <section className="plate p-6 md:p-10">
-          <div className="flex items-baseline justify-between border-b border-[var(--ink)] pb-4">
-            <p className="marginalia">
-              {copy.today} &nbsp;·&nbsp; {today}
-            </p>
-            <p className="marginalia">
-              {sourcingGaps > 0 ? (
-                <span className="text-[var(--vermilion)]">
-                  {sourcingGaps} {sourcingGaps === 1 ? copy.sourcingGap : copy.sourcingGaps}
-                </span>
-              ) : (
-                <span className="text-[var(--data-moss)]">{copy.sourcingComplete}</span>
-              )}
-            </p>
-          </div>
-
-          <div className="pt-8">
+          <div>
             <p className="eyebrow text-[var(--vermilion)]">{snapshot.business.name}</p>
             <h1 className="editorial mt-4 text-[clamp(2.6rem,6vw,5.4rem)]">
               {copy.title}
@@ -65,67 +45,67 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
             </p>
 
             <div className="mt-10 grid gap-6 lg:grid-cols-2">
-              <Card className="p-6 md:p-8">
-                <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] pb-4">
-                  <div>
-                    <p className="eyebrow text-[var(--vermilion)]">{copy.operationsEyebrow}</p>
-                    <h2 className="mt-2 font-display text-3xl leading-none tracking-tight text-[var(--ink)] md:text-4xl">
-                      {copy.operationsTitle}
-                    </h2>
-                  </div>
-                  <Pill tone="ink">{copy.products}</Pill>
-                </div>
-
-                <p className="mt-4 text-[0.95rem] leading-6 text-[var(--muted-strong)]">{copy.operationsBody}</p>
-
-                <div className="mt-6 grid gap-px bg-[var(--ink)] md:grid-cols-2">
-                  {[
+              {[
+                {
+                  eyebrow: copy.operationsEyebrow,
+                  title: copy.operationsTitle,
+                  body: copy.operationsBody,
+                  badge: copy.products,
+                  badgeClass: "inline-flex items-center gap-2 rounded-full border border-[rgba(22,22,24,0.16)] bg-[rgba(250,246,236,0.72)] px-3 py-1 font-mono text-[0.61rem] uppercase tracking-[0.22em] text-[var(--ink)]",
+                  titleClass: "text-[var(--ink)]",
+                  valueClass: "text-[var(--ink)]",
+                  gridClass: "bg-[rgba(22,22,24,0.12)]",
+                  cellClass: "bg-[rgba(250,246,236,0.72)]",
+                  stats: [
                     { label: copy.products, value: snapshot.products.length },
                     { label: copy.suppliers, value: snapshot.suppliers.length },
                     { label: copy.customers, value: snapshot.clients.length },
                     { label: copy.channels, value: channels }
-                  ].map((stat) => (
-                    <div key={stat.label} className="bg-[var(--paper-bright)] px-5 py-5">
-                      <p className="marginalia">— {stat.label}</p>
-                      <p className="font-display mt-2 text-4xl leading-none tracking-tight text-[var(--ink)] md:text-[2.9rem]">
-                        {String(stat.value).padStart(2, "0")}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              <Card variant="ink" className="p-6 md:p-8">
-                <div className="flex items-start justify-between gap-4 border-b border-[rgba(255,255,255,0.12)] pb-4">
-                  <div>
-                    <p className="eyebrow text-[var(--paper-bright)]/80">{copy.salesEyebrow}</p>
-                    <h2 className="mt-2 font-display text-3xl leading-none tracking-tight text-[var(--paper-bright)] md:text-4xl">
-                      {copy.salesTitle}
-                    </h2>
-                  </div>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-1 font-mono text-[0.61rem] uppercase tracking-[0.22em] text-[var(--paper-bright)]">
-                    {copy.openOrders}
-                  </span>
-                </div>
-
-                <p className="mt-4 text-[0.95rem] leading-6 text-[var(--paper-soft)]/85">{copy.salesBody}</p>
-
-                <div className="mt-6 grid gap-px bg-[rgba(255,255,255,0.14)] md:grid-cols-2">
-                  {[
+                  ]
+                },
+                {
+                  eyebrow: copy.salesEyebrow,
+                  title: copy.salesTitle,
+                  body: copy.salesBody,
+                  badge: copy.openOrders,
+                  badgeClass: "pill pill-moss",
+                  titleClass: "text-[var(--botanical-deep)]",
+                  valueClass: "text-[var(--botanical-deep)]",
+                  gridClass: "bg-[rgba(46,83,57,0.14)]",
+                  cellClass: "bg-[rgba(250,246,236,0.72)]",
+                  stats: [
                     { label: copy.openOrders, value: openOrders.length },
                     { label: copy.unitsDue, value: totalUnits },
                     { label: copy.lowStock, value: lowStockMaterials },
                     { label: copy.sourcingGaps, value: sourcingGaps }
-                  ].map((stat) => (
-                    <div key={stat.label} className="bg-[rgba(255,255,255,0.04)] px-5 py-5">
-                      <p className="marginalia text-[rgba(255,255,255,0.68)]">— {stat.label}</p>
-                      <p className="font-display mt-2 text-4xl leading-none tracking-tight text-[var(--paper-bright)] md:text-[2.9rem]">
-                        {String(stat.value).padStart(2, "0")}
-                      </p>
+                  ]
+                }
+              ].map((panel) => (
+                <Card key={panel.title} className="p-6 md:p-8">
+                  <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] pb-4">
+                    <div>
+                      <p className="eyebrow text-[var(--vermilion)]">{panel.eyebrow}</p>
+                      <h2 className={`mt-2 font-display text-3xl leading-none tracking-tight md:text-4xl ${panel.titleClass}`}>
+                        {panel.title}
+                      </h2>
                     </div>
-                  ))}
-                </div>
-              </Card>
+                    <span className={panel.badgeClass}>{panel.badge}</span>
+                  </div>
+
+                  <p className="mt-4 text-[0.95rem] leading-6 text-[var(--muted-strong)]">{panel.body}</p>
+
+                  <div className={`mt-6 grid gap-px md:grid-cols-2 ${panel.gridClass}`}>
+                    {panel.stats.map((stat) => (
+                      <div key={stat.label} className={`${panel.cellClass} px-5 py-5`}>
+                        <p className="marginalia">— {stat.label}</p>
+                        <p className={`font-display mt-2 text-4xl leading-none tracking-tight md:text-[2.9rem] ${panel.valueClass}`}>
+                          {String(stat.value).padStart(2, "0")}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ))}
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -156,31 +136,7 @@ export async function HomePageContent({ snapshot }: Readonly<{ snapshot: Busines
               </p>
             </header>
 
-            <div className="mt-6 space-y-px bg-[var(--line)]">
-              {nextOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between gap-4 bg-[var(--paper-bright)] px-5 py-5"
-                >
-                  <div className="min-w-0">
-                    <p className="font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
-                      {order.orderNumber}
-                    </p>
-                    <p className="mt-1 text-sm text-[var(--ink-soft)]">
-                      {order.clientName} &nbsp;·&nbsp; {copy.due} {order.dueDate}
-                    </p>
-                  </div>
-                  <span className="font-mono text-[0.7rem] uppercase tracking-[0.22em] text-[var(--muted)]">
-                    {order.items.reduce((sum, item) => sum + item.quantity, 0)} {copy.units}
-                  </span>
-                </div>
-              ))}
-              {!nextOrders.length ? (
-                <p className="bg-[var(--paper-bright)] p-6 text-sm text-[var(--ink-soft)]">
-                  {copy.noOpenOrders}
-                </p>
-              ) : null}
-            </div>
+            <DashboardActiveOrders orders={openOrders} copy={copy} />
           </section>
         </Reveal>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { max, scaleBand, scaleLinear } from "d3";
 import type { RevenueTrendPoint } from "@/lib/domain/analytics";
 import { analyticsCopy } from "@/lib/i18n";
 
@@ -13,152 +14,157 @@ function formatMoney(value: number) {
 }
 
 type TrendChartCopy = ReturnType<typeof analyticsCopy>;
-type ActiveSegment = {
-  rowIndex: number;
-  series: "cost" | "margin";
-};
 
 export function TrendChart({
   rows,
   copy
 }: Readonly<{ rows: RevenueTrendPoint[]; copy: TrendChartCopy }>) {
   const width = 720;
-  const height = 260;
-  const paddingX = 48;
-  const paddingTop = 28;
-  const paddingBottom = 40;
-  const plotHeight = height - paddingTop - paddingBottom;
-  const barGap = 14;
-  const groupWidth = rows.length ? (width - paddingX * 2 - barGap * (rows.length - 1)) / rows.length : 0;
-  const barWidth = Math.max(groupWidth - 8, 14);
-  const maxValue = Math.max(1, ...rows.map((row) => Math.max(row.revenue, 0)));
-  const [activeSegment, setActiveSegment] = useState<ActiveSegment | null>(null);
+  const height = 300;
+  const margin = { top: 20, right: 18, bottom: 54, left: 56 };
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+  const monthLabels = rows.map((row) => row.label);
+  const monthScale = scaleBand<string>()
+    .domain(monthLabels)
+    .range([0, innerWidth])
+    .paddingInner(0.18)
+    .paddingOuter(0.04);
+  const monthWidth = monthScale.bandwidth();
+  const barGap = Math.max(8, monthWidth * 0.12);
+  const barWidth = Math.max(16, (monthWidth - barGap) / 2);
+  const maxValue = max(rows, (row) => Math.max(row.revenue, row.margin)) ?? 1;
+  const yScale = scaleLinear()
+    .domain([0, maxValue])
+    .nice(4)
+    .range([innerHeight, 0]);
+  const ticks = yScale.ticks(4);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const safeActiveIndex = rows.length ? Math.min(activeIndex, rows.length - 1) : 0;
+  const activeRow = rows[safeActiveIndex];
 
   return (
     <div className="trend-chart overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">{copy.trendChart}</p>
           <p className="mt-2 font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
             {copy.chartTitle}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[0.68rem] uppercase tracking-[0.2em] text-[var(--muted-strong)]">
-          <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--sand-ink)]" />
-            {copy.cost}
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--vermilion)]" />
-            {copy.grossMargin}
-          </span>
+
+        <div className="flex flex-col gap-3 md:items-end">
+          <div className="flex flex-wrap items-center gap-4 text-[0.68rem] uppercase tracking-[0.2em] text-[var(--muted-strong)]">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-[var(--sand-ink)]" />
+              {copy.revenue}
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-[var(--vermilion)]" />
+              {copy.grossMargin}
+            </span>
+          </div>
+
+          {activeRow ? (
+            <div className="rounded-[18px] border border-[var(--line)] bg-[var(--paper-bright)] px-4 py-3 text-sm shadow-[0_12px_30px_-24px_rgba(0,0,0,0.45)]">
+              <p className="font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted)]">{activeRow.label}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[var(--ink)]">
+                <span>{copy.revenue}: {formatMoney(activeRow.revenue)}</span>
+                <span>{copy.grossMargin}: {formatMoney(activeRow.margin)}</span>
+                <span className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-[var(--muted-strong)]">
+                  {copy.orders}: {activeRow.orders}
+                </span>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${width} ${height}`} className="mt-4 h-auto w-full" role="img" aria-label="Monthly revenue composition chart">
-        {[0, 0.5, 1].map((fraction) => {
-          const y = paddingTop + plotHeight * fraction;
-          return (
-            <g key={fraction}>
-              <line x1={paddingX} x2={width - paddingX} y1={y} y2={y} stroke="var(--line-soft)" strokeWidth="1" />
-              <text x={10} y={y + 4} className="fill-[var(--muted)] font-mono text-[10px]">
-                {formatMoney(maxValue * (1 - fraction))}
-              </text>
-            </g>
-          );
-        })}
+      <svg viewBox={`0 0 ${width} ${height}`} className="mt-5 h-auto w-full" role="img" aria-label="Monthly revenue and gross margin chart">
+        <g transform={`translate(${margin.left}, ${margin.top})`}>
+          {ticks.map((tick) => {
+            const y = yScale(tick);
+            return (
+              <g key={tick}>
+                <line
+                  x1={0}
+                  x2={innerWidth}
+                  y1={y}
+                  y2={y}
+                  stroke="var(--line-soft)"
+                  strokeWidth="1"
+                  strokeDasharray={tick === 0 ? undefined : "4 8"}
+                />
+                <text x={-12} y={y + 4} textAnchor="end" className="fill-[var(--muted)] font-mono text-[10px]">
+                  {formatMoney(tick)}
+                </text>
+              </g>
+            );
+          })}
 
-        {rows.map((row, index) => {
-          const groupX = paddingX + index * (groupWidth + barGap);
-          const revenueHeight = (row.revenue / maxValue) * plotHeight;
-          const costHeight = (row.cost / maxValue) * plotHeight;
-          const marginHeight = (row.margin / maxValue) * plotHeight;
-          const barX = groupX + (groupWidth - barWidth) / 2;
-          const barY = paddingTop + (plotHeight - revenueHeight);
-          const costY = paddingTop + (plotHeight - costHeight);
-          const marginY = barY;
-          const activeRow = activeSegment?.rowIndex === index ? row : null;
-          const activeSeriesLabel = activeSegment?.series === "cost" ? copy.cost : copy.grossMargin;
-          const activeValue = activeRow ? (activeSegment?.series === "cost" ? row.cost : row.margin) : null;
-          const activeValueText = activeValue === null ? null : formatMoney(activeValue);
-          const tooltipHeight = 66;
-          const activeTooltipWidth = 172;
-          const tooltipX = Math.min(Math.max(barX + barWidth / 2 - activeTooltipWidth / 2, 8), width - activeTooltipWidth - 8);
-          const tooltipAnchorY = activeSegment?.series === "cost" ? costY : marginY;
-          const tooltipY = Math.max(8, tooltipAnchorY - tooltipHeight - 10);
+          {rows.map((row, index) => {
+            const x = monthScale(row.label) ?? 0;
+            const revenueHeight = innerHeight - yScale(row.revenue);
+            const marginHeight = innerHeight - yScale(row.margin);
+            const isActive = index === safeActiveIndex;
 
-          return (
-            <g
-              key={row.label}
-              className="trend-series"
-            >
-              <rect
-                x={barX}
-                y={costY}
-                width={barWidth}
-                height={costHeight}
-                rx="8"
-                fill="var(--sand-ink)"
-                opacity="0.75"
-                tabIndex={0}
-                onFocus={() => setActiveSegment({ rowIndex: index, series: "cost" })}
-                onBlur={() => setActiveSegment((current) => (current?.rowIndex === index && current.series === "cost" ? null : current))}
-                onMouseEnter={() => setActiveSegment({ rowIndex: index, series: "cost" })}
-                onMouseLeave={() => setActiveSegment((current) => (current?.rowIndex === index && current.series === "cost" ? null : current))}
-              />
-              <rect
-                x={barX}
-                y={marginY}
-                width={barWidth}
-                height={marginHeight}
-                rx="8"
-                className="trend-bar trend-bar--revenue"
-                tabIndex={0}
-                onFocus={() => setActiveSegment({ rowIndex: index, series: "margin" })}
-                onBlur={() => setActiveSegment((current) => (current?.rowIndex === index && current.series === "margin" ? null : current))}
-                onMouseEnter={() => setActiveSegment({ rowIndex: index, series: "margin" })}
-                onMouseLeave={() => setActiveSegment((current) => (current?.rowIndex === index && current.series === "margin" ? null : current))}
-              />
-              <text x={groupX + groupWidth / 2} y={height - 14} textAnchor="middle" className="fill-[var(--muted-strong)] font-mono text-[10px]">
-                {row.label}
-              </text>
+            return (
+              <g key={row.label}>
+                <rect
+                  x={x}
+                  y={0}
+                  width={monthWidth}
+                  height={innerHeight}
+                  rx="18"
+                  fill={isActive ? "rgba(46,83,57,0.05)" : "transparent"}
+                />
 
-              {activeRow ? (
-                <g className="trend-tooltip" pointerEvents="none">
-                  <rect
-                    x={tooltipX}
-                    y={tooltipY}
-                    width={activeTooltipWidth}
-                    height={tooltipHeight}
-                    rx="12"
-                    fill="var(--paper-bright)"
-                    stroke="var(--ink)"
-                    strokeWidth="1"
-                  />
-                  <path
-                    d={`M ${barX + barWidth / 2 - 6} ${tooltipY + tooltipHeight} L ${barX + barWidth / 2} ${tooltipY + tooltipHeight + 8} L ${barX + barWidth / 2 + 6} ${tooltipY + tooltipHeight} Z`}
-                    fill="var(--paper-bright)"
-                    stroke="var(--ink)"
-                    strokeWidth="1"
-                  />
-                  <text x={tooltipX + 12} y={tooltipY + 18} className="fill-[var(--muted)] font-mono text-[10px] uppercase tracking-[0.22em]">
-                    {row.label}
-                  </text>
-                  <text x={tooltipX + 12} y={tooltipY + 36} className="fill-[var(--ink)] font-display text-[12px]">
-                    {activeValueText} {activeSeriesLabel}
-                  </text>
-                  <text x={tooltipX + 12} y={tooltipY + 49} className="fill-[var(--muted-strong)] font-mono text-[9px] uppercase tracking-[0.18em]">
-                    {copy.revenue}: {formatMoney(row.revenue)}
-                  </text>
-                  <text x={tooltipX + 12} y={tooltipY + 61} className="fill-[var(--muted-strong)] font-mono text-[9px] uppercase tracking-[0.18em]">
-                    {copy.orders}: {row.orders}
-                  </text>
-                </g>
-              ) : null}
-            </g>
-          );
-        })}
+                <rect
+                  x={x}
+                  y={yScale(row.revenue)}
+                  width={barWidth}
+                  height={Math.max(2, revenueHeight)}
+                  rx="16"
+                  fill="var(--sand-ink)"
+                  opacity={isActive ? 1 : 0.88}
+                />
+                <rect
+                  x={x + barWidth + barGap}
+                  y={yScale(row.margin)}
+                  width={barWidth}
+                  height={Math.max(2, marginHeight)}
+                  rx="16"
+                  fill="var(--vermilion)"
+                  opacity={isActive ? 1 : 0.94}
+                />
+
+                <text
+                  x={x + monthWidth / 2}
+                  y={innerHeight + 20}
+                  textAnchor="middle"
+                  className="fill-[var(--muted-strong)] font-mono text-[10px]"
+                >
+                  {row.label}
+                </text>
+
+                <rect
+                  x={x - 4}
+                  y={-4}
+                  width={monthWidth + 8}
+                  height={innerHeight + 34}
+                  rx="18"
+                  fill="transparent"
+                  tabIndex={0}
+                  aria-label={`${row.label}: ${copy.revenue} ${formatMoney(row.revenue)}, ${copy.grossMargin} ${formatMoney(row.margin)}, ${copy.orders} ${row.orders}`}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onFocus={() => setActiveIndex(index)}
+                />
+              </g>
+            );
+          })}
+        </g>
       </svg>
+
       {!rows.length ? (
         <p className="mt-2 text-sm text-[var(--muted-strong)]">{copy.addPrices}</p>
       ) : null}

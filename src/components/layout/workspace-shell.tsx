@@ -1,9 +1,10 @@
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import type { Route } from "next";
+import type { CSSProperties } from "react";
 import { BusinessRenameButton } from "@/components/layout/business-rename-button";
-import { CommandBar } from "@/components/layout/command-bar";
 import { DemoResetButton } from "@/components/layout/demo-reset-button";
+import { HeaderClock } from "@/components/layout/header-clock";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { LanguageSwitcher } from "@/components/providers/language-switcher";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -17,7 +18,7 @@ export async function WorkspaceShell({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { snapshot, source } = await getWorkspaceOverview();
+  const { snapshot } = await getWorkspaceOverview();
   const language = await getRequestLanguage();
   const copy = workspaceCopy(language);
   const businessName = snapshot.business.name;
@@ -34,19 +35,21 @@ export async function WorkspaceShell({
     <div className="shell-outer min-h-screen px-4 py-4 md:px-6 md:py-6">
       <div className="mx-auto max-w-[1640px] space-y-5">
         {/* Editorial masthead — quiet, ruled, magazine-style */}
-        <header className="flex flex-col gap-4 border-b border-[var(--ink)] pb-5 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-end gap-4 md:gap-6">
+        <header className="reveal plate relative z-20 overflow-visible flex flex-col gap-4 px-4 py-5 md:flex-row md:items-center md:justify-between md:px-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <Link href={"/" as Route} className="shrink-0">
               <BrandLogo variant="masthead" priority />
             </Link>
-            <p className="marginalia hidden md:block">
+            <p className="marginalia hidden self-center md:block">
               {copy.studioLabel}
               <br />
               <span className="text-[var(--ink)]">{businessName}</span>
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 md:gap-5">
-            <p className="marginalia">{today}</p>
+            <p className="marginalia">
+              {today} · <HeaderClock />
+            </p>
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <LanguageSwitcher />
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
@@ -90,14 +93,12 @@ export async function WorkspaceShell({
                 </div>
               </div>
             </div>
-            <p className="marginalia">{copy.synced}</p>
-            <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <UserButton />
           </div>
         </header>
 
         <div className="grid gap-5 xl:grid-cols-[15.5rem_minmax(0,1fr)]">
-          <aside className="xl:sticky xl:top-6 xl:h-fit">
+          <aside className="reveal xl:sticky xl:top-6 xl:h-fit" style={{ "--reveal-delay": "80ms" } as CSSProperties}>
             <div className="flex flex-col gap-4">
               <div className="ink-rail ink-rail--nav">
                 <SidebarNav
@@ -110,8 +111,7 @@ export async function WorkspaceShell({
               </div>
             </div>
           </aside>
-          <main className="min-w-0 space-y-5">
-            <CommandBar businessName={businessName} source={source} />
+          <main className="reveal min-w-0 space-y-5" style={{ "--reveal-delay": "140ms" } as CSSProperties}>
             {children}
           </main>
         </div>

@@ -1,4 +1,4 @@
-import { Card, Pill, SectionHeading, StatPill } from "@/components/ui/surfaces";
+import { Card, SectionHeading, StatPill } from "@/components/ui/surfaces";
 import { buildBusinessInsights } from "@/lib/domain/analytics";
 import { buildReorderAlerts } from "@/lib/domain/purchasing-plan";
 import { getRequestLanguage } from "@/lib/i18n-server";
@@ -22,7 +22,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
   const language = await getRequestLanguage();
   const copy = analyticsCopy(language);
   const insights = buildBusinessInsights(snapshot);
-  const reorderAlerts = buildReorderAlerts(snapshot).slice(0, 3);
+  const reorderAlerts = buildReorderAlerts(snapshot);
   const topProduct = insights.productRows[0];
   const topClient = insights.clientRows[0];
   const topMonth = insights.trendRows.reduce((best, current) => (current.revenue > best.revenue ? current : best), insights.trendRows[0]);
@@ -112,36 +112,46 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
 
           <div className="rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
             <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
-              {copy.reorderEyebrow}
-            </p>
-            <p className="mt-2 font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
-              {reorderAlerts.length ? reorderAlerts[0]?.materialName : copy.noAlerts}
-            </p>
-            <p className="mt-2 text-sm text-[var(--muted-strong)]">
-              {reorderAlerts.length
-                ? `${reorderAlerts[0]?.shortageQuantity.toFixed(2)} ${reorderAlerts[0]?.unit} ${copy.uncoveredDemand} · ${reorderAlerts[0]?.supplierName ?? copy.supplierGap}`
-                : copy.reorderDescription}
+              {copy.lowStockTitle}
             </p>
             {reorderAlerts.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 space-y-3">
                 {reorderAlerts.map((alert) => (
-                  <Pill key={alert.materialId} tone={alert.severity === "critical" ? "flame" : "amber"}>
-                    {alert.severity === "critical" ? copy.critical : copy.warning}: {alert.materialName}
-                  </Pill>
+                  <div
+                    key={alert.materialId}
+                    className="flex items-start justify-between rounded-lg border border-[var(--line)] bg-[var(--background-secondary)] p-3"
+                  >
+                    <div className="flex-1">
+                      <p className="font-semibold text-[var(--ink)]">{alert.materialName}</p>
+                      <p className="mt-1 text-xs text-[var(--muted-strong)]">
+                        {copy.shortage}: {alert.shortageQuantity.toFixed(2)} {alert.unit}
+                        {alert.supplierName && alert.supplierName !== copy.supplierGap ? (
+                          <> · {alert.supplierName}</>
+                        ) : null}
+                      </p>
+                    </div>
+                    {alert.supplierEmail ? (
+                      <a
+                        href={`mailto:${alert.supplierEmail}?subject=Purchase%20Order%20-%20${encodeURIComponent(alert.materialName)}`}
+                        className="ml-2 inline-flex items-center gap-1 rounded-md bg-[var(--accent-subtle)] px-3 py-1.5 text-xs font-medium text-[var(--accent-foreground)] hover:bg-[var(--accent)] transition-colors"
+                      >
+                        {copy.orderMore}
+                      </a>
+                    ) : (
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[var(--line)] px-3 py-1.5 text-xs font-medium text-[var(--muted)] opacity-50">
+                        {copy.contactSupplier}
+                      </span>
+                    )}
+                  </div>
                 ))}
               </div>
-            ) : null}
+            ) : (
+              <p className="mt-2 text-sm text-[var(--muted-strong)]">{copy.noAlerts}</p>
+            )}
           </div>
       </div>
       </div>
 
-      {topProduct || topClient ? (
-        <div className="mt-6 flex flex-wrap gap-2">
-          {topProduct ? <Pill tone="ink">{copy.leadingProduct}: {topProduct.productName}</Pill> : null}
-          {topClient ? <Pill tone="moss">{copy.leadingClient}: {topClient.clientName}</Pill> : null}
-          {topMonth ? <Pill tone="amber">{copy.strongestMonth}: {topMonth.label}</Pill> : null}
-        </div>
-      ) : null}
     </Card>
   );
 }

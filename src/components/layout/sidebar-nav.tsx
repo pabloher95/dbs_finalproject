@@ -15,11 +15,10 @@ export function SidebarNav({ items }: Readonly<{ items: NavItem[] }>) {
 
   return (
     <nav className="flex flex-row gap-2 overflow-x-auto pb-1 xl:flex-col xl:overflow-visible">
-      {items.map((item, index) => {
+      {items.map((item) => {
         const active = isItemActive(pathname, item.href);
         return (
           <Link key={item.href} href={item.href} data-active={active} className="nav-row min-w-[14rem] shrink-0 xl:min-w-0">
-            <span className="nav-index">{String(index + 1).padStart(2, "0")}</span>
             <div className="min-w-0 flex-1">
               <span className="block font-display text-xl leading-[1.05] tracking-tight text-inherit">{item.label}</span>
               <p className="mt-1 text-[0.78rem] leading-5 opacity-70">{item.description}</p>

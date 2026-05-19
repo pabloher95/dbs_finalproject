@@ -33,58 +33,58 @@ export async function WorkflowPageShell({
   const copy = workflowPageCopy(language);
   const hasMetrics = (metrics ?? []).length > 0;
   return (
-    <div className="space-y-4 md:space-y-5">
+    <div className="space-y-5 md:space-y-6">
       <Reveal>
-        <Card className="overflow-hidden rounded-[30px] p-5 md:p-7">
+        <section className="plate overflow-hidden px-5 py-6 md:px-7 md:py-8">
           <div className={`grid gap-6 ${hasMetrics ? "xl:grid-cols-[1.35fr_0.95fr] xl:items-end" : "xl:grid-cols-1"}`}>
             <div>
               <Eyebrow tone="flame">{eyebrow}</Eyebrow>
-              <Display size="xl" className="mt-3 max-w-4xl">
+              <Display size="xl" className="editorial mt-3 max-w-4xl">
                 {title}
               </Display>
               <p className="mt-4 max-w-2xl text-[1rem] leading-7 text-[var(--muted-strong)]">{description}</p>
             </div>
             {hasMetrics ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:justify-end xl:grid-cols-2">
+              <div className="grid gap-px bg-[var(--line)] sm:grid-cols-2 xl:justify-end xl:grid-cols-2">
                 {metrics?.map((metric) => (
                   <div
                     key={metric.label}
-                    className="rounded-[22px] border border-[rgba(19,36,58,0.12)] bg-[rgba(255,255,255,0.7)] px-4 py-3 shadow-[0_12px_30px_-26px_rgba(19,36,58,0.28)]"
+                    className="ledger-cell bg-[var(--paper-bright)] px-4 py-4"
                   >
                     <p className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--muted)]">
                       {metric.label}
                     </p>
-                    <p className="mt-2 font-display text-[clamp(1.8rem,2.8vw,2.4rem)] leading-none text-[var(--ink)]">
-                      {metric.value}
+                    <p className="ledger-figure mt-2 font-display text-[clamp(1.8rem,2.8vw,2.4rem)] leading-none text-[var(--ink)]">
+                      {metric.value.padStart?.(2, "0") ?? metric.value}
                     </p>
                   </div>
                 ))}
               </div>
             ) : null}
           </div>
-          <div className="mt-7 grid gap-3 lg:grid-cols-3">
+          <div className="mt-8 grid gap-px border-t border-[var(--ink)] bg-[var(--line)] lg:grid-cols-3">
               {steps.map((step, index) => (
                 <Reveal key={step.title} delay={120 + index * 80}>
-                  <div className="paper-card relative h-full rounded-[24px] p-4">
+                  <div className="method-tile bg-[var(--paper)] p-5 md:p-6">
                     <div className="flex items-start justify-between">
                       <span className="font-mono text-[0.6rem] uppercase tracking-[0.32em] text-[var(--flame)]">
                         {copy.stepLabel} {String(index + 1).padStart(2, "0")}
                       </span>
-                      <span className="font-display text-2xl text-[var(--ink)]/35">{index + 1}</span>
+                      <span className="numeral text-3xl">{String(index + 1).padStart(2, "0")}</span>
                     </div>
-                    <p className="mt-2 font-display text-lg text-[var(--text)]">{step.title}</p>
-                  <p className="mt-2 text-[0.85rem] leading-6 text-[var(--muted-strong)]">{step.description}</p>
-                </div>
-              </Reveal>
-            ))}
+                    <p className="editorial mt-4 text-[clamp(1.5rem,2.4vw,2rem)] leading-[1.04]">{step.title}</p>
+                    <p className="mt-3 text-[0.9rem] leading-6 text-[var(--muted-strong)]">{step.description}</p>
+                  </div>
+                </Reveal>
+              ))}
           </div>
-        </Card>
+        </section>
       </Reveal>
 
       <Reveal delay={120}>{children}</Reveal>
 
       <Reveal delay={200}>
-        <Card className="flex flex-wrap items-center justify-between gap-4 rounded-[26px] px-6 py-5">
+        <Card className="flex flex-wrap items-center justify-between gap-4 rounded-[26px] border-t border-b border-[var(--ink)] bg-[var(--paper-bright)] px-6 py-5">
           <div className="flex items-center gap-3">
             <span className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--cyan)]">
               {copy.nextMove}

@@ -262,7 +262,7 @@ export function dashboardCopy(language: Language) {
         ? "Tamaño del catálogo, red de proveedores, base de clientes y amplitud de los canales que realmente usas para vender."
         : "Catalog size, supplier bench, customer base, and the spread of the channels you actually use to sell.",
     salesEyebrow: language === "es" ? "Señal de ventas" : "Sales pulse",
-    salesTitle: language === "es" ? "Demanda y presión de stock" : "Demand and stock pressure",
+    salesTitle: language === "es" ? "Demanda y stock" : "Demand and stock",
     salesBody:
       language === "es"
         ? "Pedidos abiertos, unidades pendientes y materiales que ya requieren reposición o una fuente asignada."
@@ -310,6 +310,9 @@ export function dashboardCopy(language: Language) {
     open: language === "es" ? "abierto" : "open",
     units: language === "es" ? "unidades" : "units",
     due: language === "es" ? "vence" : "due",
+    markFulfilled: language === "es" ? "Marcar como completado" : "Mark fulfilled",
+    fulfilling: language === "es" ? "Completando..." : "Fulfilling...",
+    orderFulfilled: language === "es" ? "Pedido marcado como completado." : "Order marked fulfilled.",
     noOpenOrders: language === "es" ? "Todavía no hay pedidos abiertos. Agrega uno para poblar la cola." : "No open orders yet. Add one to populate the queue.",
     method: language === "es" ? "Método" : "Method",
     threeMoves: language === "es" ? "Tres movimientos" : "Three moves"
@@ -378,7 +381,12 @@ export function analyticsCopy(language: Language) {
         ? "No hay alertas de reposición activas. La cobertura actual alcanza para la demanda abierta."
         : "No active reorder alerts. Current coverage is keeping up with open demand.",
     uncoveredDemand: language === "es" ? "demanda sin cubrir" : "uncovered demand",
-    supplierGap: language === "es" ? "sin proveedor" : "supplier gap"
+    supplierGap: language === "es" ? "sin proveedor" : "supplier gap",
+    lowStockTitle: language === "es" ? "Stock bajo" : "Low stock",
+    stock: language === "es" ? "Stock" : "Stock",
+    shortage: language === "es" ? "Insuficiencia" : "Shortage",
+    orderMore: language === "es" ? "Pedir más" : "Order more",
+    contactSupplier: language === "es" ? "Contactar proveedor" : "Contact supplier"
   };
 }
 
@@ -391,7 +399,7 @@ export function businessNameCopy(language: Language) {
         ? "Este nombre aparece en el encabezado del espacio de trabajo y en la vista de lecturas del panel."
         : "This name appears in the workspace header and in your dashboard reading view.",
     label: language === "es" ? "Nombre de la empresa" : "Company name",
-    placeholder: language === "es" ? "Estudio Northline" : "Northline Studio",
+    placeholder: language === "es" ? "(el nombre de tu estudio)" : "(your studio's name)",
     enterName: language === "es" ? "Introduce un nombre de empresa." : "Enter a company name.",
     saveError:
       language === "es"
