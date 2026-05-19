@@ -38,11 +38,6 @@ export default async function ProductsPage() {
               : "Compare the recipe against material cost and stock."
         }
       ]}
-      nextStep={
-        language === "es"
-          ? "Usa Ingesta para crear nuevos productos y vuelve aquí para revisar su fórmula y costo."
-          : "Use Intake to create new products, then come back here to review their formula and cost."
-      }
     >
       <ProductStudio snapshot={snapshot} />
     </WorkflowPageShell>

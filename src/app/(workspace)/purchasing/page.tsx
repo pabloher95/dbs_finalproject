@@ -46,11 +46,6 @@ export default async function PurchasingPage() {
               : "Use the supplier link to move from planning into purchasing."
         }
       ]}
-      nextStep={
-        language === "es"
-          ? "Después de realizar pedidos, vuelve al catálogo o a la página de pedidos si el plan cambia."
-          : "After placing orders, return to the catalog or orders page if the plan changes."
-      }
     >
       <PurchasingBoard snapshot={snapshot} />
     </WorkflowPageShell>

@@ -71,15 +71,6 @@ export default async function ImportPage({
                 : "The product updates the catalog and purchasing right away."
         }
       ]}
-      nextStep={
-        editing
-          ? language === "es"
-            ? "Después de guardar, vuelve al catálogo para revisar la matemática de la receta."
-            : "After saving, return to the catalog to review the recipe math."
-          : language === "es"
-            ? "Empieza por el producto y termina con sus materiales; todo lo demás se actualiza después."
-            : "Start with the product and finish with its materials; everything else updates after that."
-      }
     >
       <ImportPageContent snapshot={snapshot} editingProductId={editingProductId} />
     </WorkflowPageShell>

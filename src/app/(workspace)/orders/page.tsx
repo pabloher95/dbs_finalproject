@@ -42,11 +42,6 @@ export default async function OrdersPage() {
               : "Use the fulfilled button when the order ships or is delivered."
         }
       ]}
-      nextStep={
-        language === "es"
-          ? "Después de guardar un pedido, abre Compras para confirmar qué materiales deben pedirse."
-          : "After saving an order, open Purchasing to confirm what materials need to be ordered."
-      }
     >
       <OrderStudio snapshot={snapshot} />
     </WorkflowPageShell>

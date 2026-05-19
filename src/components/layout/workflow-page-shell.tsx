@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { Card, Display, Eyebrow, Reveal } from "@/components/ui/surfaces";
+import { Display, Eyebrow, Reveal } from "@/components/ui/surfaces";
 import { getRequestLanguage } from "@/lib/i18n-server";
 import { workflowPageCopy } from "@/lib/i18n";
 
@@ -21,7 +21,6 @@ export async function WorkflowPageShell({
   description,
   metrics,
   steps,
-  nextStep,
   children
 }: Readonly<{
   eyebrow: string;
@@ -29,7 +28,6 @@ export async function WorkflowPageShell({
   description: string;
   metrics?: WorkflowMetric[];
   steps: WorkflowStep[];
-  nextStep: string;
   children: React.ReactNode;
 }>) {
   const language = await getRequestLanguage();
@@ -95,18 +93,6 @@ export async function WorkflowPageShell({
       </Reveal>
 
       <Reveal delay={120}>{children}</Reveal>
-
-      <Reveal delay={200}>
-        <Card className="flex flex-wrap items-center justify-between gap-4 rounded-[26px] border-t border-b border-[var(--ink)] bg-[var(--paper-bright)] px-6 py-5">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--cyan)]">
-              {copy.nextMove}
-            </span>
-            <span className="hidden h-px w-10 bg-[var(--line-strong)] md:inline-block" />
-          </div>
-          <p className="flex-1 text-[0.95rem] leading-7 text-[var(--muted-strong)]">{nextStep}</p>
-        </Card>
-      </Reveal>
     </div>
   );
 }
