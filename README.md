@@ -37,6 +37,7 @@ Useful commands:
 
 - `npm run dev` - start the local dev server
 - `npm run lint` - run linting
+- `npm run typecheck` - run TypeScript type check
 - `npm test` - run tests
 - `npm run build` - build the app
 

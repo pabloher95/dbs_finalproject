@@ -420,7 +420,19 @@ export function analyticsCopy(language: Language) {
     stock: language === "es" ? "Stock" : "Stock",
     shortage: language === "es" ? "Insuficiencia" : "Shortage",
     orderMore: language === "es" ? "Pedir más" : "Order more",
-    contactSupplier: language === "es" ? "Contactar proveedor" : "Contact supplier"
+    contactSupplier: language === "es" ? "Contactar proveedor" : "Contact supplier",
+    productDetail: (revenue: string, margin: string) =>
+      language === "es" ? `${revenue} ingresos · ${margin} margen` : `${revenue} revenue · ${margin} margin`,
+    clientDetail: (revenue: string, orderCount: number) =>
+      language === "es"
+        ? `${revenue} ingresos en ${orderCount} ${orderCount === 1 ? "pedido" : "pedidos"}.`
+        : `${revenue} revenue across ${orderCount} ${orderCount === 1 ? "order" : "orders"}.`,
+    monthDetail: (revenue: string, marginRate: string) =>
+      language === "es"
+        ? `${revenue} en ingresos y ${marginRate} de tasa de margen.`
+        : `${revenue} in revenue and ${marginRate} margin rate.`,
+    costMovement: (from: string, to: string, change: string) =>
+      language === "es" ? `${from} a ${to} · ${change}` : `${from} to ${to} · ${change}`
   };
 }
 
