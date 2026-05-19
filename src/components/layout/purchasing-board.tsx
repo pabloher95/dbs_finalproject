@@ -32,7 +32,6 @@ export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: Busines
   const totalLines = purchasingPlan.length;
   const linkedLines = purchasingPlan.filter((line) => Boolean(line.supplierName)).length;
   const totalUnits = purchasingPlan.reduce((sum, line) => sum + line.requiredQuantity, 0);
-  const uncoveredLines = purchasingPlan.filter((line) => line.netToBuyQuantity > 0).length;
   const stockedMaterials = snapshot.materials.filter((material) => material.onHandQuantity > 0).length;
 
   return (
@@ -69,11 +68,6 @@ export async function PurchasingBoard({ snapshot }: Readonly<{ snapshot: Busines
         <div className="mt-5">
           <MaterialStockStudio materials={snapshot.materials} suppliers={snapshot.suppliers} />
         </div>
-        {uncoveredLines > 0 ? (
-          <p className="mt-4 rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-            {uncoveredLines} {copy.uncovered}
-          </p>
-        ) : null}
         <div className="mt-6 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>

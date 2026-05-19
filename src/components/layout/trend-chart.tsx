@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { max, scaleBand, scaleLinear } from "d3";
 import type { RevenueTrendPoint } from "@/lib/domain/analytics";
 import { analyticsCopy } from "@/lib/i18n";
@@ -14,11 +14,16 @@ function formatMoney(value: number) {
 }
 
 type TrendChartCopy = ReturnType<typeof analyticsCopy>;
+type Tooltip = { x: number; y: number; label: string; lines: string[] };
 
 export function TrendChart({
   rows,
   copy
 }: Readonly<{ rows: RevenueTrendPoint[]; copy: TrendChartCopy }>) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
   const width = 720;
   const height = 300;
   const margin = { top: 20, right: 18, bottom: 54, left: 56 };
@@ -39,44 +44,43 @@ export function TrendChart({
     .nice(4)
     .range([innerHeight, 0]);
   const ticks = yScale.ticks(4);
-  const [activeIndex, setActiveIndex] = useState(0);
   const safeActiveIndex = rows.length ? Math.min(activeIndex, rows.length - 1) : 0;
-  const activeRow = rows[safeActiveIndex];
+
+  function show(e: React.MouseEvent, index: number, label: string, lines: string[]) {
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+    const targetRect = (e.currentTarget as Element).getBoundingClientRect();
+    setActiveIndex(index);
+    setTooltip({
+      x: targetRect.left + targetRect.width / 2 - containerRect.left,
+      y: targetRect.top - containerRect.top,
+      label,
+      lines
+    });
+  }
 
   return (
-    <div className="trend-chart overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div
+      ref={containerRef}
+      className="relative trend-chart overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-5"
+      onMouseLeave={() => setTooltip(null)}
+    >
+      <div className="flex items-start justify-between">
         <div>
           <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">{copy.trendChart}</p>
           <p className="mt-2 font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
             {copy.chartTitle}
           </p>
         </div>
-
-        <div className="flex flex-col gap-3 md:items-end">
-          <div className="flex flex-wrap items-center gap-4 text-[0.68rem] uppercase tracking-[0.2em] text-[var(--muted-strong)]">
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[var(--sand-ink)]" />
-              {copy.revenue}
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[var(--vermilion)]" />
-              {copy.grossMargin}
-            </span>
-          </div>
-
-          {activeRow ? (
-            <div className="rounded-[18px] border border-[var(--line)] bg-[var(--paper-bright)] px-4 py-3 text-sm shadow-[0_12px_30px_-24px_rgba(0,0,0,0.45)]">
-              <p className="font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted)]">{activeRow.label}</p>
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[var(--ink)]">
-                <span>{copy.revenue}: {formatMoney(activeRow.revenue)}</span>
-                <span>{copy.grossMargin}: {formatMoney(activeRow.margin)}</span>
-                <span className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-[var(--muted-strong)]">
-                  {copy.orders}: {activeRow.orders}
-                </span>
-              </div>
-            </div>
-          ) : null}
+        <div className="flex flex-wrap items-center gap-4 text-[0.68rem] uppercase tracking-[0.2em] text-[var(--muted-strong)]">
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--sand-ink)]" />
+            {copy.revenue}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--vermilion)]" />
+            {copy.grossMargin}
+          </span>
         </div>
       </div>
 
@@ -118,7 +122,6 @@ export function TrendChart({
                   rx="18"
                   fill={isActive ? "rgba(46,83,57,0.05)" : "transparent"}
                 />
-
                 <rect
                   x={x}
                   y={yScale(row.revenue)}
@@ -137,7 +140,6 @@ export function TrendChart({
                   fill="var(--vermilion)"
                   opacity={isActive ? 1 : 0.94}
                 />
-
                 <text
                   x={x + monthWidth / 2}
                   y={innerHeight + 20}
@@ -146,7 +148,6 @@ export function TrendChart({
                 >
                   {row.label}
                 </text>
-
                 <rect
                   x={x - 4}
                   y={-4}
@@ -154,9 +155,16 @@ export function TrendChart({
                   height={innerHeight + 34}
                   rx="18"
                   fill="transparent"
+                  style={{ cursor: "crosshair" }}
                   tabIndex={0}
                   aria-label={`${row.label}: ${copy.revenue} ${formatMoney(row.revenue)}, ${copy.grossMargin} ${formatMoney(row.margin)}, ${copy.orders} ${row.orders}`}
-                  onMouseEnter={() => setActiveIndex(index)}
+                  onMouseEnter={(e) =>
+                    show(e, index, row.label, [
+                      `${copy.revenue}: ${formatMoney(row.revenue)}`,
+                      `${copy.grossMargin}: ${formatMoney(row.margin)}`,
+                      `${copy.orders}: ${row.orders}`
+                    ])
+                  }
                   onFocus={() => setActiveIndex(index)}
                 />
               </g>
@@ -167,6 +175,20 @@ export function TrendChart({
 
       {!rows.length ? (
         <p className="mt-2 text-sm text-[var(--muted-strong)]">{copy.addPrices}</p>
+      ) : null}
+
+      {tooltip ? (
+        <div
+          className="pointer-events-none absolute z-10 min-w-[160px] -translate-x-1/2 rounded-[16px] border border-[var(--line)] bg-white/95 p-3 shadow-lg backdrop-blur-sm"
+          style={{ left: tooltip.x, top: tooltip.y - 8 }}
+        >
+          <p className="font-display text-sm text-[var(--ink)]">{tooltip.label}</p>
+          {tooltip.lines.map((line) => (
+            <p key={line} className="mt-1 font-mono text-[0.7rem] text-[var(--muted-strong)]">
+              {line}
+            </p>
+          ))}
+        </div>
       ) : null}
     </div>
   );

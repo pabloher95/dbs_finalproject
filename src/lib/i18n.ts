@@ -44,13 +44,13 @@ export function landingCopy(language: Language) {
     heroTitleAfterEmphasis: language === "es" ? "." : " business.",
     heroBody:
       language === "es"
-        ? "SmallBiz IQ mantiene el catálogo, los pedidos abiertos y el plan de materiales en una sola superficie medida. Crea productos, registra pedidos y obtén una lista de compra lista para proveedores."
+        ? "SmallBiz IQ reúne el catálogo, los pedidos activos y el plan de materiales en un solo lugar. Crea productos, registra pedidos y genera una lista de compras lista para tus proveedores."
         : "SmallBiz IQ keeps the catalog, the open orders, and the material plan in a single measured surface. Create products, capture orders, and get a supplier-ready buy list.",
     heroLink: language === "es" ? "Cómo funciona" : "How it works",
     methodEyebrow: language === "es" ? "Cómo funciona" : "How it works",
     methodTitle: language === "es" ? "Tres pasos." : "Three steps.",
     methodFootnotes: {
-      intake: language === "es" ? "Ingesta" : "Intake",
+      intake: language === "es" ? "Captura" : "Intake",
       catalog: language === "es" ? "Catálogo" : "Catalog",
       purchasing: language === "es" ? "Compras" : "Purchasing"
     },
@@ -133,10 +133,10 @@ export function landingCopy(language: Language) {
     dataFlowStages:
       language === "es"
         ? [
-            { label: "Formularios", note: "Ingesta" },
+            { label: "Formularios", note: "Captura" },
             { label: "Catálogo", note: "Catálogo" },
             { label: "Pedidos", note: "Pedidos" },
-            { label: "Lista de compra", note: "Lista de compra" }
+            { label: "Lista de compras", note: "Lista de compras" }
           ]
         : [
             { label: "Forms", note: "Intake" },
@@ -145,10 +145,10 @@ export function landingCopy(language: Language) {
             { label: "Buy list", note: "Buy list" }
           ],
     dataFlowCaption:
-      language === "es" ? "Formularios → Catálogo → Pedidos → Lista de compra" : "Forms → Catalog → Orders → Buy list",
+      language === "es" ? "Formularios → Catálogo → Pedidos → Lista de compras" : "Forms → Catalog → Orders → Buy list",
     dataFlow: {
       orders: language === "es" ? "Pedidos" : "Orders",
-      buyList: language === "es" ? "Lista de compra" : "Buy list"
+      buyList: language === "es" ? "Lista de compras" : "Buy list"
     },
     importTitle: language === "es" ? "Capturar." : "Enter.",
     importBody:
@@ -163,7 +163,7 @@ export function landingCopy(language: Language) {
     planTitle: language === "es" ? "Planificar compras." : "Plan purchasing.",
     planBody:
       language === "es"
-        ? "Los pedidos abiertos se agrupan en demanda y se expanden en una lista de materiales lista para proveedores."
+        ? "Los pedidos activos se consolidan como demanda y se convierten en una lista de materiales lista para tus proveedores."
         : "Open orders aggregate into demand, which expands into a supplier-ready material list.",
     studioEyebrow: language === "es" ? "Qué mide el estudio" : "What the studio measures",
     studioTitle: language === "es" ? "Cuatro lecturas del negocio." : "Four readings of the business.",
@@ -181,7 +181,7 @@ export function landingCopy(language: Language) {
             : "How long your current materials cover the demand on your books."
       },
       buyList: {
-        label: language === "es" ? "— Lista de compra" : "— Buy list",
+        label: language === "es" ? "— Lista de compras" : "— Buy list",
         title: language === "es" ? "Lista preparada para proveedores" : "Supplier-ready",
         body:
           language === "es"
@@ -222,7 +222,7 @@ export function workspaceCopy(language: Language) {
     openOrders: language === "es" ? "pedidos abiertos" : "open orders",
     openDemand: language === "es" ? "Demanda abierta" : "Open demand",
     due: language === "es" ? "Vence" : "Due",
-    noOpenOrders: language === "es" ? "Todavía no hay pedidos abiertos." : "No open orders yet.",
+    noOpenOrders: language === "es" ? "Aún no hay pedidos abiertos." : "No open orders yet.",
     synced: common.synced,
     syncing: common.syncing,
     languageLabel: language === "es" ? "Idioma" : "Language",
@@ -231,12 +231,12 @@ export function workspaceCopy(language: Language) {
       { value: "es" as const, label: common.spanish }
     ],
     nav: [
-      { label: language === "es" ? "Estudio" : "Studio", description: language === "es" ? "Señales operativas y de ventas." : "Current operating and sales signals." },
-      { label: language === "es" ? "Ingesta" : "Intake", description: language === "es" ? "Crear productos con fórmulas." : "Create products with formulas." },
+      { label: language === "es" ? "Panel" : "Dashboard", description: language === "es" ? "Señales operativas y de ventas." : "Current operating and sales signals." },
+      { label: language === "es" ? "Captura" : "Intake", description: language === "es" ? "Crear productos con fórmulas." : "Create products with formulas." },
       { label: language === "es" ? "Catálogo" : "Catalog", description: language === "es" ? "Mantén productos y sus fórmulas." : "Maintain products and their formulas." },
       { label: language === "es" ? "Contactos" : "Contacts", description: language === "es" ? "Clientes y proveedores." : "Customers and suppliers." },
       { label: language === "es" ? "Pedidos" : "Orders", description: language === "es" ? "Pedidos abiertos y líneas de pedido." : "Open orders and line items." },
-      { label: language === "es" ? "Compras" : "Purchasing", description: language === "es" ? "Lista de compra a partir de la demanda abierta." : "Buy list from open demand." }
+      { label: language === "es" ? "Compras" : "Purchasing", description: language === "es" ? "Lista de compras a partir de la demanda abierta." : "Buy list from open demand." }
     ]
   };
 }
@@ -265,7 +265,7 @@ export function dashboardCopy(language: Language) {
     salesTitle: language === "es" ? "Demanda y stock" : "Demand and stock",
     salesBody:
       language === "es"
-        ? "Pedidos abiertos, unidades pendientes y materiales que ya requieren reposición o una fuente asignada."
+        ? "Pedidos abiertos, unidades pendientes y materiales que ya necesitan reposición o un proveedor asignado."
         : "Open orders, units due, and materials that now need replenishment or a named source.",
     shortcuts: [
       {
@@ -292,7 +292,7 @@ export function dashboardCopy(language: Language) {
         title: language === "es" ? "Planificar compras" : "Plan purchasing",
         description:
           language === "es"
-            ? "Expande la demanda abierta en una lista de materiales lista para proveedores."
+            ? "Convierte la demanda abierta en una lista de materiales lista para tus proveedores."
             : "Expand open demand into a supplier-ready material list."
       }
     ],
@@ -303,7 +303,7 @@ export function dashboardCopy(language: Language) {
     customers: language === "es" ? "Clientes" : "Customers",
     channels: language === "es" ? "Canales" : "Channels",
     lowStock: language === "es" ? "Stock bajo" : "Low stock",
-    beginIntake: language === "es" ? "Iniciar ingesta" : "Begin intake",
+    beginIntake: language === "es" ? "Iniciar captura" : "Begin intake",
     reviewOrders: language === "es" ? "Revisar pedidos" : "Review orders",
     priorityQueue: language === "es" ? "Cola prioritaria" : "Priority queue",
     activeOrders: language === "es" ? "Pedidos activos de hoy" : "Today's active orders",
@@ -313,7 +313,7 @@ export function dashboardCopy(language: Language) {
     markFulfilled: language === "es" ? "Marcar como completado" : "Mark fulfilled",
     fulfilling: language === "es" ? "Completando..." : "Fulfilling...",
     orderFulfilled: language === "es" ? "Pedido marcado como completado." : "Order marked fulfilled.",
-    noOpenOrders: language === "es" ? "Todavía no hay pedidos abiertos. Agrega uno para poblar la cola." : "No open orders yet. Add one to populate the queue.",
+    noOpenOrders: language === "es" ? "Aún no hay pedidos abiertos. Agrega uno para llenar la cola." : "No open orders yet. Add one to populate the queue.",
     method: language === "es" ? "Método" : "Method",
     threeMoves: language === "es" ? "Tres movimientos" : "Three moves"
   };
@@ -342,10 +342,10 @@ export function analyticsCopy(language: Language) {
     purchaseEyebrow: language === "es" ? "Compras" : "Purchasing",
     purchaseTitle: language === "es" ? "Costo de insumos" : "Input cost movement",
     purchaseGraphEyebrow: language === "es" ? "Gráfico" : "Graph",
-    purchaseGraphTitle: language === "es" ? "Tendencia del costo medio" : "Average cost trend",
+    purchaseGraphTitle: language === "es" ? "Tendencia del costo promedio" : "Average cost trend",
     purchaseGraphSubtitle:
       language === "es"
-        ? "La línea muestra cómo se ha movido el costo medio de los insumos con cada actualización."
+        ? "La línea muestra cómo ha variado el costo promedio de los insumos con cada actualización."
         : "The line shows how average input cost has moved with each update.",
     purchaseMaterialGraphEyebrow: language === "es" ? "Materiales" : "Materials",
     purchaseMaterialGraphTitle: language === "es" ? "Cambios por material" : "Changes by material",
@@ -355,15 +355,15 @@ export function analyticsCopy(language: Language) {
         : "The bars compare the magnitude of recent cost changes across your key inputs.",
     inventoryValue: language === "es" ? "Valor de inventario" : "Inventory value",
     repricedMaterials: language === "es" ? "Materiales revaluados" : "Repriced materials",
-    avgInputChange: language === "es" ? "Cambio medio de costo" : "Avg input change",
+    avgInputChange: language === "es" ? "Cambio promedio de costo" : "Avg input change",
     trackedInputs: language === "es" ? "Insumos seguidos" : "Tracked inputs",
     purchaseMonth: language === "es" ? "Mes de compra" : "Purchase month",
     priceUpdates: language === "es" ? "Cambios" : "Updates",
-    averageCost: language === "es" ? "Costo medio" : "Average cost",
-    averageChange: language === "es" ? "Cambio medio" : "Average change",
+    averageCost: language === "es" ? "Costo promedio" : "Average cost",
+    averageChange: language === "es" ? "Cambio promedio" : "Average change",
     biggestIncrease: language === "es" ? "Mayor aumento" : "Biggest increase",
     biggestDecrease: language === "es" ? "Mayor baja" : "Biggest decrease",
-    noPurchaseData: language === "es" ? "Todavía no hay historial de costos." : "No cost history yet.",
+    noPurchaseData: language === "es" ? "Aún no hay historial de costos." : "No cost history yet.",
     captureCosts:
       language === "es"
         ? "Actualiza costos de material en compras para seguir cómo cambian tus insumos."
@@ -378,28 +378,28 @@ export function analyticsCopy(language: Language) {
     leadingProduct: language === "es" ? "Producto líder" : "Leading product",
     leadingClient: language === "es" ? "Cliente líder" : "Leading client",
     strongestMonth: language === "es" ? "Mes más fuerte" : "Strongest month",
-    noProduct: language === "es" ? "Todavía no hay datos de productos" : "No product data yet",
-    noClient: language === "es" ? "Todavía no hay datos de clientes" : "No client data yet",
-    noMonth: language === "es" ? "Todavía no hay datos mensuales" : "No month data yet",
+    noProduct: language === "es" ? "Aún no hay datos de productos" : "No product data yet",
+    noClient: language === "es" ? "Aún no hay datos de clientes" : "No client data yet",
+    noMonth: language === "es" ? "Aún no hay datos mensuales" : "No month data yet",
     addPrices:
       language === "es"
-        ? "Agrega precios de productos y costos de materiales para mostrar ingresos, margen y lecturas de tendencia en el panel."
+        ? "Agrega precios a tus productos y costos a tus materiales para ver ingresos, margen y tendencias en el panel."
         : "Add product prices and material costs to surface revenue, margin, and trend readings in the dashboard.",
     setPricing:
       language === "es"
-        ? "Define precios de producto y costos de material para desbloquear el análisis de ingresos."
+        ? "Define precios y costos de materiales para activar el análisis de ingresos."
         : "Set product prices and material costs to unlock revenue analysis.",
     openOrders:
       language === "es"
-        ? "Los pedidos abiertos aparecerán aquí cuando haya precios definidos."
+        ? "Los pedidos abiertos aparecen aquí una vez que definas los precios."
         : "Open orders will appear here once pricing is in place.",
     monthReadings:
       language === "es"
-        ? "Las lecturas mes a mes aparecen una vez que los pedidos tienen precio."
+        ? "Las comparativas mensuales aparecen una vez que los pedidos tienen precio."
         : "Month-over-month readings appear once orders are priced.",
     openOrdersFallback:
       language === "es"
-        ? "Los pedidos abiertos aparecerán aquí una vez que haya precios definidos."
+        ? "Los pedidos abiertos aparecen aquí una vez que definas los precios."
         : "Open orders will appear here once pricing is in place.",
     reorderEyebrow: language === "es" ? "Reposición" : "Reorder",
     reorderTitle: language === "es" ? "Alertas de material" : "Material alerts",
@@ -412,13 +412,13 @@ export function analyticsCopy(language: Language) {
     nextDue: language === "es" ? "Próximo vencimiento" : "Next due",
     noAlerts:
       language === "es"
-        ? "No hay alertas de reposición activas. La cobertura actual alcanza para la demanda abierta."
+        ? "Sin alertas de reposición activas. El inventario actual cubre la demanda abierta."
         : "No active reorder alerts. Current coverage is keeping up with open demand.",
     uncoveredDemand: language === "es" ? "demanda sin cubrir" : "uncovered demand",
     supplierGap: language === "es" ? "sin proveedor" : "supplier gap",
     lowStockTitle: language === "es" ? "Stock bajo" : "Low stock",
     stock: language === "es" ? "Stock" : "Stock",
-    shortage: language === "es" ? "Insuficiencia" : "Shortage",
+    shortage: language === "es" ? "Faltante" : "Shortage",
     orderMore: language === "es" ? "Pedir más" : "Order more",
     contactSupplier: language === "es" ? "Contactar proveedor" : "Contact supplier",
     emailSupplier: language === "es" ? "Email" : "Email",
@@ -436,7 +436,7 @@ export function businessNameCopy(language: Language) {
         : "This name appears in the workspace header and in your dashboard reading view.",
     label: language === "es" ? "Nombre de la empresa" : "Company name",
     placeholder: language === "es" ? "(el nombre de tu estudio)" : "(your studio's name)",
-    enterName: language === "es" ? "Introduce un nombre de empresa." : "Enter a company name.",
+    enterName: language === "es" ? "Ingresa el nombre de tu empresa." : "Enter a company name.",
     saveError:
       language === "es"
         ? "No se pudo guardar el nombre de la empresa."
@@ -445,19 +445,6 @@ export function businessNameCopy(language: Language) {
     saveName: language === "es" ? "Guardar nombre" : "Save name",
     cancel: language === "es" ? "Cancelar" : "Cancel",
     renameCompany: language === "es" ? "Renombrar empresa" : "Rename company"
-  };
-}
-
-export function onboardingCopy(language: Language) {
-  return {
-    eyebrow: language === "es" ? "Empieza aquí" : "Start here",
-    title: language === "es" ? "Tres pasos para tu primera lista de compra." : "Three steps to your first buy list.",
-    description:
-      language === "es"
-        ? "Empieza con el catálogo o llena el formulario de ingreso, registra un pedido y el estudio escribirá el resto."
-        : "Start with the catalog or fill out the intake form, capture an order, and the studio writes the rest.",
-    beginIntake: language === "es" ? "Iniciar ingesta" : "Begin intake",
-    skip: language === "es" ? "Omitir" : "Skip"
   };
 }
 
@@ -517,14 +504,14 @@ export function catalogCopy(language: Language) {
     title: language === "es" ? "Productos y matemática de fórmulas" : "Products and formula math",
     description:
       language === "es"
-        ? "Cada producto incluye un rendimiento por lote y una lista de materiales explícita para que las cantidades de pedido se traduzcan limpiamente en demanda de compra."
+        ? "Cada producto tiene su rendimiento por lote y una lista de materiales detallada, para que las cantidades de los pedidos se conviertan directamente en demanda de compras."
         : "Each product carries an explicit batch yield and material bill so order quantities translate cleanly into purchasing demand.",
     materials: language === "es" ? "materiales" : "materials",
     unitPrice: language === "es" ? "precio unitario" : "unit price",
     unitCost: language === "es" ? "costo unitario" : "unit cost",
     material: language === "es" ? "Material" : "Material",
     perBatch: language === "es" ? "Por lote" : "Per batch",
-    onHand: language === "es" ? "En mano" : "On hand",
+    onHand: language === "es" ? "En existencia" : "On hand",
     perUnit: language === "es" ? "Por unidad" : "Per unit"
   };
 }
@@ -535,26 +522,26 @@ export function ordersBoardCopy(language: Language) {
     title: language === "es" ? "Demanda de producción abierta" : "Open production demand",
     description:
       language === "es"
-        ? "Ve qué vence, a quién pertenece y cómo se acumula el volumen de pedidos en la línea de productos."
+        ? "Ve qué vence, quién lo encargó y cómo crece el volumen de pedidos por línea de producto."
         : "See what is due, who it belongs to, and how order volume is building across the product line.",
     rollup: language === "es" ? "Resumen" : "Rollup",
     demandByProduct: language === "es" ? "Demanda por producto" : "Demand by product",
     snapshotTitle: language === "es" ? "Pedidos, a la vista" : "Orders at a glance",
     snapshotDescription:
       language === "es"
-        ? "Un vistazo rápido a lo activo, lo cumplido y lo que ya está atrasado."
+        ? "Un vistazo rápido a lo activo, lo completado y lo que ya está atrasado."
         : "A quick read on what is active, what is fulfilled, and what is already past due.",
     activeOrders: language === "es" ? "Pedidos activos" : "Active orders",
-    fulfilledOrders: language === "es" ? "Pedidos cumplidos" : "Fulfilled orders",
+    fulfilledOrders: language === "es" ? "Pedidos completados" : "Fulfilled orders",
     backlogSummary: language === "es" ? "Pedidos en cola" : "Backlog orders",
     activeUnits: language === "es" ? "Unidades activas" : "Active units",
     due: language === "es" ? "vence" : "due",
     open: language === "es" ? "abierto" : "open",
-    fulfilled: language === "es" ? "cumplido" : "fulfilled",
+    fulfilled: language === "es" ? "completado" : "fulfilled",
     openOrder: language === "es" ? "pedido abierto" : "open order",
     openOrders: language === "es" ? "pedidos abiertos" : "open orders",
     units: language === "es" ? "unidades" : "units",
-    markFulfilled: language === "es" ? "Marcar como cumplido" : "Mark fulfilled",
+    markFulfilled: language === "es" ? "Marcar como completado" : "Mark fulfilled",
     reopenOrder: language === "es" ? "Reabrir" : "Reopen",
     backlog: language === "es" ? "cola" : "backlog",
     backlogOrder: language === "es" ? "pedido en cola" : "backlog order",
@@ -563,37 +550,33 @@ export function ordersBoardCopy(language: Language) {
       language === "es"
         ? "Pedidos abiertos con fecha de entrega anterior a hoy."
         : "Open orders due before today.",
-    noOrders: language === "es" ? "Todavía no se han registrado pedidos." : "No orders captured yet.",
-    noDemand: language === "es" ? "Todavía no hay demanda abierta." : "No open demand yet."
+    noOrders: language === "es" ? "Aún no hay pedidos registrados." : "No orders captured yet.",
+    noDemand: language === "es" ? "Aún no hay demanda abierta." : "No open demand yet."
   };
 }
 
 export function purchasingBoardCopy(language: Language) {
   return {
-    todayRun: language === "es" ? "Corrida de hoy" : "Today's run",
+    todayRun: language === "es" ? "Plan del día" : "Today's run",
     readyToSource:
       language === "es" ? "líneas de material listas para abastecer" : "material lines ready to source",
     description:
       language === "es"
-        ? "Resumen de cada pedido abierto, expandido por fórmula, agrupado por material y proveedor."
+        ? "Consolida todos los pedidos abiertos, expande sus fórmulas y agrupa los materiales por proveedor."
         : "Roll-up of every open order, expanded by formula, grouped by material and supplier.",
     requiredUnits: language === "es" ? "unidades requeridas" : "required units",
     sourced: language === "es" ? "abastecido" : "sourced",
     stockedMaterials: language === "es" ? "materiales en stock" : "stocked materials",
     noOpenOrders:
       language === "es"
-        ? "Todavía no hay pedidos abiertos. Agrega un pedido en Pedidos para generar las cantidades requeridas de material."
+        ? "Aún no hay pedidos abiertos. Ve a la sección Pedidos y agrega uno para generar los requerimientos de material."
         : "No open orders yet. Add an order in Orders to generate required material quantities.",
     emptyCatalog:
       language === "es"
-        ? "El catálogo está vacío. Agrega productos con fórmulas antes de generar una corrida de compras."
+        ? "El catálogo está vacío. Agrega productos con fórmulas antes de generar el plan de compras."
         : "Catalog is empty. Add products with formulas before generating a purchasing run.",
-    uncovered:
-      language === "es"
-        ? "líneas de material todavía necesitan compra después de contar el stock."
-        : "material lines still need buying after stock is counted.",
     material: language === "es" ? "Material" : "Material",
-    onHand: language === "es" ? "En mano" : "On hand",
+    onHand: language === "es" ? "En existencia" : "On hand",
     required: language === "es" ? "Requerido" : "Required",
     netToBuy: language === "es" ? "Neto a comprar" : "Net to buy",
     supplier: language === "es" ? "Proveedor" : "Supplier",
@@ -621,7 +604,7 @@ export function purchasingBoardCopy(language: Language) {
         : "No active reorder alerts. Open demand is covered by current stock and sourcing links.",
     emptyPlan:
       language === "es"
-        ? "El plan de compras está vacío. Importa o crea productos y pedidos abiertos para poblar esta vista."
+        ? "El plan de compras está vacío. Crea productos y pedidos abiertos para generar esta vista."
         : "Purchasing plan is empty. Import or create products and open orders to populate this view."
   };
 }
@@ -632,16 +615,16 @@ export function contactBoardCopy(language: Language) {
     orderDestinations: language === "es" ? "Destinos de pedido" : "Order destinations",
     customerDescription:
       language === "es"
-        ? "Registra quién te compra, cómo compra y hacia dónde va la producción que viene."
+        ? "Registra quién te compra, cómo lo hace y a dónde va la producción que viene."
         : "Track who orders from you, how they buy, and where upcoming production is headed.",
     suppliers: language === "es" ? "Proveedores" : "Suppliers",
     sourcingLinks: language === "es" ? "Enlaces de abastecimiento de materiales" : "Material sourcing links",
     supplierDescription:
       language === "es"
-        ? "Asigna proveedores preferidos para que el plan de compras pueda apuntar a la fuente correcta desde el primer día."
+        ? "Asigna proveedores preferidos para que el plan de compras siempre apunte a la fuente correcta."
         : "Assign preferred vendors so the purchasing plan can point to the right source on day one.",
-    noCustomers: language === "es" ? "Todavía no hay clientes." : "No customers yet.",
-    noSuppliers: language === "es" ? "Todavía no hay proveedores." : "No suppliers yet."
+    noCustomers: language === "es" ? "Aún no hay clientes." : "No customers yet.",
+    noSuppliers: language === "es" ? "Aún no hay proveedores." : "No suppliers yet."
   };
 }
 
@@ -673,11 +656,11 @@ export function importExperienceCopy(language: Language) {
     unitPlaceholder: language === "es" ? "Unidad" : "Unit",
     unitPricePlaceholder: language === "es" ? "Precio unitario" : "Unit price",
     enterRequired:
-      language === "es" ? "Introduce tanto el SKU como el nombre del producto." : "Enter both SKU and product name.",
+      language === "es" ? "Ingresa el SKU y el nombre del producto." : "Enter both SKU and product name.",
     priceNegative: language === "es" ? "El precio unitario no puede ser negativo." : "Unit price cannot be negative.",
     formulaRequired:
       language === "es"
-        ? "Añade al menos una línea válida de fórmula en formato nombre:unidad:cantidad."
+        ? "Agrega al menos una línea de fórmula válida en formato nombre:unidad:cantidad."
         : "Add at least one valid formula line in name:unit:quantity format.",
     saveError: language === "es" ? "No se pudo guardar el producto." : "Unable to save product.",
     noEditTarget: language === "es" ? "Selecciona un producto desde el catálogo para editarlo." : "Select a product from the catalog to edit it."
@@ -696,9 +679,8 @@ export function productStudioCopy(language: Language) {
     products: language === "es" ? "artículos" : "items",
     categories: language === "es" ? "categorías" : "categories",
     formulaLines: language === "es" ? "líneas de fórmula" : "formula lines",
-    readOnly: language === "es" ? "Solo lectura" : "Read only",
     noProducts:
-      language === "es" ? "Todavía no hay productos. Crea uno en Ingesta para empezar." : "No products yet. Create one in Intake to get started.",
+      language === "es" ? "Aún no hay productos. Crea uno en Captura para empezar." : "No products yet. Create one in Intake to get started.",
     noMatch: language === "es" ? "Ningún artículo coincide con tu búsqueda." : "No items match your search.",
     yieldLabel: language === "es" ? "rendimiento" : "yield",
     materials: language === "es" ? "materiales" : "materials",
@@ -724,14 +706,14 @@ export function contactStudioCopy(language: Language) {
         : "Keep preferred suppliers on hand so the purchasing plan already points to the right source.",
     supplierTip:
       language === "es"
-        ? "Consejo · agrega un proveedor para que las líneas de compras se conecten a una fuente."
+        ? "Tip · agrega un proveedor para que las líneas de compras se conecten a una fuente."
         : "Tip · add a supplier so purchasing lines link to a source.",
     namePlaceholder: language === "es" ? "Nombre" : "Name",
     customerEmailPlaceholder: language === "es" ? "Correo del cliente" : "Customer email",
     supplierEmailPlaceholder: language === "es" ? "Correo del proveedor" : "Supplier email",
     channelPlaceholder: language === "es" ? "Canal de ventas" : "Sales channel",
     categoryPlaceholder: language === "es" ? "Categoría" : "Category",
-    phonePlaceholder: language === "es" ? "Teléfono (opcional)" : "Phone (optional)",
+    phonePlaceholder: language === "es" ? "Celular (opcional)" : "Phone (optional)",
     addressPlaceholder: language === "es" ? "Dirección (opcional)" : "Address (optional)",
     saveCustomer: language === "es" ? "Guardar cliente" : "Save customer",
     updateCustomer: language === "es" ? "Actualizar cliente" : "Update customer",
@@ -746,16 +728,16 @@ export function contactStudioCopy(language: Language) {
     delete: language === "es" ? "Eliminar" : "Delete",
     noCustomers:
       language === "es"
-        ? "Todavía no hay clientes. Agrega uno para empezar a crear pedidos."
+        ? "Aún no hay clientes. Agrega uno para empezar a crear pedidos."
         : "No customers yet. Add one to start creating orders.",
     noCustomerMatches:
-      language === "es" ? "No hay clientes que coincidan con tu búsqueda." : "No customers match your search.",
+      language === "es" ? "Ningún cliente coincide con tu búsqueda." : "No customers match your search.",
     noSuppliers:
       language === "es"
-        ? "Todavía no hay proveedores. Agrega uno para vincular materiales en compras."
+        ? "Aún no hay proveedores. Agrega uno para vincular materiales en compras."
         : "No suppliers yet. Add one to link materials in purchasing.",
     noSupplierMatches:
-      language === "es" ? "No hay proveedores que coincidan con tu búsqueda." : "No suppliers match your search.",
+      language === "es" ? "Ningún proveedor coincide con tu búsqueda." : "No suppliers match your search.",
     saveError: language === "es" ? "No se pudo guardar el contacto." : "Unable to save contact.",
     deleteError: language === "es" ? "No se pudo eliminar el contacto." : "Unable to delete contact.",
     restoreError: language === "es" ? "No se pudo restaurar el contacto." : "Unable to restore contact.",
@@ -770,7 +752,7 @@ export function contactStudioCopy(language: Language) {
     restored: language === "es" ? "Contacto restaurado." : "Contact restored.",
     undoLastDelete: language === "es" ? "Deshacer último borrado" : "Undo last delete",
     required: language === "es" ? "Nombre, correo y categoría/canal son obligatorios." : "Name, email, and category/channel are required.",
-    emailInvalid: language === "es" ? "Introduce una dirección de correo válida." : "Please enter a valid email address.",
+    emailInvalid: language === "es" ? "Ingresa un correo electrónico válido." : "Please enter a valid email address.",
     deleteConfirm: (name: string) => (language === "es" ? `¿Eliminar ${name}?` : `Delete ${name}?`),
     deleteBlockedActiveOrder: (name: string) =>
       language === "es"
@@ -800,7 +782,7 @@ export function orderStudioCopy(language: Language) {
     customerRequired:
       language === "es" ? "El nombre del cliente es obligatorio." : "Customer name is required.",
     noProducts:
-      language === "es" ? "Todavía no hay productos. Agrega uno primero en Catálogo." : "No products yet. Add one in Catalog before saving orders.",
+      language === "es" ? "Aún no hay productos. Agrega uno primero en Catálogo." : "No products yet. Add one in Catalog before saving orders.",
     orderNumberRequired: language === "es" ? "El número de pedido es obligatorio." : "Order number is required.",
     noOrderLines: language === "es" ? "Agrega al menos una línea de pedido." : "Add at least one order line.",
     quantityRequired: language === "es" ? "La cantidad debe ser mayor que cero." : "Quantity must be greater than zero.",
@@ -813,16 +795,16 @@ export function orderStudioCopy(language: Language) {
         : "Add at least one product line before submitting an order.",
     statusLabel: language === "es" ? "Estado" : "Status",
     openStatus: language === "es" ? "abierto" : "open",
-    fulfilledStatus: language === "es" ? "cumplido" : "fulfilled",
+    fulfilledStatus: language === "es" ? "completado" : "fulfilled",
     cancelledStatus: language === "es" ? "cancelado" : "cancelled",
-    markFulfilled: language === "es" ? "Marcar como cumplido" : "Mark fulfilled",
+    markFulfilled: language === "es" ? "Marcar como completado" : "Mark fulfilled",
     reopenOrder: language === "es" ? "Reabrir" : "Reopen",
     cancelOrder: language === "es" ? "Cancelar" : "Cancel",
     backlog: language === "es" ? "cola" : "backlog",
     filterAll: language === "es" ? "Todos" : "All",
     filterInProgress: language === "es" ? "En curso" : "In progress",
-    filterBacklog: language === "es" ? "Cola" : "Backlogged",
-    filterFulfilled: language === "es" ? "Cumplidos" : "Fulfilled",
+    filterBacklog: language === "es" ? "Atrasados" : "Backlogged",
+    filterFulfilled: language === "es" ? "Completados" : "Fulfilled",
     filterCancelled: language === "es" ? "Cancelados" : "Cancelled",
     backlogHint:
       language === "es"
@@ -840,9 +822,9 @@ export function orderStudioCopy(language: Language) {
     edit: language === "es" ? "Editar" : "Edit",
     delete: language === "es" ? "Eliminar" : "Delete",
     noOrders:
-      language === "es" ? "Todavía no hay pedidos. Crea uno para generar demanda de compras." : "No orders yet. Create one to generate purchasing demand.",
+      language === "es" ? "Aún no hay pedidos. Crea uno para generar demanda de compras." : "No orders yet. Create one to generate purchasing demand.",
     noOrderMatches:
-      language === "es" ? "No hay pedidos que coincidan con tu búsqueda." : "No orders match your search.",
+      language === "es" ? "Ningún pedido coincide con tu búsqueda." : "No orders match your search.",
     noItemRestore:
       language === "es" ? "No se puede restaurar un pedido sin líneas." : "Cannot restore an order with no line items.",
     saveError: language === "es" ? "No se pudo guardar el pedido." : "Unable to save order.",
@@ -853,7 +835,7 @@ export function orderStudioCopy(language: Language) {
     restored: language === "es" ? "Pedido restaurado." : "Order restored.",
     due: language === "es" ? "vence" : "due",
     open: language === "es" ? "abierto" : "open",
-    fulfilled: language === "es" ? "cumplido" : "fulfilled"
+    fulfilled: language === "es" ? "completado" : "fulfilled"
   };
 }
 
@@ -863,25 +845,22 @@ export function materialStockCopy(language: Language) {
     title: language === "es" ? "Rastrea el stock disponible" : "Track stock on hand",
     description:
       language === "es"
-        ? "Agrega entradas, descuenta uso y mantén el plan de compras basado en lo que ya está en la estantería."
-        : "Add receipts, subtract usage, and keep the purchasing plan grounded in what is already on the shelf.",
+        ? "Registra las compras de insumos para mantener el inventario actualizado y los costos al día."
+        : "Log material receipts to keep stock counts current and cost history up to date.",
     materials: language === "es" ? "materiales" : "materials",
     stocked: language === "es" ? "abastecidos" : "stocked",
     searchPlaceholder: language === "es" ? "Buscar material o proveedor" : "Search material or supplier",
-    unitCostPlaceholder: language === "es" ? "Costo unitario" : "Unit cost",
-    saveCost: language === "es" ? "Guardar costo" : "Save cost",
-    applyAdjustment: language === "es" ? "Aplicar ajuste" : "Apply adjustment",
+    receiptQtyPlaceholder: language === "es" ? "Cantidad recibida" : "Qty received",
+    receiptPricePlaceholder: language === "es" ? "Precio unitario" : "Unit price",
+    logReceipt: language === "es" ? "Registrar compra" : "Log receipt",
     saving: language === "es" ? "Guardando…" : "Saving…",
     chooseMaterial: language === "es" ? "Elige primero un material." : "Choose a material first.",
-    nonZeroAdjustment:
-      language === "es" ? "Introduce un ajuste de stock distinto de cero." : "Enter a non-zero stock adjustment.",
-    validCost: language === "es" ? "Introduce un costo unitario válido." : "Enter a valid unit cost.",
-    updateStockError: language === "es" ? "No se pudo actualizar el stock del material." : "Unable to update material stock.",
-    updateCostError: language === "es" ? "No se pudo actualizar el costo del material." : "Unable to update material cost.",
-    stockUpdated: language === "es" ? "Stock del material actualizado." : "Material stock updated.",
-    costUpdated: language === "es" ? "Costo del material actualizado." : "Material cost updated.",
+    positiveQty: language === "es" ? "Ingresa una cantidad positiva." : "Enter a positive quantity.",
+    validCost: language === "es" ? "Ingresa un precio unitario válido." : "Enter a valid unit price.",
+    receiptError: language === "es" ? "No se pudo registrar la compra." : "Unable to log receipt.",
+    receiptLogged: language === "es" ? "Compra registrada." : "Receipt logged.",
     material: language === "es" ? "Material" : "Material",
-    onHand: language === "es" ? "En mano" : "On hand",
+    onHand: language === "es" ? "En existencia" : "On hand",
     cost: language === "es" ? "Costo" : "Cost",
     supplier: language === "es" ? "Proveedor" : "Supplier",
     unit: language === "es" ? "Unidad" : "Unit",

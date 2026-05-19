@@ -237,16 +237,13 @@ export function ProductStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapsho
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto]">
+        <div className="mt-5">
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={copy.search}
             className="field"
           />
-          <Pill className="justify-center lg:justify-self-end">
-            {copy.readOnly}
-          </Pill>
         </div>
 
         {!products.length ? (

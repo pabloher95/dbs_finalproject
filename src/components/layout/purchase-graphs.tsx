@@ -115,7 +115,6 @@ export function PurchaseGraphs({
             {insights.trendRows.map((row) => {
               const x = monthScale(row.label) ?? 0;
               const lineY = costScale(row.averageUnitCost);
-              const barHeight = Math.max(2, monthlyInnerHeight - lineY);
               return (
                 <g
                   key={row.label}
@@ -128,7 +127,6 @@ export function PurchaseGraphs({
                     ])
                   }
                 >
-                  <rect x={x} y={lineY} width={monthBandwidth} height={barHeight} rx="14" fill="rgba(46,83,57,0.10)" />
                   <circle cx={x + monthBandwidth / 2} cy={lineY} r="5" fill="var(--botanical)" />
                   <text x={x + monthBandwidth / 2} y={monthlyInnerHeight + 18} textAnchor="middle" className="fill-[var(--muted-strong)] font-mono text-[10px]">
                     {row.label}
@@ -184,7 +182,7 @@ export function PurchaseGraphs({
                   <text x={barWidth + 10} y={rowScale.bandwidth() / 2 + 4} className="fill-[var(--ink)] font-mono text-[10px] uppercase tracking-[0.18em]">
                     {formatPercent(row.changeRate)}
                   </text>
-                  <text x={materialInnerWidth} y={rowScale.bandwidth() / 2 + 4} textAnchor="end" className="fill-[var(--muted-strong)] font-mono text-[10px] uppercase tracking-[0.18em]">
+                  <text x={materialInnerWidth} y={rowScale.bandwidth() / 2 + 4} textAnchor="end" className="fill-[var(--ink)] font-mono text-[10px] uppercase tracking-[0.18em]">
                     {formatMoney(row.latestUnitCost)}
                   </text>
                 </g>

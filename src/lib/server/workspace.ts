@@ -118,8 +118,9 @@ type MaterialAdjustmentInput = {
   delta: number;
 };
 
-type MaterialCostInput = {
+type MaterialReceiptInput = {
   materialId: string;
+  quantity: number;
   unitCost: number;
 };
 
@@ -1310,35 +1311,25 @@ export async function adjustMaterialStock(ownerId: string, input: MaterialAdjust
   });
 }
 
-export async function updateMaterialCost(ownerId: string, input: MaterialCostInput) {
+export async function receiveMaterial(ownerId: string, input: MaterialReceiptInput) {
   return mutateWorkspace(ownerId, (snapshot) => {
     const material = snapshot.materials.find((item) => item.id === input.materialId);
     if (!material) {
       throw new UserFacingError("Material not found.");
     }
 
-    const nextUnitCost = Math.max(Number(input.unitCost ?? 0), 0);
-    const previousUnitCost = Math.max(Number(material.unitCost ?? 0), 0);
-    material.unitCost = nextUnitCost;
+    const quantity = Math.max(Number(input.quantity ?? 0), 0);
+    const unitCost = Math.max(Number(input.unitCost ?? 0), 0);
 
-    if (previousUnitCost !== nextUnitCost) {
-      const now = Date.now();
-      const hasHistory = snapshot.materialCostHistory.some((entry) => entry.materialId === material.id);
-      if (!hasHistory) {
-        snapshot.materialCostHistory.push({
-          id: `cost_${material.id}_${crypto.randomUUID()}`,
-          materialId: material.id,
-          unitCost: previousUnitCost,
-          recordedAt: new Date(now - 1_000).toISOString()
-        });
-      }
-      snapshot.materialCostHistory.push({
-        id: `cost_${material.id}_${crypto.randomUUID()}`,
-        materialId: material.id,
-        unitCost: nextUnitCost,
-        recordedAt: new Date(now).toISOString()
-      });
-    }
+    material.onHandQuantity = applyStockDelta(material.onHandQuantity, quantity);
+    material.unitCost = unitCost;
+
+    snapshot.materialCostHistory.push({
+      id: `cost_${material.id}_${crypto.randomUUID()}`,
+      materialId: material.id,
+      unitCost,
+      recordedAt: new Date().toISOString()
+    });
   });
 }
 

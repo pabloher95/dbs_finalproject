@@ -23,8 +23,8 @@ export function MaterialStockStudio({
   const copy = materialStockCopy(language);
   const [inventory, setInventory] = useState(materials);
   const [selectedMaterialId, setSelectedMaterialId] = useState(materials[0]?.id ?? "");
-  const [delta, setDelta] = useState("12");
-  const [unitCost, setUnitCost] = useState("0");
+  const [receiptQty, setReceiptQty] = useState("");
+  const [receiptPrice, setReceiptPrice] = useState("");
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: "info" | "success" | "warn" | "error" } | null>(null);
@@ -47,7 +47,6 @@ export function MaterialStockStudio({
   }, [copy.unassigned, inventory, search, suppliers]);
 
   const selectedMaterial = inventory.find((material) => material.id === selectedMaterialId) ?? visibleMaterials[0];
-  const selectedMaterialUnitCost = selectedMaterial?.unitCost ?? 0;
 
   useEffect(() => {
     if (!selectedMaterial && visibleMaterials[0]?.id) {
@@ -55,52 +54,18 @@ export function MaterialStockStudio({
     }
   }, [selectedMaterial, visibleMaterials]);
 
-  useEffect(() => {
-    setUnitCost(String(selectedMaterialUnitCost));
-  }, [selectedMaterialId, selectedMaterialUnitCost]);
-
-  async function applyAdjustment(amount: number) {
+  async function logReceipt() {
     if (!selectedMaterialId) {
       setToast({ message: copy.chooseMaterial, tone: "warn" });
       return;
     }
-    if (!Number.isFinite(amount) || amount === 0) {
-      setToast({ message: copy.nonZeroAdjustment, tone: "warn" });
+    const qty = Number(receiptQty);
+    const price = Number(receiptPrice);
+    if (!Number.isFinite(qty) || qty <= 0) {
+      setToast({ message: copy.positiveQty, tone: "warn" });
       return;
     }
-
-    setBusy(true);
-    try {
-      const response = await fetch("/api/materials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "adjust",
-          materialId: selectedMaterialId,
-          delta: amount
-        })
-      });
-      const data = (await response.json()) as { snapshot?: { materials: Material[] }; error?: string };
-      if (!response.ok || !data.snapshot) {
-        setToast({ message: data.error ?? copy.updateStockError, tone: "error" });
-        return;
-      }
-
-      setInventory(data.snapshot.materials);
-      setToast({ message: copy.stockUpdated, tone: "success" });
-      router.refresh();
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function saveCost() {
-    if (!selectedMaterialId) {
-      setToast({ message: copy.chooseMaterial, tone: "warn" });
-      return;
-    }
-    const parsed = Number(unitCost);
-    if (!Number.isFinite(parsed) || parsed < 0) {
+    if (!Number.isFinite(price) || price < 0) {
       setToast({ message: copy.validCost, tone: "warn" });
       return;
     }
@@ -111,19 +76,21 @@ export function MaterialStockStudio({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "cost",
+          action: "receive",
           materialId: selectedMaterialId,
-          unitCost: parsed
+          quantity: qty,
+          unitCost: price
         })
       });
       const data = (await response.json()) as { snapshot?: { materials: Material[] }; error?: string };
       if (!response.ok || !data.snapshot) {
-        setToast({ message: data.error ?? copy.updateCostError, tone: "error" });
+        setToast({ message: data.error ?? copy.receiptError, tone: "error" });
         return;
       }
-
       setInventory(data.snapshot.materials);
-      setToast({ message: copy.costUpdated, tone: "success" });
+      setReceiptQty("");
+      setReceiptPrice("");
+      setToast({ message: copy.receiptLogged, tone: "success" });
       router.refresh();
     } finally {
       setBusy(false);
@@ -150,7 +117,7 @@ export function MaterialStockStudio({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_11rem_8rem_8rem]">
+      <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_12rem]">
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -168,46 +135,30 @@ export function MaterialStockStudio({
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <input
-          value={delta}
-          onChange={(event) => setDelta(event.target.value)}
+          value={receiptQty}
+          onChange={(event) => setReceiptQty(event.target.value)}
           type="number"
+          min="0"
           step="1"
-          className="field font-mono text-sm"
-          placeholder="+12 / -12"
+          className="field w-32 font-mono text-sm"
+          placeholder={copy.receiptQtyPlaceholder}
         />
         <input
-          value={unitCost}
-          onChange={(event) => setUnitCost(event.target.value)}
+          value={receiptPrice}
+          onChange={(event) => setReceiptPrice(event.target.value)}
           type="number"
           min="0"
           step="0.01"
-          className="field font-mono text-sm"
-          placeholder={copy.unitCostPlaceholder}
+          className="field w-32 font-mono text-sm"
+          placeholder={copy.receiptPricePlaceholder}
         />
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" className="btn btn-flame" disabled={busy} onClick={() => void applyAdjustment(Number(delta))}>
-          {busy ? copy.saving : copy.applyAdjustment}
+        <button type="button" className="btn btn-flame" disabled={busy} onClick={() => void logReceipt()}>
+          {busy ? copy.saving : copy.logReceipt}
         </button>
-        <button type="button" className="btn btn-soft" disabled={busy} onClick={() => void saveCost()}>
-          {copy.saveCost}
-        </button>
-        {([1, 5, 12, -12] as const).map((amount) => (
-          <button
-            key={amount}
-            type="button"
-            className="btn btn-soft"
-            disabled={busy}
-            onClick={() => {
-              void applyAdjustment(amount);
-            }}
-          >
-            {amount > 0 ? "+" : ""}
-            {amount}
-          </button>
-        ))}
       </div>
 
       <div className="mt-6 overflow-hidden rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)]">
@@ -238,7 +189,7 @@ export function MaterialStockStudio({
                   <span className="text-xs text-[var(--muted-strong)]">{material.unit}</span>
                 </td>
                 <td className="font-mono text-[0.78rem] uppercase tracking-[0.18em] text-[var(--muted-strong)]">
-                  {(material.unitCost ?? 0).toFixed(2)} per {material.unit}
+                  {(material.unitCost ?? 0).toFixed(2)} {copy.per} {material.unit}
                 </td>
                 <td className="text-sm text-[var(--muted-strong)]">{supplierName(material, suppliers, copy.unassigned)}</td>
               </tr>
@@ -256,11 +207,11 @@ export function MaterialStockStudio({
 
       {selectedMaterial ? (
         <p className="mt-4 text-sm text-[var(--muted-strong)]">
-          {language === "es" ? "Seleccionado" : "Selected"}{" "}
+          {copy.selected}{" "}
           <span className="font-medium text-[var(--ink)]">{selectedMaterial.name}</span>{" "}
           {language === "es"
-            ? `con ${selectedMaterial.onHandQuantity.toFixed(0)} ${selectedMaterial.unit} en mano, costando ${(selectedMaterial.unitCost ?? 0).toFixed(2)} por ${selectedMaterial.unit}.`
-            : `at ${selectedMaterial.onHandQuantity.toFixed(0)} ${selectedMaterial.unit} on hand, costing ${(selectedMaterial.unitCost ?? 0).toFixed(2)} per ${selectedMaterial.unit}.`}
+            ? `con ${selectedMaterial.onHandQuantity.toFixed(0)} ${selectedMaterial.unit} en mano, último precio ${(selectedMaterial.unitCost ?? 0).toFixed(2)} por ${selectedMaterial.unit}.`
+            : `at ${selectedMaterial.onHandQuantity.toFixed(0)} ${selectedMaterial.unit} on hand, last purchased at ${(selectedMaterial.unitCost ?? 0).toFixed(2)} per ${selectedMaterial.unit}.`}
         </p>
       ) : null}
 
