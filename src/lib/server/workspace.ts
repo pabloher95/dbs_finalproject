@@ -193,6 +193,15 @@ function createFallbackSnapshot(ownerId: string) {
   return namespaceDemoSnapshot(getDemoBusinessSnapshot(), ownerId);
 }
 
+function getPreservedBusinessName(currentName: string | undefined, fallbackName: string) {
+  const trimmed = currentName?.trim() ?? "";
+  if (!trimmed) {
+    return fallbackName;
+  }
+
+  return trimmed === "Your Business" ? fallbackName : trimmed;
+}
+
 function namespaceDemoSnapshot(snapshot: BusinessSnapshot, ownerId: string): BusinessSnapshot {
   const namespace = slugify(ownerId) || "owner";
   const remap = (prefix: string, value: string) => `${prefix}_${namespace}_${value}`;
@@ -538,6 +547,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
 
     if (!initialized) {
       const seeded = namespaceDemoSnapshot(getDemoBusinessSnapshot(), ownerId);
+      seeded.business.name = getPreservedBusinessName(business.name, seeded.business.name);
       await write(ownerId, seeded);
       return { snapshot: cloneSnapshot(seeded), initialized: true, source: "supabase" };
     }
@@ -1294,10 +1304,7 @@ export async function deleteOrder(ownerId: string, orderId: string) {
 export async function restoreDemoWorkspace(ownerId: string) {
   return mutateWorkspace(ownerId, (snapshot) => {
     const seeded = createFallbackSnapshot(ownerId);
-    const preservedBusinessName =
-      snapshot.business.name.trim() && snapshot.business.name !== "Your Business"
-        ? snapshot.business.name.trim()
-        : seeded.business.name;
+    const preservedBusinessName = getPreservedBusinessName(snapshot.business.name, seeded.business.name);
 
     snapshot.business = {
       ...seeded.business,
