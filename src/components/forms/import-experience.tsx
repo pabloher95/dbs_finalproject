@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Card, SectionHeading, Toast } from "@/components/ui/surfaces";
@@ -237,30 +238,6 @@ export function ImportExperience({
             </Link>
           </div>
         ) : null}
-        <SectionHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description} />
-        <div className="mt-5 grid gap-2 md:grid-cols-3">
-          <div className="rounded-2xl border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-[var(--muted-strong)]">
-            <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em]">
-              {language === "es" ? "Productos" : "Products"}
-            </p>
-            <p className="mt-1 font-display text-3xl text-[var(--ink)]">{productCount}</p>
-          </div>
-          <div className="rounded-2xl border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-[var(--muted-strong)]">
-            <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em]">
-              {language === "es" ? "Materiales" : "Materials"}
-            </p>
-            <p className="mt-1 font-display text-3xl text-[var(--ink)]">{materialCount}</p>
-          </div>
-          <div className="rounded-2xl border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-[var(--muted-strong)]">
-            <p className="font-mono text-[0.6rem] uppercase tracking-[0.32em]">
-              {language === "es" ? "Proveedores" : "Suppliers"}
-            </p>
-            <p className="mt-1 font-display text-3xl text-[var(--ink)]">{supplierCount}</p>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-6">
         <form
           className="space-y-5"
           onSubmit={(event) => {
@@ -375,6 +352,25 @@ export function ImportExperience({
           </div>
         </form>
       </Card>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[
+          { label: language === "es" ? "Productos" : "Products", value: productCount, href: "/products" },
+          { label: language === "es" ? "Materiales" : "Materials", value: materialCount, href: "/purchasing" },
+          { label: language === "es" ? "Proveedores" : "Suppliers", value: supplierCount, href: "/contacts" }
+        ].map(({ label, value, href }) => (
+          <Link
+            key={label}
+            href={href as Route}
+            className="rounded-[18px] border border-[var(--line)] bg-[var(--paper-bright)] px-4 py-4 transition-colors hover:border-[var(--ink)] hover:bg-[var(--paper)]"
+          >
+            <p className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--muted)]">{label}</p>
+            <p className="mt-2 font-display text-[clamp(1.6rem,2.4vw,2rem)] leading-none text-[var(--ink)]">
+              {String(value).padStart(2, "0")}
+            </p>
+          </Link>
+        ))}
+      </div>
 
       {toast ? <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast(null)} /> : null}
     </section>
