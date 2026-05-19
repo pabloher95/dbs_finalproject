@@ -64,8 +64,8 @@ export async function WorkflowPageShell({
           </div>
           <div className="mt-8 grid gap-px border-t border-[var(--ink)] bg-[var(--line)] lg:grid-cols-3">
               {steps.map((step, index) => (
-                <Reveal key={step.title} delay={120 + index * 80}>
-                  <div className="method-tile bg-[var(--paper)] p-5 md:p-6">
+                <Reveal key={step.title} delay={120 + index * 80} className="h-full">
+                  <div className="method-tile h-full bg-[var(--paper)] p-5 md:p-6">
                     <div className="flex items-start justify-between">
                       <span className="font-mono text-[0.6rem] uppercase tracking-[0.32em] text-[var(--flame)]">
                         {copy.stepLabel} {String(index + 1).padStart(2, "0")}
