@@ -330,11 +330,12 @@ export function analyticsCopy(language: Language) {
     title:
       language === "es" ? "Señales de ingresos, margen y tendencia" : "Revenue, margin, and trend signals",
     revenue: language === "es" ? "Ingresos" : "Revenue",
+    cost: language === "es" ? "Costo" : "Cost",
     grossMargin: language === "es" ? "Margen bruto" : "Gross margin",
     marginRate: language === "es" ? "Tasa de margen" : "Margin rate",
     avgOrder: language === "es" ? "Pedido prom." : "Avg. order",
     trendChart: language === "es" ? "Gráfico de tendencia" : "Trend chart",
-    chartTitle: language === "es" ? "Ingresos y margen por mes" : "Revenue and margin by month",
+    chartTitle: language === "es" ? "Composición de ingresos por mes" : "Revenue composition by month",
     month: language === "es" ? "Mes" : "Month",
     orders: language === "es" ? "Pedidos" : "Orders",
     leadingProduct: language === "es" ? "Producto líder" : "Leading product",

@@ -86,9 +86,59 @@ const snapshot: BusinessSnapshot = {
   ],
   clients: [
     { id: "cl_river", name: "Common Goods Market", email: "orders@commongoods.test", channel: "wholesale retail" },
-    { id: "cl_studio", name: "North Studio Events", email: "events@northstudio.test", channel: "event gifting" }
+    { id: "cl_studio", name: "North Studio Events", email: "events@northstudio.test", channel: "event gifting" },
+    { id: "cl_harbor", name: "Harbor House Mercantile", email: "buying@harborhouse.test", channel: "seasonal retail" }
   ],
   orders: [
+    {
+      id: "ord_1901",
+      orderNumber: "ORD-1901",
+      clientId: "cl_river",
+      clientName: "Common Goods Market",
+      destination: "Winter Pop-Up Table",
+      dueDate: "2026-01-16",
+      status: "fulfilled",
+      items: [
+        { productId: "prd_croissant", productName: "Signature Candle", quantity: 18 },
+        { productId: "prd_scone", productName: "Gift Set", quantity: 8 }
+      ]
+    },
+    {
+      id: "ord_1930",
+      orderNumber: "ORD-1930",
+      clientId: "cl_studio",
+      clientName: "North Studio Events",
+      destination: "Client Welcome Kits",
+      dueDate: "2026-02-11",
+      status: "fulfilled",
+      items: [{ productId: "prd_scone", productName: "Gift Set", quantity: 14 }]
+    },
+    {
+      id: "ord_1962",
+      orderNumber: "ORD-1962",
+      clientId: "cl_harbor",
+      clientName: "Harbor House Mercantile",
+      destination: "Front Display Wall",
+      dueDate: "2026-03-08",
+      status: "fulfilled",
+      items: [
+        { productId: "prd_croissant", productName: "Signature Candle", quantity: 24 },
+        { productId: "prd_scone", productName: "Gift Set", quantity: 10 }
+      ]
+    },
+    {
+      id: "ord_1988",
+      orderNumber: "ORD-1988",
+      clientId: "cl_river",
+      clientName: "Common Goods Market",
+      destination: "Spring Merch Table",
+      dueDate: "2026-04-14",
+      status: "fulfilled",
+      items: [
+        { productId: "prd_croissant", productName: "Signature Candle", quantity: 30 },
+        { productId: "prd_scone", productName: "Gift Set", quantity: 12 }
+      ]
+    },
     {
       id: "ord_2001",
       orderNumber: "ORD-2001",
@@ -111,6 +161,19 @@ const snapshot: BusinessSnapshot = {
       dueDate: "2026-05-22",
       status: "open",
       items: [{ productId: "prd_croissant", productName: "Signature Candle", quantity: 36 }]
+    },
+    {
+      id: "ord_2013",
+      orderNumber: "ORD-2013",
+      clientId: "cl_harbor",
+      clientName: "Harbor House Mercantile",
+      destination: "Window Gift Tower",
+      dueDate: "2026-05-28",
+      status: "open",
+      items: [
+        { productId: "prd_croissant", productName: "Signature Candle", quantity: 20 },
+        { productId: "prd_scone", productName: "Gift Set", quantity: 16 }
+      ]
     }
   ]
 };
