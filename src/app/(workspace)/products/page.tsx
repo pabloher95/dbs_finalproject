@@ -15,11 +15,6 @@ export default async function ProductsPage() {
           ? "Revisa los artículos, sus fórmulas y el costo unitario que alimenta compras y márgenes."
           : "Review items, their formulas, and the unit cost that feeds purchasing and margins."
       }
-      metrics={[
-        { label: language === "es" ? "Productos" : "Products", value: String(snapshot.products.length) },
-        { label: language === "es" ? "Categorías" : "Categories", value: String(new Set(snapshot.products.map((product) => product.category)).size) },
-        { label: language === "es" ? "Lectura" : "Reading", value: language === "es" ? "Fórmula" : "Formula" }
-      ]}
       steps={[
         {
           title: language === "es" ? "Encuentra el artículo" : "Find the item",
