@@ -20,6 +20,13 @@ export type Material = {
   preferredSupplierId?: string;
 };
 
+export type MaterialCostHistoryEntry = {
+  id: string;
+  materialId: string;
+  unitCost: number;
+  recordedAt: string;
+};
+
 export type ProductMaterial = {
   materialId: string;
   materialName: string;
@@ -66,6 +73,7 @@ export type BusinessSnapshot = {
   business: Business;
   suppliers: Supplier[];
   materials: Material[];
+  materialCostHistory: MaterialCostHistoryEntry[];
   products: Product[];
   clients: Client[];
   orders: Order[];

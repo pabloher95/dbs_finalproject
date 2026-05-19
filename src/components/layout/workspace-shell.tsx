@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import type { CSSProperties } from "react";
 import { BusinessRenameButton } from "@/components/layout/business-rename-button";
-import { DemoResetButton } from "@/components/layout/demo-reset-button";
+import { DemoModeToggle } from "@/components/layout/demo-reset-button";
 import { HeaderClock } from "@/components/layout/header-clock";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { LanguageSwitcher } from "@/components/providers/language-switcher";
@@ -18,7 +18,7 @@ export async function WorkspaceShell({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { snapshot } = await getWorkspaceOverview();
+  const { snapshot, mode } = await getWorkspaceOverview();
   const language = await getRequestLanguage();
   const copy = workspaceCopy(language);
   const businessName = snapshot.business.name;
@@ -55,17 +55,17 @@ export async function WorkspaceShell({
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <BusinessRenameButton businessName={businessName} />
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
-            <DemoResetButton />
+            <DemoModeToggle workspaceMode={mode} />
             <span className="h-3 w-px bg-[var(--line-strong)]" aria-hidden />
             <div className="group relative">
               <Link href={"/orders" as Route} className="link-rule text-sm">
                 {openOrders} {openOrders === 1 ? copy.openOrder : copy.openOrders}
               </Link>
               <div
-                className="pointer-events-none absolute left-1/2 top-full z-20 mt-3 w-[18rem] -translate-x-1/2 translate-y-1 opacity-0 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.45)] transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100"
+                className="pointer-events-none absolute left-1/2 top-full z-20 w-[18rem] -translate-x-1/2 pt-3 opacity-0 transition duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
                 role="tooltip"
               >
-                <div className="rounded-[20px] border border-[var(--ink)] bg-[var(--paper-bright)] px-4 py-3 text-left">
+                <div className="translate-y-1 rounded-[20px] border border-[var(--ink)] bg-[var(--paper-bright)] px-4 py-3 text-left shadow-[0_20px_50px_-24px_rgba(0,0,0,0.45)] transition duration-150 group-hover:translate-y-0 group-focus-within:translate-y-0">
                   <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-[var(--muted)]">
                     {copy.openDemand}
                   </p>

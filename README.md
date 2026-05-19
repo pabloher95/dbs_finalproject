@@ -9,7 +9,8 @@ It is built around a practical operating workflow:
 - capture multi-line orders and mark them fulfilled
 - generate a purchasing plan from open demand, stock on hand, and supplier links
 - review descriptive analytics for demand, revenue, margin, operating load, and reorder pressure
-- restore a clean demo workspace if a live walkthrough needs a reset
+- track purchasing analytics for input-cost changes and inventory exposure
+- switch between a seeded demo workspace and a separate live workspace for real user data
 
 ## Stack
 
@@ -103,21 +104,26 @@ API routes:
 ### Purchasing
 - `/purchasing` combines open-order demand, product formulas, stock on hand, preferred suppliers, and unit costs
 - material unit cost is maintained here and feeds margin/cost analytics
+- material cost edits append to a cost-history ledger for purchasing analytics
 - reorder alerts rank shortages by coverage, next due date, and missing supplier linkage
 
 ### Demo controls
-- the workspace header includes a `Restore demo` action that reloads the seeded demo dataset
-- restoring demo data preserves a custom business name while resetting products, contacts, materials, and orders
+- the workspace header includes a `Demo mode` toggle
+- when demo mode is on, the app reads and writes against the seeded fake workspace
+- when demo mode is off, the app reads and writes against the user’s separate live workspace
+- a first-time live workspace can be completely empty
+- `Restore demo` is still available while demo mode is on and reseeds the fake workspace without touching the live workspace
 
 ### Dashboard
 - `/dashboard` separates operating-base metrics from sales-pressure metrics
 - analytics surfaces include demand rollups plus descriptive revenue/margin/trend views
+- analytics now also surface purchasing readings for inventory value and input-cost movement over time
 - dashboard analytics now surface the highest-priority reorder alerts
 
 ## Architecture Notes
 
 - `src/lib/server/workspace.ts` is the main server-side workspace data layer.
-- It supports Supabase read/write helpers and a demo/memory mode.
+- It supports Supabase read/write helpers and separate `demo`/`live` workspace modes.
 - If Supabase is configured and runtime access fails, production will not silently degrade to memory.
 - The app uses Clerk-authenticated workspace routes and API mutations.
 - User-facing copy is localized through the i18n helpers in `src/lib/i18n.ts` and `src/lib/i18n-server.ts`.
@@ -125,6 +131,7 @@ API routes:
 - Trend chart behavior lives in `src/components/layout/trend-chart.tsx`.
 - Purchasing-plan logic lives in `src/lib/domain/purchasing-plan.ts`.
 - Analytics logic lives in `src/lib/domain/analytics.ts`.
+- Historical input costs live in `snapshot.materialCostHistory` and the `material_cost_history` table.
 - Duplicate-protection helpers live in `src/lib/domain/workspace-validation.ts`.
 - Import parsing lives in `src/lib/import/parser.ts`.
 
@@ -138,6 +145,10 @@ API routes:
 ## Database
 
 Schema changes live in `supabase/migrations/`.
+
+The `business` table now uses `workspace_mode` so each signed-in user can have both:
+- one `demo` workspace
+- one `live` workspace
 
 If the app shape changes, update the relevant migration and keep this README in sync with the actual runtime behavior.
 

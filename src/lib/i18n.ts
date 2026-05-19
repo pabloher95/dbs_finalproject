@@ -339,6 +339,40 @@ export function analyticsCopy(language: Language) {
     avgOrder: language === "es" ? "Pedido prom." : "Avg. order",
     trendChart: language === "es" ? "Gráfico de tendencia" : "Trend chart",
     chartTitle: language === "es" ? "Composición de ingresos por mes" : "Revenue composition by month",
+    purchaseEyebrow: language === "es" ? "Compras" : "Purchasing",
+    purchaseTitle: language === "es" ? "Costo de insumos" : "Input cost movement",
+    purchaseGraphEyebrow: language === "es" ? "Gráfico" : "Graph",
+    purchaseGraphTitle: language === "es" ? "Tendencia del costo medio" : "Average cost trend",
+    purchaseGraphSubtitle:
+      language === "es"
+        ? "La línea muestra cómo se ha movido el costo medio de los insumos con cada actualización."
+        : "The line shows how average input cost has moved with each update.",
+    purchaseMaterialGraphEyebrow: language === "es" ? "Materiales" : "Materials",
+    purchaseMaterialGraphTitle: language === "es" ? "Cambios por material" : "Changes by material",
+    purchaseMaterialGraphSubtitle:
+      language === "es"
+        ? "Las barras comparan la magnitud de los cambios recientes de costo en tus insumos clave."
+        : "The bars compare the magnitude of recent cost changes across your key inputs.",
+    inventoryValue: language === "es" ? "Valor de inventario" : "Inventory value",
+    repricedMaterials: language === "es" ? "Materiales revaluados" : "Repriced materials",
+    avgInputChange: language === "es" ? "Cambio medio de costo" : "Avg input change",
+    trackedInputs: language === "es" ? "Insumos seguidos" : "Tracked inputs",
+    purchaseMonth: language === "es" ? "Mes de compra" : "Purchase month",
+    priceUpdates: language === "es" ? "Cambios" : "Updates",
+    averageCost: language === "es" ? "Costo medio" : "Average cost",
+    averageChange: language === "es" ? "Cambio medio" : "Average change",
+    biggestIncrease: language === "es" ? "Mayor aumento" : "Biggest increase",
+    biggestDecrease: language === "es" ? "Mayor baja" : "Biggest decrease",
+    noPurchaseData: language === "es" ? "Todavía no hay historial de costos." : "No cost history yet.",
+    captureCosts:
+      language === "es"
+        ? "Actualiza costos de material en compras para seguir cómo cambian tus insumos."
+        : "Update material costs in purchasing to track how your inputs move over time.",
+    currentCost: language === "es" ? "Costo actual" : "Current cost",
+    startingCost: language === "es" ? "Costo inicial" : "Starting cost",
+    change: language === "es" ? "Cambio" : "Change",
+    inventoryExposure: language === "es" ? "Exposición" : "Exposure",
+    material: language === "es" ? "Material" : "Material",
     month: language === "es" ? "Mes" : "Month",
     orders: language === "es" ? "Pedidos" : "Orders",
     leadingProduct: language === "es" ? "Producto líder" : "Leading product",
@@ -432,6 +466,20 @@ export function commandBarCopy(language: Language) {
     syncing: language === "es" ? "sincronizando" : "syncing",
     localDemo: language === "es" ? "demo local" : "local demo",
     supabase: language === "es" ? "supabase" : "supabase",
+    demoMode: language === "es" ? "Modo demo" : "Demo mode",
+    demoOn: language === "es" ? "Demo activada" : "Demo on",
+    demoOff: language === "es" ? "Demo desactivada" : "Demo off",
+    demoSeeded: language === "es" ? "Datos simulados" : "Seeded data",
+    liveWorkspace: language === "es" ? "Tus datos" : "Your data",
+    switchingMode: language === "es" ? "Cambiando..." : "Switching...",
+    workspaceModeUpdated:
+      language === "es"
+        ? "El modo del espacio de trabajo fue actualizado."
+        : "Workspace mode updated.",
+    workspaceModeError:
+      language === "es"
+        ? "No se pudo cambiar el modo del espacio de trabajo."
+        : "Unable to change the workspace mode.",
     restoreDemo: language === "es" ? "Restaurar demo" : "Restore demo",
     restoringDemo: language === "es" ? "Restaurando..." : "Restoring...",
     restoreDemoDone: language === "es" ? "Datos de demo restaurados." : "Demo data restored.",

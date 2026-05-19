@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { auth } from "@clerk/nextjs/server";
 import { getDemoBusinessSnapshot } from "@/lib/data/demo";
 import { applyStockDelta } from "@/lib/domain/inventory";
@@ -7,11 +8,19 @@ import { getContactConflict, hasOrderNumberConflict, hasProductSkuConflict } fro
 import { UserFacingError } from "@/lib/user-facing-error.js";
 import { parseOrderImportRows, parseProductImportRows, type ImportPreview } from "@/lib/import/parser";
 import type { Business, BusinessSnapshot, Client, Material, Order, Product } from "@/lib/domain/types";
+import {
+  normalizeWorkspaceMode,
+  WORKSPACE_MODE_COOKIE,
+  workspaceBusinessId,
+  workspaceMemoryKey,
+  type WorkspaceMode
+} from "@/lib/server/workspace-mode";
 
 type BusinessRow = {
   id: string;
   name: string;
   owner_user_id: string;
+  workspace_mode: WorkspaceMode;
 };
 
 type SupplierRow = {
@@ -29,6 +38,14 @@ type MaterialRow = {
   preferred_supplier_id: string | null;
   on_hand_quantity: number;
   unit_cost: number | null;
+  business_id: string;
+};
+
+type MaterialCostHistoryRow = {
+  id: string;
+  material_id: string;
+  unit_cost: number;
+  recorded_at: string;
   business_id: string;
 };
 
@@ -78,6 +95,7 @@ type WorkspaceState = {
   snapshot: BusinessSnapshot;
   initialized: boolean;
   source: "memory" | "supabase";
+  mode: WorkspaceMode;
 };
 
 type ProductInput = {
@@ -121,12 +139,13 @@ type OrderInput = {
 };
 
 type WorkspaceBackend = {
-  read(ownerId: string): Promise<WorkspaceState>;
-  write(ownerId: string, snapshot: BusinessSnapshot): Promise<WorkspaceState>;
+  read(ownerId: string, mode?: WorkspaceMode): Promise<WorkspaceState>;
+  write(ownerId: string, snapshot: BusinessSnapshot, mode?: WorkspaceMode): Promise<WorkspaceState>;
 };
 
 type WorkspaceAccess = {
   ownerId: string;
+  workspaceMode: WorkspaceMode;
   backend: WorkspaceBackend;
   persistence: "supabase" | "memory";
   memoryReason?: "no-supabase-config" | "auth-lookup-failed" | "token-lookup-failed";
@@ -174,23 +193,28 @@ function slugify(value: string) {
     .replaceAll(/^_+|_+$/g, "");
 }
 
-function createEmptySnapshot(ownerId: string): BusinessSnapshot {
+function createEmptySnapshot(ownerId: string, mode: WorkspaceMode): BusinessSnapshot {
   return {
     business: {
-      id: `biz_${slugify(ownerId) || "owner"}`,
+      id: workspaceBusinessId(ownerId, slugify, mode),
       name: "Your Business",
       ownerUserId: ownerId
     },
     suppliers: [],
     materials: [],
+    materialCostHistory: [],
     products: [],
     clients: [],
     orders: []
   };
 }
 
-function createFallbackSnapshot(ownerId: string) {
-  return namespaceDemoSnapshot(getDemoBusinessSnapshot(), ownerId);
+function createFallbackSnapshot(ownerId: string, mode: WorkspaceMode) {
+  if (mode === "live") {
+    return createEmptySnapshot(ownerId, mode);
+  }
+
+  return namespaceDemoSnapshot(getDemoBusinessSnapshot(), ownerId, mode);
 }
 
 function getPreservedBusinessName(currentName: string | undefined, fallbackName: string) {
@@ -202,7 +226,7 @@ function getPreservedBusinessName(currentName: string | undefined, fallbackName:
   return trimmed === "Your Business" ? fallbackName : trimmed;
 }
 
-function namespaceDemoSnapshot(snapshot: BusinessSnapshot, ownerId: string): BusinessSnapshot {
+function namespaceDemoSnapshot(snapshot: BusinessSnapshot, ownerId: string, mode: WorkspaceMode = "demo"): BusinessSnapshot {
   const namespace = slugify(ownerId) || "owner";
   const remap = (prefix: string, value: string) => `${prefix}_${namespace}_${value}`;
   const supplierIdMap = new Map<string, string>();
@@ -214,7 +238,7 @@ function namespaceDemoSnapshot(snapshot: BusinessSnapshot, ownerId: string): Bus
   const namespaced: BusinessSnapshot = structuredClone(snapshot);
   namespaced.business = {
     ...namespaced.business,
-    id: `biz_${namespace}`,
+    id: workspaceBusinessId(ownerId, slugify, mode),
     ownerUserId: ownerId
   };
 
@@ -235,6 +259,12 @@ function namespaceDemoSnapshot(snapshot: BusinessSnapshot, ownerId: string): Bus
         : undefined
     };
   });
+
+  namespaced.materialCostHistory = namespaced.materialCostHistory.map((entry) => ({
+    ...entry,
+    id: remap("cost", entry.id),
+    materialId: materialIdMap.get(entry.materialId) ?? entry.materialId
+  }));
 
   namespaced.products = namespaced.products.map((product) => {
     const nextId = remap("prd", product.id);
@@ -275,6 +305,11 @@ function namespaceDemoSnapshot(snapshot: BusinessSnapshot, ownerId: string): Bus
 function sortSnapshot(snapshot: BusinessSnapshot) {
   snapshot.suppliers.sort((left, right) => left.name.localeCompare(right.name));
   snapshot.materials.sort((left, right) => left.name.localeCompare(right.name));
+  snapshot.materialCostHistory.sort((left, right) => {
+    const timeCompare = left.recordedAt.localeCompare(right.recordedAt);
+    if (timeCompare !== 0) return timeCompare;
+    return left.id.localeCompare(right.id);
+  });
   snapshot.products.sort((left, right) => left.name.localeCompare(right.name));
   snapshot.clients.sort((left, right) => left.name.localeCompare(right.name));
   snapshot.orders.sort((left, right) => {
@@ -288,6 +323,7 @@ function isInitialized(snapshot: BusinessSnapshot) {
   return (
     snapshot.suppliers.length > 0 ||
     snapshot.materials.length > 0 ||
+    snapshot.materialCostHistory.length > 0 ||
     snapshot.products.length > 0 ||
     snapshot.clients.length > 0 ||
     snapshot.orders.length > 0
@@ -296,6 +332,11 @@ function isInitialized(snapshot: BusinessSnapshot) {
 
 function getOwnerId() {
   return process.env.SMALLBIZ_OWNER_ID ?? "owner_demo";
+}
+
+async function getActiveWorkspaceMode() {
+  const store = await cookies();
+  return normalizeWorkspaceMode(store.get(WORKSPACE_MODE_COOKIE)?.value);
 }
 
 function getSupabaseConfig() {
@@ -327,25 +368,29 @@ async function withTimeout<T>(work: Promise<T>, timeoutMs: number, label: string
 
 function createMemoryBackend(): WorkspaceBackend {
   return {
-    async read(ownerId: string) {
-      const existing = memoryStore.get(ownerId);
+    async read(ownerId: string, mode = "demo" as WorkspaceMode) {
+      const storeKey = workspaceMemoryKey(ownerId, mode);
+      const existing = memoryStore.get(storeKey);
       if (existing) {
         const snapshot = cloneSnapshot(existing);
         sortSnapshot(snapshot);
-        return { snapshot, initialized: isInitialized(snapshot), source: "memory" };
+        return { snapshot, initialized: isInitialized(snapshot), source: "memory", mode };
       }
 
-      const seeded = ownerId === "owner_demo" ? getDemoBusinessSnapshot() : createFallbackSnapshot(ownerId);
-      memoryStore.set(ownerId, cloneSnapshot(seeded));
+      const seeded =
+        ownerId === "owner_demo" && mode === "demo"
+          ? getDemoBusinessSnapshot()
+          : createFallbackSnapshot(ownerId, mode);
+      memoryStore.set(storeKey, cloneSnapshot(seeded));
       const snapshot = cloneSnapshot(seeded);
       sortSnapshot(snapshot);
-      return { snapshot, initialized: isInitialized(snapshot), source: "memory" };
+      return { snapshot, initialized: isInitialized(snapshot), source: "memory", mode };
     },
-    async write(ownerId: string, snapshot: BusinessSnapshot) {
+    async write(ownerId: string, snapshot: BusinessSnapshot, mode = "demo" as WorkspaceMode) {
       const next = cloneSnapshot(snapshot);
       sortSnapshot(next);
-      memoryStore.set(ownerId, next);
-      return { snapshot: cloneSnapshot(next), initialized: isInitialized(next), source: "memory" };
+      memoryStore.set(workspaceMemoryKey(ownerId, mode), next);
+      return { snapshot: cloneSnapshot(next), initialized: isInitialized(next), source: "memory", mode };
     }
   };
 }
@@ -393,8 +438,10 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
     return response.json();
   }
 
-  async function ensureBusiness(ownerId: string): Promise<Business> {
-    const rows = await request(`/business?select=id,name,owner_user_id&owner_user_id=eq.${encodeURIComponent(ownerId)}&limit=1`, {
+  async function ensureBusiness(ownerId: string, mode: WorkspaceMode): Promise<Business> {
+    const rows = await request(
+      `/business?select=id,name,owner_user_id,workspace_mode&owner_user_id=eq.${encodeURIComponent(ownerId)}&workspace_mode=eq.${encodeURIComponent(mode)}&limit=1`,
+      {
       method: "GET",
       headers: {
         apikey: publishableKey,
@@ -410,8 +457,8 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       };
     }
 
-    const business = createEmptySnapshot(ownerId).business;
-    await request("/business?on_conflict=owner_user_id", {
+    const business = createEmptySnapshot(ownerId, mode).business;
+    await request("/business?on_conflict=owner_user_id,workspace_mode", {
       method: "POST",
       headers: {
         apikey: publishableKey,
@@ -421,7 +468,8 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       body: JSON.stringify({
         id: business.id,
         name: business.name,
-        owner_user_id: business.ownerUserId
+        owner_user_id: business.ownerUserId,
+        workspace_mode: mode
       })
     });
 
@@ -438,12 +486,15 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
     }) as Promise<T[]>;
   }
 
-  async function read(ownerId: string): Promise<WorkspaceState> {
-    const business = await ensureBusiness(ownerId);
-    const [suppliers, materials, products, clients, orders] = await Promise.all([
+  async function read(ownerId: string, mode = "demo" as WorkspaceMode): Promise<WorkspaceState> {
+    const business = await ensureBusiness(ownerId, mode);
+    const [suppliers, materials, materialCostHistory, products, clients, orders] = await Promise.all([
       readRows<SupplierRow>(`/suppliers?select=id,name,email,category,business_id&business_id=eq.${encodeURIComponent(business.id)}`),
       readRows<MaterialRow>(
         `/materials?select=id,name,unit,preferred_supplier_id,on_hand_quantity,unit_cost,business_id&business_id=eq.${encodeURIComponent(business.id)}`
+      ),
+      readRows<MaterialCostHistoryRow>(
+        `/material_cost_history?select=id,material_id,unit_cost,recorded_at,business_id&business_id=eq.${encodeURIComponent(business.id)}`
       ),
       readRows<ProductRow>(
         `/products?select=id,sku,name,category,unit,yield_quantity,unit_price,business_id&business_id=eq.${encodeURIComponent(business.id)}`
@@ -537,6 +588,12 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
         category: row.category
       })),
       materials: Array.from(materialsById.values()),
+      materialCostHistory: materialCostHistory.map((row) => ({
+        id: row.id,
+        materialId: row.material_id,
+        unitCost: Number(row.unit_cost ?? 0),
+        recordedAt: row.recorded_at
+      })),
       products: productsSnapshot,
       clients: Array.from(clientsById.values()),
       orders: ordersSnapshot
@@ -546,18 +603,35 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
     const initialized = isInitialized(snapshot);
 
     if (!initialized) {
-      const seeded = namespaceDemoSnapshot(getDemoBusinessSnapshot(), ownerId);
-      seeded.business.name = getPreservedBusinessName(business.name, seeded.business.name);
-      await write(ownerId, seeded);
-      return { snapshot: cloneSnapshot(seeded), initialized: true, source: "supabase" };
+      if (mode === "demo") {
+        const seeded = namespaceDemoSnapshot(getDemoBusinessSnapshot(), ownerId, mode);
+        seeded.business.name = getPreservedBusinessName(business.name, seeded.business.name);
+        await write(ownerId, seeded, mode);
+        return { snapshot: cloneSnapshot(seeded), initialized: true, source: "supabase", mode };
+      }
+
+      return {
+        snapshot: {
+          business,
+          suppliers: [],
+          materials: [],
+          materialCostHistory: [],
+          products: [],
+          clients: [],
+          orders: []
+        },
+        initialized: false,
+        source: "supabase",
+        mode
+      };
     }
 
-    return { snapshot, initialized, source: "supabase" };
+    return { snapshot, initialized, source: "supabase", mode };
   }
 
-  async function write(ownerId: string, snapshot: BusinessSnapshot): Promise<WorkspaceState> {
+  async function write(ownerId: string, snapshot: BusinessSnapshot, mode = "demo" as WorkspaceMode): Promise<WorkspaceState> {
     const business = snapshot.business;
-    await request("/business?on_conflict=owner_user_id", {
+    await request("/business?on_conflict=owner_user_id,workspace_mode", {
       method: "POST",
       headers: {
         apikey: publishableKey,
@@ -567,7 +641,8 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       body: JSON.stringify({
         id: business.id,
         name: business.name,
-        owner_user_id: ownerId
+        owner_user_id: ownerId,
+        workspace_mode: mode
       })
     });
 
@@ -608,6 +683,13 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       }
     });
     await request(`/materials?business_id=eq.${encodeURIComponent(business.id)}`, {
+      method: "DELETE",
+      headers: {
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionToken}`
+      }
+    });
+    await request(`/material_cost_history?business_id=eq.${encodeURIComponent(business.id)}`, {
       method: "DELETE",
       headers: {
         apikey: publishableKey,
@@ -663,6 +745,24 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
           on_hand_quantity: material.onHandQuantity,
           unit_cost: material.unitCost ?? 0,
           preferred_supplier_id: material.preferredSupplierId ?? null
+        })))
+      });
+    }
+
+    if (snapshot.materialCostHistory.length) {
+      await request("/material_cost_history", {
+        method: "POST",
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${sessionToken}`,
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify(snapshot.materialCostHistory.map((entry) => ({
+          id: entry.id,
+          business_id: business.id,
+          material_id: entry.materialId,
+          unit_cost: entry.unitCost,
+          recorded_at: entry.recordedAt
         })))
       });
     }
@@ -769,7 +869,7 @@ function createSupabaseBackend(baseUrl: string, publishableKey: string, sessionT
       });
     }
 
-    return { snapshot: cloneSnapshot(snapshot), initialized: isInitialized(snapshot), source: "supabase" };
+    return { snapshot: cloneSnapshot(snapshot), initialized: isInitialized(snapshot), source: "supabase", mode };
   }
 
   return { read, write };
@@ -800,10 +900,11 @@ async function getClerkBearerForSupabase(session: Awaited<ReturnType<typeof auth
   return null;
 }
 
-async function resolveWorkspaceAccess(ownerId?: string): Promise<WorkspaceAccess> {
+async function resolveWorkspaceAccess(ownerId?: string, workspaceMode?: WorkspaceMode): Promise<WorkspaceAccess> {
   try {
     const session = await auth();
     const resolvedOwnerId = ownerId ?? session.userId ?? getOwnerId();
+    const resolvedWorkspaceMode = workspaceMode ?? await getActiveWorkspaceMode();
     const supabaseConfig = getSupabaseConfig();
 
     if (supabaseConfig && session.userId) {
@@ -812,6 +913,7 @@ async function resolveWorkspaceAccess(ownerId?: string): Promise<WorkspaceAccess
         if (sessionToken) {
           return {
             ownerId: resolvedOwnerId,
+            workspaceMode: resolvedWorkspaceMode,
             backend: createSupabaseBackend(supabaseConfig.supabaseUrl, supabaseConfig.publishableKey, sessionToken),
             persistence: "supabase"
           };
@@ -821,6 +923,7 @@ async function resolveWorkspaceAccess(ownerId?: string): Promise<WorkspaceAccess
         console.warn("Workspace auth token lookup failed; falling back to memory.", error);
         return {
           ownerId: resolvedOwnerId,
+          workspaceMode: resolvedWorkspaceMode,
           backend: createMemoryBackend(),
           persistence: "memory",
           memoryReason: "token-lookup-failed"
@@ -830,6 +933,7 @@ async function resolveWorkspaceAccess(ownerId?: string): Promise<WorkspaceAccess
 
     return {
       ownerId: resolvedOwnerId,
+      workspaceMode: resolvedWorkspaceMode,
       backend: createMemoryBackend(),
       persistence: "memory",
       memoryReason: "no-supabase-config"
@@ -839,6 +943,7 @@ async function resolveWorkspaceAccess(ownerId?: string): Promise<WorkspaceAccess
     console.warn("Workspace auth lookup failed; falling back to memory.", error);
     return {
       ownerId: ownerId ?? getOwnerId(),
+      workspaceMode: workspaceMode ?? "demo",
       backend: createMemoryBackend(),
       persistence: "memory",
       memoryReason: "auth-lookup-failed"
@@ -846,42 +951,43 @@ async function resolveWorkspaceAccess(ownerId?: string): Promise<WorkspaceAccess
   }
 }
 
-async function readWorkspaceState(ownerId?: string) {
-  const access = await resolveWorkspaceAccess(ownerId);
+async function readWorkspaceState(ownerId?: string, workspaceMode?: WorkspaceMode) {
+  const access = await resolveWorkspaceAccess(ownerId, workspaceMode);
   try {
-    const workspace = await access.backend.read(access.ownerId);
+    const workspace = await access.backend.read(access.ownerId, access.workspaceMode);
     return { ownerId: access.ownerId, workspace };
   } catch (error) {
     assertRuntimeMemoryModeAllowed(access, "workspace read");
     console.warn("Workspace read failed; falling back to memory.", error);
-    const workspace = await createMemoryBackend().read(access.ownerId);
+    const workspace = await createMemoryBackend().read(access.ownerId, access.workspaceMode);
     return { ownerId: access.ownerId, workspace };
   }
 }
 
 async function mutateWorkspace(
   ownerId: string | undefined,
-  mutator: (snapshot: BusinessSnapshot) => void | Promise<void>
+  mutator: (snapshot: BusinessSnapshot) => void | Promise<void>,
+  workspaceMode?: WorkspaceMode
 ): Promise<WorkspaceState> {
-  const access = await resolveWorkspaceAccess(ownerId);
-  const { backend, ownerId: resolvedOwnerId } = access;
+  const access = await resolveWorkspaceAccess(ownerId, workspaceMode);
+  const { backend, ownerId: resolvedOwnerId, workspaceMode: resolvedWorkspaceMode } = access;
   let current: WorkspaceState;
   try {
-    current = await backend.read(resolvedOwnerId);
+    current = await backend.read(resolvedOwnerId, resolvedWorkspaceMode);
   } catch (error) {
     assertRuntimeMemoryModeAllowed(access, "mutation read");
     console.warn("Workspace read failed during mutation; falling back to memory.", error);
-    current = await createMemoryBackend().read(resolvedOwnerId);
+    current = await createMemoryBackend().read(resolvedOwnerId, resolvedWorkspaceMode);
   }
   const next = cloneSnapshot(current.snapshot);
   await mutator(next);
   sortSnapshot(next);
   try {
-    return await backend.write(resolvedOwnerId, next);
+    return await backend.write(resolvedOwnerId, next, resolvedWorkspaceMode);
   } catch (error) {
     assertRuntimeMemoryModeAllowed(access, "workspace write");
     console.warn("Workspace write failed; falling back to memory.", error);
-    return createMemoryBackend().write(resolvedOwnerId, next);
+    return createMemoryBackend().write(resolvedOwnerId, next, resolvedWorkspaceMode);
   }
 }
 
@@ -1051,13 +1157,13 @@ function normalizeOrderItems(snapshot: BusinessSnapshot, input: OrderInput) {
   });
 }
 
-export async function readWorkspace(ownerId?: string) {
-  const { workspace } = await readWorkspaceState(ownerId);
+export async function readWorkspace(ownerId?: string, workspaceMode?: WorkspaceMode) {
+  const { workspace } = await readWorkspaceState(ownerId, workspaceMode);
   return workspace;
 }
 
-export async function getWorkspaceOverview(ownerId?: string) {
-  const { ownerId: resolvedOwnerId, workspace } = await readWorkspaceState(ownerId);
+export async function getWorkspaceOverview(ownerId?: string, workspaceMode?: WorkspaceMode) {
+  const { ownerId: resolvedOwnerId, workspace } = await readWorkspaceState(ownerId, workspaceMode);
   return {
     ...workspace,
     ownerId: resolvedOwnerId
@@ -1189,7 +1295,28 @@ export async function updateMaterialCost(ownerId: string, input: MaterialCostInp
       throw new UserFacingError("Material not found.");
     }
 
-    material.unitCost = Math.max(Number(input.unitCost ?? 0), 0);
+    const nextUnitCost = Math.max(Number(input.unitCost ?? 0), 0);
+    const previousUnitCost = Math.max(Number(material.unitCost ?? 0), 0);
+    material.unitCost = nextUnitCost;
+
+    if (previousUnitCost !== nextUnitCost) {
+      const now = Date.now();
+      const hasHistory = snapshot.materialCostHistory.some((entry) => entry.materialId === material.id);
+      if (!hasHistory) {
+        snapshot.materialCostHistory.push({
+          id: `cost_${material.id}_${crypto.randomUUID()}`,
+          materialId: material.id,
+          unitCost: previousUnitCost,
+          recordedAt: new Date(now - 1_000).toISOString()
+        });
+      }
+      snapshot.materialCostHistory.push({
+        id: `cost_${material.id}_${crypto.randomUUID()}`,
+        materialId: material.id,
+        unitCost: nextUnitCost,
+        recordedAt: new Date(now).toISOString()
+      });
+    }
   });
 }
 
@@ -1303,7 +1430,7 @@ export async function deleteOrder(ownerId: string, orderId: string) {
 
 export async function restoreDemoWorkspace(ownerId: string) {
   return mutateWorkspace(ownerId, (snapshot) => {
-    const seeded = createFallbackSnapshot(ownerId);
+    const seeded = createFallbackSnapshot(ownerId, "demo");
     const preservedBusinessName = getPreservedBusinessName(snapshot.business.name, seeded.business.name);
 
     snapshot.business = {
@@ -1312,10 +1439,11 @@ export async function restoreDemoWorkspace(ownerId: string) {
     };
     snapshot.suppliers = seeded.suppliers;
     snapshot.materials = seeded.materials;
+    snapshot.materialCostHistory = seeded.materialCostHistory;
     snapshot.products = seeded.products;
     snapshot.clients = seeded.clients;
     snapshot.orders = seeded.orders;
-  });
+  }, "demo");
 }
 
 export async function importWorkspaceData(ownerId: string, target: "products" | "orders", csv: string): Promise<ImportResult> {

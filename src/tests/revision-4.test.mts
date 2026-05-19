@@ -15,6 +15,7 @@ const snapshot: BusinessSnapshot = {
     { id: "mat_wax", name: "Soy Wax", unit: "g", onHandQuantity: 300, preferredSupplierId: "sup_1" },
     { id: "mat_wick", name: "Cotton Wick", unit: "each", onHandQuantity: 6 }
   ],
+  materialCostHistory: [],
   products: [
     {
       id: "prd_candle",

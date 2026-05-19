@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildBusinessInsights, getProductUnitCost, summarizeProductEconomics } from "../lib/domain/analytics.ts";
+import { buildBusinessInsights, buildPurchaseInsights, getProductUnitCost, summarizeProductEconomics } from "../lib/domain/analytics.ts";
 import type { BusinessSnapshot } from "../lib/domain/types.ts";
 
 const snapshot: BusinessSnapshot = {
@@ -14,6 +14,12 @@ const snapshot: BusinessSnapshot = {
   materials: [
     { id: "mat_a", name: "Material A", unit: "g", onHandQuantity: 0, unitCost: 2 },
     { id: "mat_b", name: "Material B", unit: "g", onHandQuantity: 0, unitCost: 1 }
+  ],
+  materialCostHistory: [
+    { id: "cost_a_jan", materialId: "mat_a", unitCost: 1.5, recordedAt: "2026-01-05T00:00:00.000Z" },
+    { id: "cost_a_may", materialId: "mat_a", unitCost: 2, recordedAt: "2026-05-05T00:00:00.000Z" },
+    { id: "cost_b_jan", materialId: "mat_b", unitCost: 1.2, recordedAt: "2026-01-07T00:00:00.000Z" },
+    { id: "cost_b_may", materialId: "mat_b", unitCost: 1, recordedAt: "2026-05-04T00:00:00.000Z" }
   ],
   products: [
     {
@@ -50,6 +56,7 @@ const snapshot: BusinessSnapshot = {
       orderNumber: "ORD-1",
       clientId: "cl_a",
       clientName: "Alpha Market",
+      destination: "Main shop",
       dueDate: "2026-04-10",
       status: "open",
       items: [{ productId: "prd_a", productName: "Product A", quantity: 10 }]
@@ -59,6 +66,7 @@ const snapshot: BusinessSnapshot = {
       orderNumber: "ORD-2",
       clientId: "cl_b",
       clientName: "Beta Studio",
+      destination: "Event kit",
       dueDate: "2026-05-12",
       status: "fulfilled",
       items: [{ productId: "prd_b", productName: "Product B", quantity: 5 }]
@@ -88,5 +96,19 @@ test("business insights aggregate revenue, margin, and trends", () => {
   assert.equal(insights.clientRows[0]?.clientName, "Alpha Market");
   assert.equal(insights.trendRows.length, 2);
   assert.equal(insights.trendRows[0]?.label, "Apr 2026");
+  assert.equal(insights.trendRows[1]?.label, "May 2026");
+});
+
+test("purchase insights summarize input-cost changes and inventory exposure", () => {
+  const insights = buildPurchaseInsights(snapshot);
+
+  assert.equal(insights.trackedMaterials, 2);
+  assert.equal(insights.repricedMaterials, 2);
+  assert.equal(insights.totalInventoryValue, 0);
+  assert.equal(insights.averageChangeRate, 0.08);
+  assert.equal(insights.materialRows[0]?.materialName, "Material A");
+  assert.equal(insights.materialRows[0]?.absoluteChange, 0.5);
+  assert.equal(insights.trendRows.length, 2);
+  assert.equal(insights.trendRows[0]?.label, "Jan 2026");
   assert.equal(insights.trendRows[1]?.label, "May 2026");
 });

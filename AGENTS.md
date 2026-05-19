@@ -5,7 +5,7 @@ Minimal handoff for future Codex sessions in this repo.
 ## Project
 - Name: `smallbiz-iq`
 - Goal: a small-business inventory and sales intelligence app for product-based micro-businesses.
-- Core flow: import data, manage products and contacts, capture orders, generate a purchasing plan, act on reorder alerts, and recover quickly into a clean demo state.
+- Core flow: import data, manage products and contacts, capture orders, generate a purchasing plan, act on reorder alerts, track sales and purchasing analytics, and switch cleanly between seeded demo data and a separate live workspace.
 
 ## Stack
 - Next.js 15 App Router
@@ -32,6 +32,7 @@ Minimal handoff for future Codex sessions in this repo.
 
 ## Current Architecture Notes
 - `src/lib/server/workspace.ts` is the server-side workspace data layer, with memory fallback plus Supabase read/write helpers.
+- The workspace layer now supports two modes per user: `demo` and `live`. The active mode is selected by a cookie and the Supabase `business.workspace_mode` column.
 - Clerk auth: `src/middleware.ts` protects workspace routes and mutating API prefixes; `ClerkProvider` is on the landing page (`src/app/page.tsx`) and workspace layout (`src/app/(workspace)/layout.tsx`); sign-in/up live under `src/app/sign-in/` and `src/app/sign-up/`.
 - Workspace API routes validate Clerk auth server-side; Supabase REST calls use the Clerk-issued bearer token plus **only** `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as the `apikey` header (never the service-role / secret key).
 - Supabase RLS policies live in `supabase/migrations/20260505_clerk_rls_policies_v2.sql` and key off `auth.jwt()->>'sub'`.
@@ -42,9 +43,10 @@ Minimal handoff for future Codex sessions in this repo.
 - `src/app/api/products/route.ts`, `src/app/api/contacts/route.ts`, `src/app/api/orders/route.ts`, and `src/app/api/import/route.ts` handle workspace mutations.
 - `src/lib/domain/purchasing-plan.ts` contains the production purchasing-plan and reorder-alert logic.
 - `src/lib/domain/orders.ts` summarizes open-order demand and provides live-entry defaults for new orders.
+- Historical material cost changes live in `snapshot.materialCostHistory` and are persisted in the `material_cost_history` table.
 - `src/lib/domain/workspace-validation.ts` contains duplicate-protection rules for products, contacts, and orders.
 - `src/lib/data/navigation.ts` defines the workspace nav items.
-- `src/components/layout/demo-reset-button.tsx` restores the seeded walkthrough dataset from the workspace header.
+- `src/components/layout/demo-reset-button.tsx` now renders the demo-mode toggle and the demo restore action.
 - `src/tests/purchasing-plan.test.js` is a lightweight Node test file that mirrors the domain logic contract.
 
 ## What Not To Commit

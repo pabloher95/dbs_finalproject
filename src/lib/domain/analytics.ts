@@ -1,4 +1,4 @@
-import type { BusinessSnapshot, Material, Order, Product } from "./types";
+import type { BusinessSnapshot, Material, MaterialCostHistoryEntry, Order, Product } from "./types";
 
 export type ProductEconomics = {
   productId: string;
@@ -41,6 +41,36 @@ export type BusinessInsights = {
   trendRows: RevenueTrendPoint[];
 };
 
+export type PurchaseMaterialInsight = {
+  materialId: string;
+  materialName: string;
+  unit: string;
+  latestUnitCost: number;
+  startingUnitCost: number;
+  absoluteChange: number;
+  changeRate: number;
+  onHandQuantity: number;
+  inventoryValue: number;
+  updates: number;
+  latestRecordedAt: string | null;
+};
+
+export type PurchaseTrendPoint = {
+  label: string;
+  updates: number;
+  averageUnitCost: number;
+  averageChangeRate: number;
+};
+
+export type PurchaseInsights = {
+  trackedMaterials: number;
+  repricedMaterials: number;
+  totalInventoryValue: number;
+  averageChangeRate: number;
+  materialRows: PurchaseMaterialInsight[];
+  trendRows: PurchaseTrendPoint[];
+};
+
 function roundMoney(value: number) {
   return Math.round(value * 100) / 100;
 }
@@ -57,6 +87,10 @@ function formatMonth(key: string) {
   if (!Number.isFinite(parsedYear) || !Number.isFinite(parsedMonth)) return key;
   const date = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1));
   return new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" }).format(date);
+}
+
+function sortCostHistory(entries: MaterialCostHistoryEntry[]) {
+  return [...entries].sort((left, right) => left.recordedAt.localeCompare(right.recordedAt) || left.id.localeCompare(right.id));
 }
 
 export function getProductUnitCost(product: Product, materials: Material[]) {
@@ -218,5 +252,82 @@ export function buildBusinessInsights(snapshot: BusinessSnapshot): BusinessInsig
     productRows: productValues,
     clientRows: clientValues,
     trendRows: trendValues
+  };
+}
+
+export function buildPurchaseInsights(snapshot: BusinessSnapshot): PurchaseInsights {
+  const historyByMaterial = new Map<string, MaterialCostHistoryEntry[]>();
+  for (const entry of snapshot.materialCostHistory) {
+    const current = historyByMaterial.get(entry.materialId) ?? [];
+    current.push(entry);
+    historyByMaterial.set(entry.materialId, current);
+  }
+
+  const materialRows: PurchaseMaterialInsight[] = snapshot.materials.map((material) => {
+    const history = sortCostHistory(historyByMaterial.get(material.id) ?? []);
+    const startingUnitCost = history[0]?.unitCost ?? Number(material.unitCost ?? 0);
+    const latestUnitCost = history[history.length - 1]?.unitCost ?? Number(material.unitCost ?? 0);
+    const absoluteChange = roundMoney(latestUnitCost - startingUnitCost);
+    const changeRate = startingUnitCost > 0 ? roundMoney(absoluteChange / startingUnitCost) : 0;
+
+    return {
+      materialId: material.id,
+      materialName: material.name,
+      unit: material.unit,
+      latestUnitCost: roundMoney(latestUnitCost),
+      startingUnitCost: roundMoney(startingUnitCost),
+      absoluteChange,
+      changeRate,
+      onHandQuantity: material.onHandQuantity,
+      inventoryValue: roundMoney(material.onHandQuantity * latestUnitCost),
+      updates: history.length,
+      latestRecordedAt: history[history.length - 1]?.recordedAt ?? null
+    };
+  });
+
+  const trackedMaterials = materialRows.filter((row) => row.latestUnitCost > 0).length;
+  const repricedRows = materialRows.filter((row) => row.updates > 1 || row.absoluteChange !== 0);
+  const totalInventoryValue = roundMoney(materialRows.reduce((sum, row) => sum + row.inventoryValue, 0));
+  const averageChangeRate = repricedRows.length
+    ? roundMoney(repricedRows.reduce((sum, row) => sum + row.changeRate, 0) / repricedRows.length)
+    : 0;
+
+  const trendBuckets = new Map<string, { updates: number; totalUnitCost: number; totalChangeRate: number }>();
+  for (const material of snapshot.materials) {
+    const history = sortCostHistory(historyByMaterial.get(material.id) ?? []);
+    let previousUnitCost: number | null = null;
+    for (const entry of history) {
+      const bucket = monthKey(entry.recordedAt.slice(0, 10));
+      const current = trendBuckets.get(bucket) ?? { updates: 0, totalUnitCost: 0, totalChangeRate: 0 };
+      current.updates += 1;
+      current.totalUnitCost += entry.unitCost;
+      current.totalChangeRate += previousUnitCost && previousUnitCost > 0 ? (entry.unitCost - previousUnitCost) / previousUnitCost : 0;
+      trendBuckets.set(bucket, current);
+      previousUnitCost = entry.unitCost;
+    }
+  }
+
+  const trendRows = Array.from(trendBuckets.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([bucket, value]) => ({
+      label: formatMonth(bucket),
+      updates: value.updates,
+      averageUnitCost: roundMoney(value.totalUnitCost / Math.max(value.updates, 1)),
+      averageChangeRate: roundMoney(value.totalChangeRate / Math.max(value.updates, 1))
+    }));
+
+  materialRows.sort(
+    (left, right) =>
+      Math.abs(right.absoluteChange) - Math.abs(left.absoluteChange) ||
+      right.inventoryValue - left.inventoryValue
+  );
+
+  return {
+    trackedMaterials,
+    repricedMaterials: repricedRows.length,
+    totalInventoryValue,
+    averageChangeRate,
+    materialRows,
+    trendRows
   };
 }

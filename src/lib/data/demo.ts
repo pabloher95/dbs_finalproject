@@ -53,6 +53,23 @@ const snapshot: BusinessSnapshot = {
       preferredSupplierId: "sup_dairy"
     }
   ],
+  materialCostHistory: [
+    { id: "cost_wax_jan", materialId: "ing_flour", unitCost: 0.0095, recordedAt: "2026-01-05T00:00:00.000Z" },
+    { id: "cost_wax_mar", materialId: "ing_flour", unitCost: 0.0105, recordedAt: "2026-03-02T00:00:00.000Z" },
+    { id: "cost_wax_may", materialId: "ing_flour", unitCost: 0.012, recordedAt: "2026-05-04T00:00:00.000Z" },
+    { id: "cost_oil_jan", materialId: "ing_butter", unitCost: 0.072, recordedAt: "2026-01-08T00:00:00.000Z" },
+    { id: "cost_oil_apr", materialId: "ing_butter", unitCost: 0.076, recordedAt: "2026-04-10T00:00:00.000Z" },
+    { id: "cost_oil_may", materialId: "ing_butter", unitCost: 0.08, recordedAt: "2026-05-06T00:00:00.000Z" },
+    { id: "cost_label_jan", materialId: "ing_sugar", unitCost: 0.38, recordedAt: "2026-01-11T00:00:00.000Z" },
+    { id: "cost_label_mar", materialId: "ing_sugar", unitCost: 0.36, recordedAt: "2026-03-18T00:00:00.000Z" },
+    { id: "cost_label_may", materialId: "ing_sugar", unitCost: 0.35, recordedAt: "2026-05-02T00:00:00.000Z" },
+    { id: "cost_insert_feb", materialId: "ing_jam", unitCost: 0.52, recordedAt: "2026-02-09T00:00:00.000Z" },
+    { id: "cost_insert_apr", materialId: "ing_jam", unitCost: 0.57, recordedAt: "2026-04-14T00:00:00.000Z" },
+    { id: "cost_insert_may", materialId: "ing_jam", unitCost: 0.6, recordedAt: "2026-05-09T00:00:00.000Z" },
+    { id: "cost_wick_jan", materialId: "ing_milk", unitCost: 0.1, recordedAt: "2026-01-06T00:00:00.000Z" },
+    { id: "cost_wick_mar", materialId: "ing_milk", unitCost: 0.11, recordedAt: "2026-03-12T00:00:00.000Z" },
+    { id: "cost_wick_may", materialId: "ing_milk", unitCost: 0.12, recordedAt: "2026-05-03T00:00:00.000Z" }
+  ],
   products: [
     {
       id: "prd_croissant",
