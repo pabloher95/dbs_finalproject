@@ -19,27 +19,32 @@ export default async function OrdersPage() {
           ? "Escribe el cliente directamente, registra lo que necesita, marca lo cumplido y deja que el estado del pedido te diga qué viene después."
           : "Type the customer directly, record what they need, mark work as fulfilled, and let order status tell you what comes next."
       }
-      steps={[
+      guidance={
+        language === "es"
+          ? "Captura la demanda una vez, sigue su estado y deja visible la cola."
+          : "Capture demand once, track its status, and keep the backlog visible."
+      }
+      tips={[
         {
-          title: language === "es" ? "Escribe el cliente" : "Type the customer",
+          label: language === "es" ? "Cliente" : "Customer",
           description:
             language === "es"
-              ? "Si todavía no existe, el cliente se crea al guardar el pedido."
-              : "If it does not exist yet, the customer is created when you save the order."
+              ? "Si no existe aún, se crea al guardar el pedido."
+              : "If it does not exist yet, it is created when you save the order."
         },
         {
-          title: language === "es" ? "Agrega los productos y la fecha" : "Add products and the due date",
+          label: language === "es" ? "Fecha" : "Due date",
           description:
             language === "es"
-              ? "Cada línea cuenta para el pedido y se suma a la demanda que verá Compras."
-              : "Each line adds to the order and feeds the demand Purchasing will see."
+              ? "La fecha de vencimiento ayuda a ordenar el trabajo pendiente."
+              : "The due date helps sort the work that is waiting."
         },
         {
-          title: language === "es" ? "Marca lo cumplido" : "Mark it fulfilled",
+          label: language === "es" ? "Cumplir" : "Fulfill",
           description:
             language === "es"
-              ? "Usa el botón de cumplido cuando el pedido salga o se entregue."
-              : "Use the fulfilled button when the order ships or is delivered."
+              ? "Marca el pedido cuando salga o se entregue."
+              : "Mark the order when it ships or is delivered."
         }
       ]}
     >

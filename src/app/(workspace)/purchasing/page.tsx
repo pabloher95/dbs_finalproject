@@ -15,6 +15,11 @@ export default async function PurchasingPage() {
           ? "Revisa la cantidad total necesaria para cada material, resta lo que ya tienes en mano y prepara tu siguiente corrida de compras."
           : "Review the total quantity needed for each material, subtract what is already on hand, and prepare your next purchasing run."
       }
+      guidance={
+        language === "es"
+          ? "Mira lo requerido, sigue al proveedor correcto y convierte la lista en compra."
+          : "Check what is required, follow the right supplier, and turn the list into an order."
+      }
       metrics={[
         { label: language === "es" ? "Materiales registrados" : "Materials tracked", value: String(snapshot.materials.length) },
         {
@@ -23,27 +28,27 @@ export default async function PurchasingPage() {
         },
         { label: language === "es" ? "Pedidos abiertos" : "Open orders", value: String(snapshot.orders.filter((order) => order.status === "open").length) }
       ]}
-      steps={[
+      tips={[
         {
-          title: language === "es" ? "Revisa las cantidades requeridas" : "Review required quantities",
+          label: language === "es" ? "Cantidad" : "Quantity",
           description:
             language === "es"
-              ? "Comprueba qué materiales están siendo requeridos por los pedidos abiertos."
+              ? "Comprueba qué materiales están siendo arrastrados por pedidos abiertos."
               : "Check which materials are being pulled in by open orders."
         },
         {
-          title: language === "es" ? "Revisa los enlaces de proveedor" : "Check supplier links",
+          label: language === "es" ? "Proveedor" : "Supplier",
           description:
             language === "es"
-              ? "Usa el enlace del proveedor para ver a quién deberías contactar después."
-              : "Use the supplier link to see who should hear from you next."
+              ? "Abre el enlace para saber a quién contactar después."
+              : "Open the link to see who should hear from you next."
         },
         {
-          title: language === "es" ? "Realiza pedidos a proveedores" : "Place supplier orders",
+          label: language === "es" ? "Pedido" : "Order",
           description:
             language === "es"
-              ? "Usa el enlace del proveedor para pasar de la planificación a la compra."
-              : "Use the supplier link to move from planning into purchasing."
+              ? "Pasa de la planificación a la compra sin salir de la vista."
+              : "Move from planning into purchasing without leaving the view."
         }
       ]}
     >

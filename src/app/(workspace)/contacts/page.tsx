@@ -15,32 +15,37 @@ export default async function ContactsPage() {
           ? "Agrega las personas y empresas de las que depende tu equipo para que la ingesta de pedidos y las compras sigan siendo rápidas y consistentes."
           : "Add the people and companies your team depends on so order intake and purchasing stay fast and consistent."
       }
+      guidance={
+        language === "es"
+          ? "Ten clientes y proveedores listos para que el siguiente pedido no se frene."
+          : "Keep customers and suppliers ready so the next order never stalls."
+      }
       metrics={[
         { label: language === "es" ? "Clientes" : "Customers", value: String(snapshot.clients.length), href: "/contacts" },
         { label: language === "es" ? "Proveedores" : "Suppliers", value: String(snapshot.suppliers.length), href: "/contacts" },
         { label: language === "es" ? "Pedidos abiertos" : "Open orders", value: String(snapshot.orders.filter(o => o.status === "open").length), href: "/orders" }
       ]}
-      steps={[
+      tips={[
         {
-          title: language === "es" ? "Agrega un cliente" : "Add a customer",
+          label: language === "es" ? "Cliente" : "Customer",
           description:
             language === "es"
-              ? "Mantén el registro del cliente listo antes de tomar pedidos."
-              : "Keep the customer record ready before taking orders."
+              ? "Guárdalo antes de tomar pedidos para que el flujo siga limpio."
+              : "Save it before taking orders so the flow stays clean."
         },
         {
-          title: language === "es" ? "Agrega un proveedor" : "Add a supplier",
+          label: language === "es" ? "Proveedor" : "Supplier",
           description:
             language === "es"
-              ? "Guarda los detalles de abastecimiento preferidos para que Compras tenga un destino."
-              : "Store preferred sourcing details so purchasing has somewhere to go."
+              ? "Deja listo el destino de compras para no improvisar después."
+              : "Set the purchasing destination before you need it."
         },
         {
-          title: language === "es" ? "Revisa la lista de contactos" : "Review contact list",
+          label: language === "es" ? "Lista" : "List",
           description:
             language === "es"
-              ? "Consulta la lista guardada cuando necesites asignar un trabajo o hacer un pedido."
-              : "Check the saved list when you need to assign a job or place an order."
+              ? "Vuelve aquí cuando necesites asignar un trabajo o emitir un pedido."
+              : "Come back here when you need to assign work or place an order."
         }
       ]}
     >

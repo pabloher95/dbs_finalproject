@@ -15,27 +15,32 @@ export default async function ProductsPage() {
           ? "Revisa los artículos, sus fórmulas y el costo unitario que alimenta compras y márgenes."
           : "Review items, their formulas, and the unit cost that feeds purchasing and margins."
       }
-      steps={[
+      guidance={
+        language === "es"
+          ? "Busca el artículo, revisa la receta y confirma cómo alimenta compras y margen."
+          : "Find the item, review the recipe, and confirm how it affects purchasing and margin."
+      }
+      tips={[
         {
-          title: language === "es" ? "Encuentra el artículo" : "Find the item",
+          label: language === "es" ? "Buscar" : "Search",
           description:
             language === "es"
-              ? "Busca por nombre, SKU o categoría para abrir el artículo correcto."
-              : "Search by name, SKU, or category to open the right item."
+              ? "Usa el nombre, SKU o categoría para abrir el artículo correcto."
+              : "Use the name, SKU, or category to open the right item."
         },
         {
-          title: language === "es" ? "Lee la receta" : "Read the recipe",
+          label: language === "es" ? "Fórmula" : "Formula",
           description:
             language === "es"
-              ? "Mira cómo cada material entra en la fórmula y cómo se reparte por unidad."
-              : "See how each material enters the formula and spreads per unit."
+              ? "Cada material se reparte por unidad para dejar claro el costo real."
+              : "Each material is spread per unit so the real cost stays visible."
         },
         {
-          title: language === "es" ? "Cruza con compras" : "Cross-check purchasing",
+          label: language === "es" ? "Compras" : "Purchasing",
           description:
             language === "es"
-              ? "Compara la receta con el costo y el stock de los materiales."
-              : "Compare the recipe against material cost and stock."
+              ? "Compara la receta con el stock y el costo antes de reabastecer."
+              : "Compare the recipe with stock and cost before replenishing."
         }
       ]}
     >

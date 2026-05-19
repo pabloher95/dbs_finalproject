@@ -10,7 +10,7 @@ export type NavItem = {
 export const appNav: NavItem[] = [
   {
     href: "/dashboard" as Route,
-    label: "Studio",
+    label: "Dashboard",
     description: "Current operating and sales signals.",
     primary: true
   },
