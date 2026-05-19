@@ -1,3 +1,5 @@
+import Link from "next/link";
+import type { Route } from "next";
 import { Card, Display, Eyebrow, Reveal } from "@/components/ui/surfaces";
 import { getRequestLanguage } from "@/lib/i18n-server";
 import { workflowPageCopy } from "@/lib/i18n";
@@ -10,6 +12,7 @@ type WorkflowStep = {
 type WorkflowMetric = {
   label: string;
   value: string;
+  href?: string;
 };
 
 export async function WorkflowPageShell({
@@ -36,32 +39,42 @@ export async function WorkflowPageShell({
     <div className="space-y-5 md:space-y-6">
       <Reveal>
         <section className="plate overflow-hidden px-5 py-6 md:px-7 md:py-8">
-          <div className={`grid gap-6 ${hasMetrics ? "xl:grid-cols-[1.35fr_0.95fr] xl:items-end" : "xl:grid-cols-1"}`}>
-            <div>
-              <Eyebrow tone="flame">{eyebrow}</Eyebrow>
-              <Display size="xl" className="editorial mt-3 max-w-4xl">
-                {title}
-              </Display>
-              <p className="mt-4 max-w-2xl text-[1rem] leading-7 text-[var(--muted-strong)]">{description}</p>
-            </div>
-            {hasMetrics ? (
-              <div className="grid gap-px bg-[var(--line)] sm:grid-cols-2 xl:justify-end xl:grid-cols-2">
-                {metrics?.map((metric) => (
-                  <div
-                    key={metric.label}
-                    className="ledger-cell bg-[var(--paper-bright)] px-4 py-4"
-                  >
+          <div>
+            <Eyebrow tone="flame">{eyebrow}</Eyebrow>
+            <Display size="xl" className="editorial mt-3 max-w-4xl">
+              {title}
+            </Display>
+            <p className="mt-4 max-w-2xl text-[1rem] leading-7 text-[var(--muted-strong)]">{description}</p>
+          </div>
+          {hasMetrics ? (
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {metrics?.map((metric) => {
+                const inner = (
+                  <>
                     <p className="font-mono text-[0.62rem] uppercase tracking-[0.32em] text-[var(--muted)]">
                       {metric.label}
                     </p>
-                    <p className="ledger-figure mt-2 font-display text-[clamp(1.8rem,2.8vw,2.4rem)] leading-none text-[var(--ink)]">
+                    <p className="mt-2 font-display text-[clamp(1.6rem,2.4vw,2rem)] leading-none text-[var(--ink)]">
                       {metric.value.padStart?.(2, "0") ?? metric.value}
                     </p>
+                  </>
+                );
+                return metric.href ? (
+                  <Link
+                    key={metric.label}
+                    href={metric.href as Route}
+                    className="group rounded-[18px] border border-[var(--line)] bg-[var(--paper-bright)] px-4 py-4 transition-colors hover:border-[var(--ink)] hover:bg-[var(--paper)]"
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <div key={metric.label} className="rounded-[18px] border border-[var(--line)] bg-[var(--paper-bright)] px-4 py-4">
+                    {inner}
                   </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
+                );
+              })}
+            </div>
+          ) : null}
           <div className="mt-8 grid gap-px border-t border-[var(--ink)] bg-[var(--line)] lg:grid-cols-3">
               {steps.map((step, index) => (
                 <Reveal key={step.title} delay={120 + index * 80} className="h-full">

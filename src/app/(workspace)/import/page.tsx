@@ -36,6 +36,11 @@ export default async function ImportPage({
             ? "Completa el formulario de productos para que el espacio de trabajo se actualice al instante, sin subir archivos. La fórmula del producto se guarda por unidad."
             : "Fill out the product form so the workspace updates instantly, without uploading files. Product formulas are saved at the unit level."
       }
+      metrics={[
+        { label: language === "es" ? "Productos" : "Products", value: String(snapshot.products.length), href: "/products" },
+        { label: language === "es" ? "Materiales" : "Materials", value: String(snapshot.materials.length), href: "/purchasing" },
+        { label: language === "es" ? "Proveedores" : "Suppliers", value: String(snapshot.suppliers.length), href: "/contacts" }
+      ]}
       steps={[
         {
           title: editing ? (language === "es" ? "Carga el artículo" : "Load the item") : language === "es" ? "Escribe el producto" : "Enter the product",
