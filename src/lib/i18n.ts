@@ -420,7 +420,9 @@ export function analyticsCopy(language: Language) {
     stock: language === "es" ? "Stock" : "Stock",
     shortage: language === "es" ? "Insuficiencia" : "Shortage",
     orderMore: language === "es" ? "Pedir más" : "Order more",
-    contactSupplier: language === "es" ? "Contactar proveedor" : "Contact supplier"
+    contactSupplier: language === "es" ? "Contactar proveedor" : "Contact supplier",
+    emailSupplier: language === "es" ? "Email" : "Email",
+    callSupplier: language === "es" ? "Llamar" : "Call"
   };
 }
 
@@ -769,7 +771,15 @@ export function contactStudioCopy(language: Language) {
     undoLastDelete: language === "es" ? "Deshacer último borrado" : "Undo last delete",
     required: language === "es" ? "Nombre, correo y categoría/canal son obligatorios." : "Name, email, and category/channel are required.",
     emailInvalid: language === "es" ? "Introduce una dirección de correo válida." : "Please enter a valid email address.",
-    deleteConfirm: (name: string) => (language === "es" ? `¿Eliminar ${name}?` : `Delete ${name}?`)
+    deleteConfirm: (name: string) => (language === "es" ? `¿Eliminar ${name}?` : `Delete ${name}?`),
+    deleteBlockedActiveOrder: (name: string) =>
+      language === "es"
+        ? `${name} tiene pedidos activos y no puede eliminarse hasta que se cierren o cancelen.`
+        : `${name} has active orders and cannot be deleted until they are closed or cancelled.`,
+    deleteWarnFulfilledOrders: (name: string) =>
+      language === "es"
+        ? `${name} tiene pedidos anteriores. ¿Continuar con la eliminación?`
+        : `${name} has past orders on record. Continue with deletion?`
   };
 }
 
@@ -804,9 +814,16 @@ export function orderStudioCopy(language: Language) {
     statusLabel: language === "es" ? "Estado" : "Status",
     openStatus: language === "es" ? "abierto" : "open",
     fulfilledStatus: language === "es" ? "cumplido" : "fulfilled",
+    cancelledStatus: language === "es" ? "cancelado" : "cancelled",
     markFulfilled: language === "es" ? "Marcar como cumplido" : "Mark fulfilled",
     reopenOrder: language === "es" ? "Reabrir" : "Reopen",
+    cancelOrder: language === "es" ? "Cancelar" : "Cancel",
     backlog: language === "es" ? "cola" : "backlog",
+    filterAll: language === "es" ? "Todos" : "All",
+    filterInProgress: language === "es" ? "En curso" : "In progress",
+    filterBacklog: language === "es" ? "Cola" : "Backlogged",
+    filterFulfilled: language === "es" ? "Cumplidos" : "Fulfilled",
+    filterCancelled: language === "es" ? "Cancelados" : "Cancelled",
     backlogHint:
       language === "es"
         ? "Pedidos abiertos con fecha de entrega anterior a hoy."

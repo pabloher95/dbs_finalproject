@@ -61,7 +61,7 @@ export function DashboardActiveOrders({
         {visibleOrders.map((order) => (
           <div
             key={order.id}
-            className="flex flex-wrap items-center justify-between gap-4 bg-[var(--paper-bright)] px-5 py-5"
+            className="flex flex-wrap items-center justify-between gap-4 bg-[rgba(255,255,255,0.72)] px-5 py-5"
           >
             <div className="min-w-0">
               <p className="font-display text-2xl leading-none tracking-tight text-[var(--ink)]">
@@ -87,7 +87,7 @@ export function DashboardActiveOrders({
           </div>
         ))}
         {!visibleOrders.length ? (
-          <p className="bg-[var(--paper-bright)] p-6 text-sm text-[var(--ink-soft)]">
+          <p className="bg-[rgba(255,255,255,0.72)] p-6 text-sm text-[var(--ink-soft)]">
             {copy.noOpenOrders}
           </p>
         ) : null}

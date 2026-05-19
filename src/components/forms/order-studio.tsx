@@ -27,8 +27,11 @@ type OrderDraft = {
   items: OrderLineDraft[];
 };
 
-function statusTone(status: Order["status"]): "moss" | "amber" | "flame" {
+type StatusFilter = "all" | "in-progress" | "backlog" | "fulfilled" | "cancelled";
+
+function statusTone(status: Order["status"]): "moss" | "amber" | "flame" | "ink" {
   if (status === "open") return "flame";
+  if (status === "cancelled") return "ink";
   return "moss";
 }
 
@@ -67,6 +70,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
   const [draft, setDraft] = useState<OrderDraft>(() => createDraft(snapshot));
   const [toast, setToast] = useState<{ message: string; tone: Tone } | null>(null);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [lastDeleted, setLastDeleted] = useState<Order | null>(null);
 
   const displaySnapshot = useMemo(() => ({ ...snapshot, orders }), [orders, snapshot]);
@@ -89,15 +93,22 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
     }));
   }, [snapshot.products]);
 
+  const today = new Date().toISOString().slice(0, 10);
+
   const visibleOrders = useMemo(() => {
+    let result = orders;
+    if (statusFilter === "in-progress") result = result.filter((o) => o.status === "open" && o.dueDate >= today);
+    else if (statusFilter === "backlog") result = result.filter((o) => o.status === "open" && o.dueDate < today);
+    else if (statusFilter === "fulfilled") result = result.filter((o) => o.status === "fulfilled");
+    else if (statusFilter === "cancelled") result = result.filter((o) => o.status === "cancelled");
     const key = search.trim().toLowerCase();
-    if (!key) return orders;
-    return orders.filter((order) =>
+    if (!key) return result;
+    return result.filter((order) =>
       [order.orderNumber, order.clientName, order.destination, order.status, order.dueDate].some((value) =>
         value.toLowerCase().includes(key)
       )
     );
-  }, [orders, search]);
+  }, [orders, search, statusFilter, today]);
 
   const blocked = !snapshot.products.length;
 
@@ -275,7 +286,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      <Card variant="featured" className="p-6">
         <form
           className="space-y-5"
           onSubmit={(event) => {
@@ -334,7 +345,7 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                 type="date"
                 className="field"
               />
-              <div className="rounded-[18px] border border-[var(--line)] bg-[rgba(255,255,255,0.65)] px-4 py-3">
+              <div className="rounded-[18px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] px-4 py-3">
                 <p className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-[var(--muted-strong)]">
                   {copy.statusLabel}
                 </p>
@@ -450,8 +461,34 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             className="field max-w-xs"
           />
         </div>
-        <div className="mt-4 space-y-3">
-          {visibleOrders.map((order) => (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(
+            [
+              ["all", copy.filterAll],
+              ["in-progress", copy.filterInProgress],
+              ["backlog", copy.filterBacklog],
+              ["fulfilled", copy.filterFulfilled],
+              ["cancelled", copy.filterCancelled]
+            ] as [StatusFilter, string][]
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setStatusFilter(value)}
+              className={`rounded-full border px-3 py-1 font-mono text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
+                statusFilter === value
+                  ? "border-[var(--ink)] bg-[var(--paper-edge)] text-[var(--ink)]"
+                  : "border-[var(--line-strong)] bg-[rgba(255,255,255,0.72)] text-[var(--muted-strong)] hover:border-[var(--ink)] hover:text-[var(--ink)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 space-y-3">
+          {visibleOrders.map((order) => {
+            const client = snapshot.clients.find((c) => c.id === order.clientId);
+            return (
             <article
               key={order.id}
               className={`rounded-[24px] border p-4 ${
@@ -465,7 +502,11 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                   <div className="flex items-center gap-2">
                     <p className="font-display text-lg text-[var(--ink)]">{order.orderNumber}</p>
                     <Pill tone={statusTone(order.status)}>
-                      {order.status === "open" ? copy.openStatus : copy.fulfilledStatus}
+                      {order.status === "open"
+                        ? copy.openStatus
+                        : order.status === "cancelled"
+                          ? copy.cancelledStatus
+                          : copy.fulfilledStatus}
                     </Pill>
                     {isBacklogOrder(order) ? <Pill tone="amber">{copy.backlog}</Pill> : null}
                   </div>
@@ -474,15 +515,40 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                     {order.destination ? ` · ${copy.destination} ${order.destination}` : ""}
                     · {copy.due} {order.dueDate}
                   </p>
+                  {(client?.phone || client?.address) ? (
+                    <p className="mt-0.5 text-sm text-[var(--muted-strong)]">
+                      {[client.phone, client.address].filter(Boolean).join(" · ")}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-soft"
-                    onClick={() => void updateOrderStatus(order, order.status === "open" ? "fulfilled" : "open")}
-                  >
-                    {order.status === "open" ? copy.markFulfilled : copy.reopenOrder}
-                  </button>
+                  {order.status !== "cancelled" && (
+                    <button
+                      type="button"
+                      className="btn btn-soft"
+                      onClick={() => void updateOrderStatus(order, order.status === "open" ? "fulfilled" : "open")}
+                    >
+                      {order.status === "open" ? copy.markFulfilled : copy.reopenOrder}
+                    </button>
+                  )}
+                  {order.status !== "cancelled" && order.status !== "fulfilled" && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => void updateOrderStatus(order, "cancelled")}
+                    >
+                      {copy.cancelOrder}
+                    </button>
+                  )}
+                  {order.status === "cancelled" && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => void updateOrderStatus(order, "open")}
+                    >
+                      {copy.reopenOrder}
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="btn btn-ghost"
@@ -520,7 +586,8 @@ export function OrderStudio({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
                 ))}
               </div>
             </article>
-          ))}
+            );
+          })}
           {!orders.length ? (
             <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
               {copy.noOrders}

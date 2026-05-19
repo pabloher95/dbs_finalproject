@@ -72,7 +72,7 @@ export function OrdersBoard({ snapshot }: Readonly<{ snapshot: BusinessSnapshot 
             </div>
           ))}
           {!demand.length ? (
-            <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.7)] p-4 text-sm text-[var(--muted-strong)]">
+            <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
               {copy.noDemand}
             </p>
           ) : null}

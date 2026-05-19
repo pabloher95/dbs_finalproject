@@ -69,7 +69,7 @@ export type Order = {
   clientName: string;
   destination: string;
   dueDate: string;
-  status: "open" | "fulfilled";
+  status: "open" | "fulfilled" | "cancelled";
   items: OrderItem[];
 };
 
