@@ -43,13 +43,8 @@ export default async function ContactsPage() {
               : "Check the saved list when you need to assign a job or place an order."
         }
       ]}
-      nextStep={
-        language === "es"
-          ? "Después de agregar un cliente, crea un pedido para que el calendario y el plan de compras sigan alineados."
-          : "After adding a customer, create an order so the schedule and purchasing plan stay aligned."
-      }
     >
-      <ContactStudio clients={snapshot.clients} suppliers={snapshot.suppliers} />
+      <ContactStudio clients={snapshot.clients} suppliers={snapshot.suppliers} orders={snapshot.orders} />
     </WorkflowPageShell>
   );
 }

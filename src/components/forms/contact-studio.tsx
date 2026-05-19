@@ -3,23 +3,25 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
-import { ContactBoard } from "@/components/layout/contact-board";
 import { Card, Eyebrow, Pill, Toast } from "@/components/ui/surfaces";
-import type { Client, Supplier } from "@/lib/domain/types";
-import { contactStudioCopy } from "@/lib/i18n";
+import type { Client, Order, Supplier } from "@/lib/domain/types";
+import { contactBoardCopy, contactStudioCopy } from "@/lib/i18n";
 
 type Tone = "info" | "success" | "warn" | "error";
 
 export function ContactStudio({
   clients: initialClients,
-  suppliers: initialSuppliers
+  suppliers: initialSuppliers,
+  orders
 }: Readonly<{
   clients: Client[];
   suppliers: Supplier[];
+  orders: Order[];
 }>) {
   const router = useRouter();
   const { language } = useLanguage();
   const copy = contactStudioCopy(language);
+  const boardCopy = contactBoardCopy(language);
   const [clients, setClients] = useState(initialClients);
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [clientDraft, setClientDraft] = useState({ id: "", name: "", email: "", channel: "", phone: "", address: "" });
@@ -104,7 +106,18 @@ export function ContactStudio({
     const record =
       kind === "client" ? clients.find((item) => item.id === id) : suppliers.find((item) => item.id === id);
     if (!record) return;
-    if (!window.confirm(copy.deleteConfirm(record.name))) return;
+
+    if (kind === "client") {
+      const clientOrders = orders.filter((o) => o.clientId === id);
+      const activeOrders = clientOrders.filter((o) => o.status === "open");
+      if (activeOrders.length > 0) {
+        setToast({ message: copy.deleteBlockedActiveOrder(record.name), tone: "warn" });
+        return;
+      }
+      if (clientOrders.length > 0 && !window.confirm(copy.deleteWarnFulfilledOrders(record.name))) return;
+    } else {
+      if (!window.confirm(copy.deleteConfirm(record.name))) return;
+    }
 
     const response = await fetch("/api/contacts", {
       method: "POST",
@@ -170,8 +183,9 @@ export function ContactStudio({
 
   return (
     <div className="space-y-6">
+      {/* Add / edit forms */}
       <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="p-6">
+        <Card variant="featured" className="p-6">
           <form
             className="space-y-4"
             onSubmit={(event) => {
@@ -182,19 +196,9 @@ export function ContactStudio({
             <div>
               <Eyebrow tone="flame">{copy.customerEyebrow}</Eyebrow>
               <p className="mt-2 font-display text-2xl text-[var(--ink)]">{copy.customerTitle}</p>
-              <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
-                {copy.customerDescription}
-              </p>
-              {!suppliers.length ? (
-                <Pill tone="amber" className="mt-3">
-                  {copy.supplierTip}
-                </Pill>
-              ) : null}
-              {clientDraft.id ? (
-                <Pill tone="ink" className="mt-3">
-                  {copy.editingCustomer}
-                </Pill>
-              ) : null}
+              <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">{copy.customerDescription}</p>
+              {!suppliers.length ? <Pill tone="amber" className="mt-3">{copy.supplierTip}</Pill> : null}
+              {clientDraft.id ? <Pill tone="ink" className="mt-3">{copy.editingCustomer}</Pill> : null}
             </div>
             <input
               value={clientDraft.name}
@@ -239,64 +243,10 @@ export function ContactStudio({
                 </button>
               ) : null}
             </div>
-            <input
-              value={clientSearch}
-              onChange={(event) => setClientSearch(event.target.value)}
-              placeholder={copy.searchCustomers}
-              className="field"
-            />
-            <div className="space-y-2">
-              {visibleClients.map((client) => (
-                <article
-                  key={client.id}
-                  className="flex flex-wrap items-start justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
-                >
-                  <div className="min-w-0">
-                    <p className="font-display text-lg text-[var(--ink)]">{client.name}</p>
-                    <p className="mt-1 font-mono text-[0.66rem] uppercase tracking-[0.24em] text-[var(--muted-strong)]">
-                      {client.channel}
-                    </p>
-                    <p className="mt-1 text-sm text-[var(--muted-strong)]">{client.email}</p>
-                    {client.phone ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{client.phone}</p> : null}
-                    {client.address ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{client.address}</p> : null}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() =>
-                        setClientDraft({
-                          id: client.id,
-                          name: client.name,
-                          email: client.email,
-                          channel: client.channel,
-                          phone: client.phone ?? "",
-                          address: client.address ?? ""
-                        })
-                      }
-                    >
-                      {copy.edit}
-                    </button>
-                    <button type="button" className="btn btn-soft" onClick={() => void removeContact("client", client.id)}>
-                      {copy.delete}
-                    </button>
-                  </div>
-                </article>
-              ))}
-              {!clients.length ? (
-                <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-                  {copy.noCustomers}
-                </p>
-              ) : null}
-              {clients.length > 0 && !visibleClients.length ? (
-                <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-                  {copy.noCustomerMatches}
-                </p>
-              ) : null}
-            </div>
           </form>
         </Card>
-        <Card className="p-6">
+
+        <Card variant="featured" className="p-6">
           <form
             className="space-y-4"
             onSubmit={(event) => {
@@ -307,14 +257,8 @@ export function ContactStudio({
             <div>
               <Eyebrow tone="flame">{copy.supplierEyebrow}</Eyebrow>
               <p className="mt-2 font-display text-2xl text-[var(--ink)]">{copy.supplierTitle}</p>
-              <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">
-                {copy.supplierDescription}
-              </p>
-              {supplierDraft.id ? (
-                <Pill tone="ink" className="mt-3">
-                  {copy.editingSupplier}
-                </Pill>
-              ) : null}
+              <p className="mt-2 text-[0.9rem] leading-6 text-[var(--muted-strong)]">{copy.supplierDescription}</p>
+              {supplierDraft.id ? <Pill tone="ink" className="mt-3">{copy.editingSupplier}</Pill> : null}
             </div>
             <input
               value={supplierDraft.name}
@@ -359,39 +303,103 @@ export function ContactStudio({
                 </button>
               ) : null}
             </div>
-            <input
-              value={supplierSearch}
-              onChange={(event) => setSupplierSearch(event.target.value)}
-              placeholder={copy.searchSuppliers}
-              className="field"
-            />
-            <div className="space-y-2">
-              {visibleSuppliers.map((supplier) => (
+          </form>
+        </Card>
+      </div>
+
+      {/* Unified contact directory */}
+      <Card className="overflow-hidden rounded-[28px]">
+        <div className="grid xl:grid-cols-2">
+          {/* Customers */}
+          <div className="p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <Eyebrow tone="flame">{boardCopy.customers}</Eyebrow>
+                <p className="mt-1 font-display text-xl text-[var(--ink)]">{boardCopy.orderDestinations}</p>
+              </div>
+              <input
+                value={clientSearch}
+                onChange={(event) => setClientSearch(event.target.value)}
+                placeholder={copy.searchCustomers}
+                className="field max-w-[14rem]"
+              />
+            </div>
+            <div className="mt-4 space-y-2">
+              {visibleClients.map((client) => (
                 <article
-                  key={supplier.id}
-                  className="flex flex-wrap items-start justify-between gap-3 rounded-[24px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
+                  key={client.id}
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-[20px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
                 >
                   <div className="min-w-0">
-                    <p className="font-display text-lg text-[var(--ink)]">{supplier.name}</p>
-                    <p className="mt-1 text-sm text-[var(--muted-strong)]">{supplier.email}</p>
-                    {supplier.phone ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{supplier.phone}</p> : null}
-                    {supplier.address ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{supplier.address}</p> : null}
-                    <Pill className="mt-2">{supplier.category}</Pill>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-display text-lg text-[var(--ink)]">{client.name}</p>
+                      <Pill>{client.channel}</Pill>
+                    </div>
+                    <p className="mt-1 text-sm text-[var(--muted-strong)]">{client.email}</p>
+                    {client.phone ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{client.phone}</p> : null}
+                    {client.address ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{client.address}</p> : null}
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       className="btn btn-ghost"
-                      onClick={() =>
-                        setSupplierDraft({
-                          id: supplier.id,
-                          name: supplier.name,
-                          email: supplier.email,
-                          category: supplier.category,
-                          phone: supplier.phone ?? "",
-                          address: supplier.address ?? ""
-                        })
-                      }
+                      onClick={() => setClientDraft({ id: client.id, name: client.name, email: client.email, channel: client.channel, phone: client.phone ?? "", address: client.address ?? "" })}
+                    >
+                      {copy.edit}
+                    </button>
+                    <button type="button" className="btn btn-soft" onClick={() => void removeContact("client", client.id)}>
+                      {copy.delete}
+                    </button>
+                  </div>
+                </article>
+              ))}
+              {!clients.length ? (
+                <p className="rounded-[20px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
+                  {boardCopy.noCustomers}
+                </p>
+              ) : null}
+              {clients.length > 0 && !visibleClients.length ? (
+                <p className="rounded-[20px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
+                  {copy.noCustomerMatches}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Suppliers */}
+          <div className="border-t border-[var(--line)] p-6 xl:border-l xl:border-t-0">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <Eyebrow tone="flame">{boardCopy.suppliers}</Eyebrow>
+                <p className="mt-1 font-display text-xl text-[var(--ink)]">{boardCopy.sourcingLinks}</p>
+              </div>
+              <input
+                value={supplierSearch}
+                onChange={(event) => setSupplierSearch(event.target.value)}
+                placeholder={copy.searchSuppliers}
+                className="field max-w-[14rem]"
+              />
+            </div>
+            <div className="mt-4 space-y-2">
+              {visibleSuppliers.map((supplier) => (
+                <article
+                  key={supplier.id}
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-[20px] border border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-display text-lg text-[var(--ink)]">{supplier.name}</p>
+                      <Pill tone="ink">{supplier.category}</Pill>
+                    </div>
+                    <p className="mt-1 text-sm text-[var(--muted-strong)]">{supplier.email}</p>
+                    {supplier.phone ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{supplier.phone}</p> : null}
+                    {supplier.address ? <p className="mt-0.5 text-sm text-[var(--muted-strong)]">{supplier.address}</p> : null}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => setSupplierDraft({ id: supplier.id, name: supplier.name, email: supplier.email, category: supplier.category, phone: supplier.phone ?? "", address: supplier.address ?? "" })}
                     >
                       {copy.edit}
                     </button>
@@ -402,25 +410,25 @@ export function ContactStudio({
                 </article>
               ))}
               {!suppliers.length ? (
-                <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
-                  {copy.noSuppliers}
+                <p className="rounded-[20px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
+                  {boardCopy.noSuppliers}
                 </p>
               ) : null}
               {suppliers.length > 0 && !visibleSuppliers.length ? (
-                <p className="rounded-[24px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
+                <p className="rounded-[20px] border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] p-4 text-sm text-[var(--muted-strong)]">
                   {copy.noSupplierMatches}
                 </p>
               ) : null}
             </div>
-          </form>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </Card>
+
       {lastDeleted ? (
         <button type="button" className="btn btn-soft" onClick={() => void undoDelete()}>
           {copy.undoLastDelete}
         </button>
       ) : null}
-      <ContactBoard clients={clients} suppliers={suppliers} />
       {toast ? <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast(null)} /> : null}
     </div>
   );
