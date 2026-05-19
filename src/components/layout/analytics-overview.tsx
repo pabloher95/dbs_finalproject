@@ -36,6 +36,24 @@ function formatSignedPercent(value: number) {
 export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: BusinessSnapshot }>) {
   const language = await getRequestLanguage();
   const copy = analyticsCopy(language);
+  const es = language === "es";
+
+  function productDetail(revenue: string, margin: string) {
+    return es ? `${revenue} ingresos · ${margin} margen` : `${revenue} revenue · ${margin} margin`;
+  }
+  function clientDetail(revenue: string, orderCount: number) {
+    return es
+      ? `${revenue} ingresos en ${orderCount} ${orderCount === 1 ? "pedido" : "pedidos"}.`
+      : `${revenue} revenue across ${orderCount} ${orderCount === 1 ? "order" : "orders"}.`;
+  }
+  function monthDetail(revenue: string, marginRate: string) {
+    return es
+      ? `${revenue} en ingresos y ${marginRate} de tasa de margen.`
+      : `${revenue} in revenue and ${marginRate} margin rate.`;
+  }
+  function costMovement(from: string, to: string, change: string) {
+    return es ? `${from} a ${to} · ${change}` : `${from} to ${to} · ${change}`;
+  }
   const insights = buildBusinessInsights(snapshot);
   const purchaseInsights = buildPurchaseInsights(snapshot);
   const reorderAlerts = buildReorderAlerts(snapshot);
@@ -104,7 +122,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
               {topProduct?.productName ?? copy.noProduct}
             </p>
             <p className="mt-2 text-sm text-[var(--muted-strong)]">
-              {topProduct ? copy.productDetail(formatMoney(topProduct.revenue), formatMoney(topProduct.margin)) : copy.setPricing}
+              {topProduct ? productDetail(formatMoney(topProduct.revenue), formatMoney(topProduct.margin)) : copy.setPricing}
             </p>
           </div>
 
@@ -116,7 +134,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
               {topClient?.clientName ?? copy.noClient}
             </p>
             <p className="mt-2 text-sm text-[var(--muted-strong)]">
-              {topClient ? copy.clientDetail(formatMoney(topClient.revenue), topClient.orders) : copy.openOrdersFallback}
+              {topClient ? clientDetail(formatMoney(topClient.revenue), topClient.orders) : copy.openOrdersFallback}
             </p>
           </div>
 
@@ -128,7 +146,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
               {topMonth?.label ?? copy.noMonth}
             </p>
             <p className="mt-2 text-sm text-[var(--muted-strong)]">
-              {topMonth ? copy.monthDetail(formatMoney(topMonth.revenue), formatPercent(topMonth.margin / Math.max(topMonth.revenue, 1))) : copy.monthReadings}
+              {topMonth ? monthDetail(formatMoney(topMonth.revenue), formatPercent(topMonth.margin / Math.max(topMonth.revenue, 1))) : copy.monthReadings}
             </p>
           </div>
 
@@ -258,7 +276,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
               </p>
               <p className="mt-2 text-sm text-[var(--muted-strong)]">
                 {largestIncrease
-                  ? copy.costMovement(formatUnitCost(largestIncrease.startingUnitCost), formatUnitCost(largestIncrease.latestUnitCost), formatSignedPercent(largestIncrease.changeRate))
+                  ? costMovement(formatUnitCost(largestIncrease.startingUnitCost), formatUnitCost(largestIncrease.latestUnitCost), formatSignedPercent(largestIncrease.changeRate))
                   : copy.captureCosts}
               </p>
             </div>
@@ -272,7 +290,7 @@ export async function AnalyticsOverview({ snapshot }: Readonly<{ snapshot: Busin
               </p>
               <p className="mt-2 text-sm text-[var(--muted-strong)]">
                 {largestDecrease
-                  ? copy.costMovement(formatUnitCost(largestDecrease.startingUnitCost), formatUnitCost(largestDecrease.latestUnitCost), formatSignedPercent(largestDecrease.changeRate))
+                  ? costMovement(formatUnitCost(largestDecrease.startingUnitCost), formatUnitCost(largestDecrease.latestUnitCost), formatSignedPercent(largestDecrease.changeRate))
                   : copy.captureCosts}
               </p>
             </div>
