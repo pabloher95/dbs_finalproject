@@ -13,9 +13,9 @@ Living snapshot for developers. **Re-run checks** (especially `npm audit` and ho
 | RLS (in repo) | **OK (SQL)** | Policies on core tables use `auth.jwt() ->> 'sub'`; must be applied on the real project. |
 | Public / unauthenticated endpoints | **By design** | CSV template downloads only; see below. |
 | AI / LLM usage | **None** | No model calls in app code today. |
-| CI / pre-commit | **Gap** | No `.github/workflows` or Husky in repo. |
+| CI / pre-commit | **OK** | `.github/workflows/ci.yml` runs lint, test, and build on push/PR. |
 | Error tracking | **Gap** | No Sentry (or similar) wired in code. |
-| Dependency audit | **Action needed** | `npm audit` currently reports **high** (Next) + **moderate** (PostCSS via Next); see [Supply chain](#supply-chain). |
+| Dependency audit | **Monitored** | `npm audit` reports **3 moderate** (PostCSS via Next transitive dep — no upstream fix available); high Next.js advisories cleared in 15.5.18. |
 
 ---
 
@@ -78,13 +78,14 @@ Template routes under `/api/templates/*` are intentionally outside the protected
 ## Supply chain
 
 - **Lockfile:** `package-lock.json` is committed (good for reproducible installs).
-- **Audit:** As of last check, `npm audit` reported **2** issues tied to the pinned **Next.js** line (high) and nested **PostCSS** (moderate). Advisory details and fixes change over time—run:
+- **Audit:** As of Next.js 15.5.18, `npm audit` reports **3 moderate** — all tied to the PostCSS transitive dependency bundled inside `next/node_modules/postcss`. No upstream fix is available from the PostCSS advisory; the high-severity Next.js advisories were resolved in 15.5.18. Re-run periodically:
 
   ```bash
   npm audit
+  npm audit fix
   ```
 
-  and upgrade Next (and transitive PostCSS) per your release policy.
+  and upgrade Next per your release policy as new patches land.
 
 - **Dependency set:** Small direct footprint (`@clerk/nextjs`, `next`, `react`, etc.); no obvious typosquat names in `package.json`.
 
@@ -105,8 +106,8 @@ Template routes under `/api/templates/*` are intentionally outside the protected
 
 ## Recommended next steps (priority ideas)
 
-1. **Patch Next.js** (and thus PostCSS) to clear known `npm audit` findings, test, then ship.
-2. **Add CI** (lint, `tsc --noEmit` if you add a script, test, build) and optionally secret scanning.
+1. ~~**Patch Next.js** (resolved in 15.5.18).~~ Monitor the PostCSS transitive dep for an upstream fix.
+2. ~~**Add CI** (resolved — `.github/workflows/ci.yml` ships lint, typecheck, test, build).~~
 3. **Sanitize API error responses** for production.
 4. **Rate-limit** `POST /api/import` (and optionally other mutations).
 5. **Confirm** production Supabase RLS and Clerk JWT integration match the migration assumptions.

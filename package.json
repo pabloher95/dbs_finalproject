@@ -12,6 +12,7 @@
     "prestart": "node scripts/check-node-version.mjs",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test": "node --test --experimental-strip-types src/tests/*.test.js src/tests/*.test.mts"
   },
   "dependencies": {
